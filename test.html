@@ -422,8 +422,8 @@ function renderProgress(){
   <tr><td class="note">Ukupno, sva gradiva</td><td class="num" style="color:var(--muted)">${fmt(overall(p))}</td><td class="note">${p.answered}</td><td></td></tr></table>
   <h2 style="font-size:24px;margin-top:26px">Vrste zamki</h2>
   ${rows?`<table><tr><th>Zamka</th><th>Točno</th><th></th></tr>${rows}</table><p class="note">Zamke u kojima imaš manje od 60 % točnih odgovora aplikacija će ti češće zadavati.</p>`:'<p class="note">Riješi nekoliko zadataka iz ovog gradiva pa će se ovdje vidjeti gdje griješiš.</p>'}
-  <div id="rstbox"></div><div class="row" style="margin-top:22px"><button class="ghost" id="rst">Resetiraj napredak</button><button class="ghost" id="sw">${Remote?'Odjavi se':'Promijeni nadimak ili korisnika'}</button><button class="ghost" id="th">Svijetla / tamna tema</button></div></div>`;
-  modbar();
+  <div id="rstbox"></div><div class="row" style="margin-top:22px"><button class="ghost" id="rst">Resetiraj napredak</button><button class="ghost" id="sw">${Remote?'Odjavi se':'Promijeni nadimak ili korisnika'}</button><button class="ghost" id="th">Svijetla / tamna tema</button><button class="ghost" id="delp" style="color:var(--bad)">Obriši profil</button></div></div>`;
+  modbar();$('#delp').onclick=delAsk;
   $('#rst').onclick=()=>rstAsk(mod);
   $('#sw').onclick=()=>{if(Remote){session=null;Store.set('session',null);state.profiles={}}state.active=null;Store.set('state',state);render()};
   $('#th').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);r.dataset.theme=d?'light':'dark';Store.set('theme',r.dataset.theme)};
@@ -1333,6 +1333,19 @@ async function boardStats(mod){let s=null;try{const {data,error}=await Remote.rp
   ${rows?`<table><tr><th>Gradivo</th><th>Korisnika</th><th>Zadataka</th><th>Točno</th><th>Prosječna razina</th><th>Tvoja razina</th></tr>${rows}</table>`:''}
   <p style="margin:18px 0 4px;font-weight:600">Aktivni korisnici po danu (zadnjih 30 dana)</p>${bars}
   <p class="note">Prikazani su samo zbirni podaci. Prosječna razina vidi se tek kad gradivo vježba barem 5 korisnika.</p>`}
+
+/* ---------- Brisanje profila ---------- */
+function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="sheet" style="margin-top:20px;padding:16px;border-color:var(--bad)"><p style="margin:0 0 10px"><b>Obrisati profil „${p.nick.replace(/[<>&]/g,'')}“?</b> Nadimak, razine i svi rezultati bit će trajno obrisani${Remote?' iz baze':''}. Ovo se ne može poništiti.</p>
+  ${Remote?`<label>Za potvrdu upiši svoj PIN<br><input type="password" id="delpin" inputmode="numeric" maxlength="4" style="max-width:140px;margin:4px 0 10px" autocomplete="off"></label>`:''}
+  <div class="row"><button class="primary" id="dely" style="margin:0;background:var(--bad)">Trajno obriši profil</button><button class="ghost" id="deln">Odustani</button></div><p class="msg bad" id="delerr"></p></div>`;
+  $('#deln').onclick=()=>{box.innerHTML=''};
+  $('#dely').onclick=async()=>{const err=$('#delerr');
+    if(Remote){const pin=$('#delpin').value.trim();if(!/^\d{4}$/.test(pin)){err.textContent='Upiši PIN od 4 znamenke.';return}
+      err.textContent='Brišem…';try{const {error}=await Remote.rpc('delete_profile',{p_token:session.token,p_pin:pin});if(error){err.textContent=(error.message||'').includes('bad_pin')?'PIN nije točan.':'Brisanje trenutačno ne uspijeva. Pokušaj ponovno.';return}}catch(e){err.textContent='Nema veze s bazom.';return}
+      clearTimeout(saveTimer);session=null;Store.set('session',null);state.profiles={}}
+    else delete state.profiles[p.nick];
+    state.active=null;Store.set('state',state);view='home';render();
+    const m=main.querySelector('.panel');if(m)m.insertAdjacentHTML('afterbegin','<p class="msg ok" style="margin-top:0">Profil je obrisan.</p>')}}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
