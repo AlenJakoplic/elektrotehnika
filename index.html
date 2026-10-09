@@ -1346,6 +1346,26 @@ function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="she
     else delete state.profiles[p.nick];
     state.active=null;Store.set('state',state);view='home';render();
     const m=main.querySelector('.panel');if(m)m.insertAdjacentHTML('afterbegin','<p class="msg ok" style="margin-top:0">Profil je obrisan.</p>')}}
+
+/* ---------- Ljestvica: ukupno ---------- */
+let boardAll=false;
+{const _mb=modbar;modbar=function(){_mb();if(view!=='board')return;const bar=main.querySelector('.modbar');if(!bar)return;
+  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll}">Ukupno</button>`);
+  bar.addEventListener('click',e=>{if(e.target.closest('[data-m]'))boardAll=false},true);
+  bar.querySelector('[data-all]').onclick=()=>{boardAll=true;render()};
+  if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
+{const _rb=renderBoard;renderBoard=function(){if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
+async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno</h2>';let rows=[],err='';
+  if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
+    try{const {data,error}=await Remote.rpc('leaderboard_total');if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
+    if(view!=='board'||!boardAll)return}
+  else rows=Object.values(state.profiles).map(p=>({nick:p.nick,r:overall(p),n:Object.keys(TOPICS).reduce((s,k)=>s+((p.ratings[k]||{}).n||0),0)})).filter(x=>x.n>0).sort((a,b)=>b.r-a.r);
+  main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
+  <table><tr><th></th><th>Nadimak</th><th>Ukupna razina</th><th>Riješeno</th></tr>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td>${String(p.nick).replace(/[<>&]/g,'')}</td><td class="num">${fmt(p.r)}</td><td>${p.n}</td></tr>`).join('')||'<tr><td colspan="4">Još nema rezultata.</td></tr>'}</table>
+  <p class="note">Ukupna razina je prosjek razina iz svih gradiva, pri čemu gradiva s više riješenih zadataka imaju veću težinu.</p>
+  ${Remote?'<div id="stats"><p class="note">Učitavam statistiku…</p></div>':'<p class="note">Ljestvica prikazuje samo nadimke koji su vježbali u ovom pregledniku.</p>'}</div>`;
+  modbar();if(Remote)boardStats(null)}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
