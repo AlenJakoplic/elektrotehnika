@@ -1350,7 +1350,7 @@ function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="she
 /* ---------- Ljestvica: ukupno ---------- */
 let boardAll=false;
 {const _mb=modbar;modbar=function(){_mb();if(view!=='board')return;const bar=main.querySelector('.modbar');if(!bar)return;
-  bar.insertAdjacentHTML('beforeend',`<button data-all="1" aria-current="${boardAll}">Ukupno</button>`);
+  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll}">Ukupno</button>`);
   bar.addEventListener('click',e=>{if(e.target.closest('[data-m]'))boardAll=false},true);
   bar.querySelector('[data-all]').onclick=()=>{boardAll=true;render()};
   if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
