@@ -83,6 +83,7 @@ footer{max-width:1180px;margin:0 auto;padding:4px 20px 10px;color:var(--muted);f
 .steps li{padding:6px 0;border-bottom:1px dashed var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .chip{border:1.5px solid var(--ink);border-radius:5px;padding:2px 8px;font-size:15px;color:#1C2B3A}
+a[data-nick]{color:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer}a[data-nick]:hover{text-decoration-style:solid}
 .msg{margin-top:12px;font-size:15px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
 .ruk-in{display:flex;gap:8px;align-items:center;margin-top:10px}.ruk-in input{max-width:140px}
 .help h3{font-family:var(--f-head);font-size:22px;margin:22px 0 4px}
@@ -478,7 +479,7 @@ function renderBoard(){
   const rows=Object.values(state.profiles).filter(p=>p.ratings[mod]&&p.ratings[mod].n>0).sort((a,b)=>b.ratings[mod].r-a.ratings[mod].r);
   main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: ${MODNAME[mod]}</h2>
   <table><tr><th></th><th>Nadimak</th><th>Razina</th><th>Riješeno</th><th>Točno</th></tr>
-  ${rows.map((p,i)=>{const R=p.ratings[mod];return `<tr${p.nick===state.active?' style="font-weight:700"':''}><td>${i+1}.</td><td>${p.nick}</td><td class="num">${fmt(R.r)}</td><td>${R.n}</td><td>${Math.round(100*R.c/R.n)} %</td></tr>`}).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table>
+  ${rows.map((p,i)=>{const R=p.ratings[mod];return `<tr${p.nick===state.active?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${p.nick.replace(/"/g,'')}">${p.nick}</a></td><td class="num">${fmt(R.r)}</td><td>${R.n}</td><td>${Math.round(100*R.c/R.n)} %</td></tr>`}).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table>
   <p class="note">Ljestvica prikazuje samo nadimke koji su vježbali u ovom pregledniku.</p></div>`;
   modbar();
 }
@@ -491,7 +492,7 @@ async function renderBoardRemote(mod){
   const me=prof().nick;
   main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: ${MODNAME[mod]}</h2>${err?`<p class="msg bad">${err}</p>`:''}
   <table><tr><th></th><th>Nadimak</th><th>Razina</th><th>Riješeno</th><th>Točno</th></tr>
-  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td>${p.nick.replace(/[<>&]/g,'')}</td><td class="num">${fmt(p.r)}</td><td>${p.n}</td><td>${p.n?Math.round(100*p.c/p.n):0} %</td></tr>`).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table><div id="stats"><p class="note">Učitavam statistiku…</p></div></div>`;
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${p.nick.replace(/[<>&"]/g,'')}">${p.nick.replace(/[<>&]/g,'')}</a></td><td class="num">${fmt(p.r)}</td><td>${p.n}</td><td>${p.n?Math.round(100*p.c/p.n):0} %</td></tr>`).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table><div id="stats"><p class="note">Učitavam statistiku…</p></div></div>`;
   modbar();
   boardStats(mod);
 }
@@ -1230,16 +1231,18 @@ function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=z
   main.innerHTML=`<div class="modwrap"><span class="modlabel">Vrsta zadatka:</span><div class="modbar">${[['ruk',Z.type==='cap'?'Ukupni kapacitet':'Ukupni otpor',['ruk','cap']],['ui','Struje i naponi',['ui']],['kont','Metode rješavanja',['kont','cvor']]].map(([k,l,g])=>`<button data-zt="${g.includes(Z.type)?Z.type:k}" aria-current="${g.includes(Z.type)}">${l}</button>`).join('')}</div>${Z.type==='ruk'||Z.type==='cap'?`<div class="modbar"><button data-zt="ruk" aria-current="${Z.type==='ruk'}">Otpornici</button><button data-zt="cap" aria-current="${Z.type==='cap'}">Kondenzatori</button></div>`:''}${Z.type==='kont'||Z.type==='cvor'?`<div class="modbar"><button data-zt="kont" aria-current="${Z.type==='kont'}">Konturne struje</button><button data-zt="cvor" aria-current="${Z.type==='cvor'}">Naponi čvorova</button></div>`:''}<span class="modlvl">Težina mreže: <b>${z.d}</b> od 6</span></div>
   <div class="board"><div class="sheet"><div class="meta"><span>Mreža ${z.net.id}</span><span>riješi na papiru</span></div><div class="schem" id="zsch">${zDraw(z,null)}</div></div>
   <div class="sheet side"><p style="margin:0 0 14px">${zText(z)}</p>
+  ${zFieldsHtml(z)}<p class="msg bad" id="zmsg" style="margin:4px 0 0"></p>
   ${zShow?`<h3 style="font-family:var(--f-head);font-size:22px;margin:6px 0">Rješenje</h3><ol class="steps" id="zsteps">${sol.steps.map(s=>`<li data-hl="${s[0].join(',')}" style="cursor:default">${s[1]}</li>`).join('')}</ol>${sol.table||''}
-    <p class="q" style="font-size:16px;margin:16px 0 8px">Je li tvoje rješenje točno?</p><div class="mbtns"><button class="opt" id="zok">Točno</button><button class="opt" id="zbad">Netočno</button></div>`
-  :`<button class="primary" id="zsol" style="margin:0">Prikaži rješenje</button>`}
+    `
+  :`<button class="ghost" id="zsol" style="margin:14px 0 0">${zad.ans&&zad.ans.done?'Prikaži postupak':'Prikaži rješenje (zadatak tada nosi 0 bodova)'}</button>`}
   <div class="mbtns" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line)"><button class="ghost" id="zeasy">Lakši</button><button class="ghost" id="znew">Novi zadatak</button><button class="ghost" id="zhard">Teži</button></div>
-  <p class="note" style="margin-top:10px">Zadatak riješi na papiru, pa usporedi s rješenjem. Ne utječe na razinu.</p></div></div>`;
+  <p class="note" style="margin-top:10px">Zadatak riješi na papiru i upiši rezultate. Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Bodovi se računaju u niz dana, tjednu ligu i značke.</p></div></div>`;
   main.querySelectorAll('#zsteps li').forEach(li=>{li.onmouseenter=()=>{$('#zsch').innerHTML=zDraw(z,li.dataset.hl.split(','));li.style.background='color-mix(in srgb,var(--mark) 22%,transparent)'};li.onmouseleave=()=>{$('#zsch').innerHTML=zDraw(z,null);li.style.background=''}});
   main.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{Z.type=b.dataset.zt;save();zNew();renderZad()});
   const mv=dd=>{Z.d[Z.type]=Math.max(1,Math.min(6,Z.d[Z.type]+dd));save();zNew();renderZad();window.scrollTo(0,0)};
-  if($('#zsol'))$('#zsol').onclick=()=>{zShow=true;renderZad()};
-  if($('#zok'))$('#zok').onclick=()=>{Z.n++;Z.ok++;mv(0.5)};if($('#zbad'))$('#zbad').onclick=()=>{Z.n++;mv(-0.5)};
+  if($('#zsol'))$('#zsol').onclick=()=>{if(!z.ans.done)zFinish(z,true);zShow=true;renderZad()};
+  if($('#zcheck'))$('#zcheck').onclick=()=>{if(zCheck(z))renderZad()};
+  main.querySelectorAll('[data-zf]').forEach(i=>i.onkeydown=e=>{if(e.key==='Enter'&&$('#zcheck'))$('#zcheck').click()});
   $('#zeasy').onclick=()=>mv(-1);$('#zhard').onclick=()=>mv(1);$('#znew').onclick=()=>mv(0)}
 /* ---------- Kratki vodič ---------- */
 const TOUR=[
@@ -1350,11 +1353,11 @@ function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="she
 /* ---------- Ljestvica: ukupno ---------- */
 let boardAll=false;
 {const _mb=modbar;modbar=function(){_mb();if(view!=='board')return;const bar=main.querySelector('.modbar');if(!bar)return;
-  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll}">Ukupno</button>`);
+  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll==='week'}" data-wk="1">Ovaj tjedan</button><button data-all="1" aria-current="${boardAll===true}">Ukupno</button>`);
   bar.addEventListener('click',e=>{if(e.target.closest('[data-m]'))boardAll=false},true);
-  bar.querySelector('[data-all]').onclick=()=>{boardAll=true;render()};
-  if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
-{const _rb=renderBoard;renderBoard=function(){if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
+  bar.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{boardAll=b.dataset.wk?'week':true;render()});
+  if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=boardAll==='week'?`Tvoji bodovi ovaj tjedan: <b>${zN(gWeek(prof()).pts)}</b>`:`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
+{const _rb=renderBoard;renderBoard=function(){if(boardAll==='week')return renderBoardWeek();if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
 async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno</h2>';let rows=[],err='';
   if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
     try{const {data,error}=await Remote.rpc('leaderboard_total');if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
@@ -1362,7 +1365,7 @@ async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno
   else rows=Object.values(state.profiles).map(p=>({nick:p.nick,r:overall(p),n:Object.keys(TOPICS).reduce((s,k)=>s+((p.ratings[k]||{}).n||0),0)})).filter(x=>x.n>0).sort((a,b)=>b.r-a.r);
   main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
   <table><tr><th></th><th>Nadimak</th><th>Ukupna razina</th><th>Riješeno</th></tr>
-  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td>${String(p.nick).replace(/[<>&]/g,'')}</td><td class="num">${fmt(p.r)}</td><td>${p.n}</td></tr>`).join('')||'<tr><td colspan="4">Još nema rezultata.</td></tr>'}</table>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${fmt(p.r)}</td><td>${p.n}</td></tr>`).join('')||'<tr><td colspan="4">Još nema rezultata.</td></tr>'}</table>
   <p class="note">Ukupna razina je prosjek razina iz svih gradiva, pri čemu gradiva s više riješenih zadataka imaju veću težinu.</p>
   ${Remote?'<div id="stats"><p class="note">Učitavam statistiku…</p></div>':'<p class="note">Ljestvica prikazuje samo nadimke koji su vježbali u ovom pregledniku.</p>'}</div>`;
   modbar();if(Remote)boardStats(null)}
@@ -1371,6 +1374,136 @@ async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno
 document.addEventListener('pointerdown',e=>{const b=e.target.closest('.pineye');if(!b)return;e.preventDefault();const i=b.parentNode.querySelector('input');if(!i)return;i.type='text';
   const off=()=>{i.type='password';document.removeEventListener('pointerup',off);document.removeEventListener('pointercancel',off);b.removeEventListener('pointerleave',off)};
   document.addEventListener('pointerup',off);document.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off)});
+
+/* ---------- Zadaci: upis vrijednosti i bodovanje ---------- */
+const ZTOL=0.05;
+function zFields(z){if(z.fields)return z.fields;const pickR=arr=>arr[Math.floor(Math.random()*arr.length)];let F=[];
+  if(z.type==='ruk'||z.type==='cap')F=[{lab:z.type==='cap'?'C<sub>uk</sub>':'R<sub>uk</sub>',unit:z.unit,val:z.tr.root.v,w:2}];
+  else if(z.type==='ui'){const L=z.all.filter(g=>g.type==='leaf').sort((a,b)=>+a.name.slice(1)-+b.name.slice(1)),a=pickR(L),b=pickR(L.filter(x=>x!==a))||a;
+    F=[{lab:'R<sub>uk</sub>',unit:z.unit,val:z.tr.root.v,w:1},{lab:'I',unit:z.iu,val:z.tr.root.I,w:1},{lab:`I<sub>${a.name.slice(1)}</sub>`,unit:z.iu,val:a.I,w:1},{lab:`U<sub>${b.name.slice(1)}</sub>`,unit:'V',val:b.U,w:2}]}
+  else{const res=z.res,br=z.q.c.br.filter(b=>b.R&&Math.abs(res.br[b.id])>1e-9),b=pickR(br.length?br:z.q.c.br.filter(b=>b.R));
+    if(z.type==='kont')F=res.X.map((x,i)=>({lab:IK(i),unit:z.iu,val:x,w:1,sign:1}));
+    else F=Object.keys(res.Vn).map(n=>({lab:UN(+n),unit:'V',val:res.Vn[n],w:1,sign:1}));
+    F.push({lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(res.br[b.id]),w:2,desc:`iznos struje kroz ${sub(b.R)}`})}
+  z.fields=F;z.ans={v:F.map(()=>''),ok:F.map(()=>null),tries:0,done:false,pts:0};return F}
+const zParse=s=>{s=String(s).trim().replace(/\s/g,'').replace(',','.').replace(/[−–]/g,'-');return s===''||!/^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?NaN:+s};
+const zMatch=(x,e)=>Math.abs(e)<1e-9?Math.abs(x)<=0.005:Math.abs(x-e)<=ZTOL*Math.abs(e)+1e-9;
+function zFieldsHtml(z){const F=zFields(z),A=z.ans,max=F.reduce((s,f)=>s+f.w,0);
+  const row=(f,i)=>{const ok=A.ok[i],lock=A.done||ok===true,col=ok===true?'var(--ok)':ok===false?'var(--bad)':'var(--line)';
+    return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:44px;text-align:right;font-weight:600">${f.lab} =</span><input type="text" inputmode="decimal" data-zf="${i}" value="${String(A.v[i]).replace(/"/g,'')}" ${lock?'disabled':''} style="max-width:120px;padding:6px 10px;border-color:${col}"><span>${f.unit}</span>${f.desc?`<span class="note" style="margin:0">(${f.desc})</span>`:''}${ok===true?'<span style="color:var(--ok);font-weight:700">✓</span>':ok===false?`<span style="color:var(--bad);font-weight:700">✗${A.done?` <span style="font-weight:500">točno: ${zN(f.val).replace(/^-/,'−')}</span>`:''}</span>`:''}</div>`};
+  return `<div id="zform"><p style="margin:0 0 4px;font-weight:600">Upiši rezultate:</p>${F.map(row).join('')}
+   ${z.type==='kont'||z.type==='cvor'?'<p class="note" style="margin:4px 0">Konturne struje i napone čvorova upiši s predznakom.</p>':''}
+   <p class="note" style="margin:4px 0">Priznaje se odstupanje do 5 %. Decimalni zarez ili točka.</p>
+   ${A.done?`<p style="margin:10px 0 0;font-size:18px">Bodovi: <b>${zN(A.pts)}</b> od ${max}${A.pts>=max?' 🎉':''}</p>`
+     :`<div class="row" style="margin-top:10px"><button class="primary" id="zcheck" style="margin:0">${A.tries?'Provjeri ponovno':'Provjeri'}</button>${A.tries?'<span class="note">Ispravi crvena polja. Drugi pokušaj nosi pola boda.</span>':''}</div>`}</div>`}
+function zFinish(z,shown){const F=zFields(z),A=z.ans,Z=zProf(),max=F.reduce((s,f)=>s+f.w,0);if(A.done)return;A.done=true;if(shown)A.pts=0;
+  Z.n=(Z.n||0)+1;Z.pts=(Z.pts||0)+A.pts;Z.max=(Z.max||0)+max;const full=A.pts>=max;if(full){Z.ok=(Z.ok||0)+1;Z.full=Z.full||{};Z.full[z.type]=(Z.full[z.type]||0)+1}
+  const fr=A.pts/max;Z.d[z.type]=Math.max(1,Math.min(6,(Z.d[z.type]||2)+(fr>=0.8?0.5:fr<0.5?-0.5:0)));
+  if(!shown)dayTick(full,A.pts);save();
+  try{if(Remote&&session)Remote.rpc('record_answer',{p_token:session.token,p_qid:'Z-'+z.type,p_topic:'z'+z.type,p_score:fr,p_help:true,p_mode:'zadaci',p_qbase:0,p_qdelta:0}).then(()=>{},()=>{});gcSend&&gcSend('zadatak/z'+z.type+'/'+(full?'tocno':'netocno'))}catch(e){}}
+function zCheck(z){const F=zFields(z),A=z.ans;main.querySelectorAll('[data-zf]').forEach(i=>A.v[+i.dataset.zf]=i.value);
+  if(F.some((f,i)=>A.ok[i]!==true&&isNaN(zParse(A.v[i])))){const m=$('#zmsg');if(m)m.textContent='Upiši broj u svako polje.';return false}
+  A.tries++;F.forEach((f,i)=>{if(A.ok[i]===true)return;const ok=zMatch(zParse(A.v[i]),f.val);if(ok)A.pts+=A.tries===1?f.w:f.w/2;A.ok[i]=ok});
+  if(A.tries>=2||A.ok.every(x=>x===true))zFinish(z,false);return true}
+
+/* ---------- Gamifikacija: niz dana, slobodni dani, značke, zvanja, tjedna liga ---------- */
+const FREE_EVERY=10,FREE_MAX=3;
+const zgDate=(t)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Zagreb',year:'numeric',month:'2-digit',day:'2-digit'}).format(t||new Date());
+const dDiff=(a,b)=>Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/864e5);
+const weekId=ds=>{const d=new Date(ds+'T00:00:00Z'),k=(d.getUTCDay()+6)%7;return new Date(d-k*864e5).toISOString().slice(0,10)};
+function gDays(p){p.days=p.days||{streak:0,best:0,last:null,free:0,run:0,bestRun:0};return p.days}
+function curStreak(p){const D=gDays(p);if(!D.last)return 0;const g=dDiff(D.last,zgDate())-1;return g<=0||g<=D.free?D.streak:0}
+function gWeek(p){const w=weekId(zgDate());if(!p.week||p.week.id!==w)p.week={id:w,pts:0};return p.week}
+function dayTick(correct,pts){const p=prof();if(!p)return;const D=gDays(p),t=zgDate();
+  if(D.last!==t){if(!D.last)D.streak=1;else{const g=dDiff(D.last,t)-1;if(g<=0)D.streak++;else if(D.free>=g){D.free-=g;D.streak++}else D.streak=1}D.last=t;D.best=Math.max(D.best,D.streak)}
+  if(correct){D.run++;D.bestRun=Math.max(D.bestRun,D.run);if(D.run>=FREE_EVERY){D.run=0;if(D.free<FREE_MAX){D.free++;toast('🛡️ Zaslužen je slobodan dan!')}}}else D.run=0;
+  gWeek(p).pts+=pts==null?(correct?1:0):pts;
+  checkBadges(p)}
+const ZVANJA=[[3,'Iskra'],[5,'Žarulja'],[7,'Generator'],[9,'Transformator'],[11,'Munja']];
+const zvanje=r=>ZVANJA.find(([m])=>r<m)[1];
+const tagsOk=p=>Object.values(p.tags||{}).filter(t=>t.n>=5&&t.c/t.n>=0.8).length;
+const rt=(p,k)=>(p.ratings&&p.ratings[k])||{r:2,n:0,c:0};
+const totC=p=>Object.values(p.ratings||{}).reduce((s,x)=>s+(x.c||0),0);
+const zfull=(p,t)=>((p.zad&&p.zad.full)||{})[t]||0;
+const BADGES=[
+ ['prvi','🎯','Prvi korak','Prvi točan odgovor.',p=>totC(p)>=1],
+ ['n3','🔥','Tri dana zaredom','Vježbanje 3 dana zaredom.',p=>gDays(p).best>=3],
+ ['n7','🔥','Tjedan zaredom','Vježbanje 7 dana zaredom.',p=>gDays(p).best>=7],
+ ['n30','🏆','Mjesec zaredom','Vježbanje 30 dana zaredom.',p=>gDays(p).best>=30],
+ ['r10','⚡','Deset zaredom','10 točnih odgovora zaredom.',p=>gDays(p).bestRun>=10],
+ ['r30','⚡','Trideset zaredom','30 točnih odgovora zaredom.',p=>gDays(p).bestRun>=30],
+ ['c100','💯','Stotka','100 točnih odgovora ukupno.',p=>totC(p)>=100],
+ ['c500','🧮','Petsto','500 točnih odgovora ukupno.',p=>totC(p)>=500],
+ ['t5','🪤','Lov na zamke','5 svladanih vrsta zamki (barem 80 % točno).',p=>tagsOk(p)>=5],
+ ['t15','🪤','Zamke pod kontrolom','15 svladanih vrsta zamki.',p=>tagsOk(p)>=15],
+ ['estat5','⚛️','Elektrostatika: razina 5','Razina 5 iz elektrostatike.',p=>rt(p,'estat').r>=5],
+ ['serpar5','🔗','Serija ili paralela: razina 5','Razina 5 iz serije i paralele.',p=>rt(p,'serpar').r>=5],
+ ['ruk5','Ω','Ukupni otpor: razina 5','Razina 5 iz ukupnog otpora.',p=>rt(p,'ruk').r>=5],
+ ['met5','🔄','Metode: razina 5','Razina 5 iz konturnih struja ili napona čvorova.',p=>Math.max(rt(p,'kont').r,rt(p,'cvor').r)>=5],
+ ['sve','🌐','Svestranost','Barem 10 odgovora iz svakog gradiva.',p=>['estat','serpar','ruk'].every(k=>rt(p,k).n>=10)&&rt(p,'kont').n+rt(p,'cvor').n>=10],
+ ['z1','📝','Puni bodovi','Prvi zadatak riješen s punim bodovima.',p=>Object.values((p.zad&&p.zad.full)||{}).reduce((a,b)=>a+b,0)>=1],
+ ['z10','📝','Deset punih','10 zadataka s punim bodovima.',p=>Object.values((p.zad&&p.zad.full)||{}).reduce((a,b)=>a+b,0)>=10],
+ ['zk5','🔁','Konturne struje u malom prstu','5 zadataka konturnih struja s punim bodovima.',p=>zfull(p,'kont')>=5],
+ ['zc5','📍','Naponi čvorova u malom prstu','5 zadataka napona čvorova s punim bodovima.',p=>zfull(p,'cvor')>=5]];
+function checkBadges(p){p.badges=p.badges||{};const nw=[];for(const[id,ic,nm,,f]of BADGES)if(!p.badges[id]&&f(p)){p.badges[id]=zgDate();nw.push(ic+' '+nm)}
+  if(nw.length)toast('Nova značka: '+nw.join(', '))}
+function toast(t){const d=document.createElement('div');d.textContent=t;d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:10px 18px;border-radius:10px;font-weight:600;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center';document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
+{const _ar4=applyResult;applyResult=function(q,correct){const r=_ar4.apply(this,arguments);try{if(!(tryQ&&q&&q.id===tryQ)){const ok=typeof correct==='number'?correct>=0.5:!!correct;dayTick(ok)}}catch(e){}return r}}
+function badgeGrid(p,small){p.badges=p.badges||{};return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${small?120:150}px,1fr));gap:8px">${BADGES.map(([id,ic,nm,ds])=>{const on=p.badges[id];return `<div title="${ds}${on?' Osvojeno '+on.split('-').reverse().join('.')+'.':''}" style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;${on?'':'opacity:.38;filter:grayscale(1)'}"><div style="font-size:22px;line-height:1.2">${ic}</div><div style="font-size:13px;font-weight:600;line-height:1.25">${nm}</div>${small?'':`<div style="font-size:12px;color:var(--muted);line-height:1.25;margin-top:2px">${ds}</div>`}</div>`}).join('')}</div>`}
+function streakBox(p){const D=gDays(p),s=curStreak(p);return `<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:10px 0 4px">
+  <span title="Dan se računa kad riješiš barem jedan zadatak."><span style="font-size:22px">🔥</span> <b style="font-size:20px">${s}</b> ${s===1?'dan':'dana'} zaredom</span>
+  <span title="Slobodan dan čuva niz kad propustiš dan. Dobiva se za svakih ${FREE_EVERY} točnih odgovora zaredom, najviše ${FREE_MAX}."><span style="font-size:22px">🛡️</span> <b style="font-size:20px">${D.free}</b> / ${FREE_MAX} slobodna dana</span>
+  <span style="color:var(--muted);font-size:14px">${D.free>=FREE_MAX?'Imaš najviše slobodnih dana.':`${D.run}/${FREE_EVERY} točnih zaredom do sljedećeg slobodnog dana`}</span></div>`}
+
+/* ---------- Javni profil ---------- */
+async function showProfile(nick){let d=null,err='';
+  if(Remote){try{const {data,error}=await Remote.rpc('public_profile',{p_nick:nick});if(error||!data)err='Profil se ne može učitati.';else d=data}catch(e){err='Nema veze s bazom.'}}
+  else{const p=state.profiles[nick];if(p)d={nick:p.nick,since:p.created?new Date(p.created).toISOString():null,state:p}}
+  const P=d?Object.assign({ratings:{},tags:{}},d.state||{}):null;
+  const esc=s=>String(s||'').replace(/[<>&"]/g,'');
+  document.getElementById('profov')?.remove();
+  let body=err?`<p class="msg bad">${err}</p>`:'';
+  if(P){const ov=overall(P),zd=P.zad||{},bars=[['estat','Elektrostatika'],['serpar','Serija ili paralela'],['ruk','Ukupni otpor'],['kont','Konturne struje'],['cvor','Naponi čvorova']].map(([k,l])=>{const x=rt(P,k);return `<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><span style="width:150px;font-size:14px">${l}</span><div style="flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.max(3,(x.r-1)/9*100)}%;background:var(--ok)"></div></div><b style="width:34px;text-align:right">${fmt(x.r)}</b></div>`}).join('');
+    body=`<h2 style="margin:0">${esc(d.nick)}${d.name?` <span style="font-weight:400;color:var(--muted);font-size:20px">(${esc(d.name)})</span>`:''}</h2>
+    <p style="margin:4px 0 0">${zvanje(ov)} · ukupna razina <b>${fmt(ov)}</b></p>
+    ${streakBox(P).replace(/\d+\/\d+ točnih zaredom do sljedećeg slobodnog dana|Imaš najviše slobodnih dana\./,'')}
+    <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} · točnih odgovora: ${totC(P)} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
+    <h3 style="margin:10px 0 6px">Razine po gradivima</h3>${bars}
+    <h3 style="margin:16px 0 8px">Značke (${Object.keys(P.badges||{}).length}/${BADGES.length})</h3>${badgeGrid(P,true)}`}
+  document.body.insertAdjacentHTML('beforeend',`<div id="profov" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto"><div class="sheet" style="max-width:640px;width:100%;padding:22px 24px;border-radius:10px;background:var(--sheet);position:relative"><button class="ghost" id="profx" style="position:absolute;right:12px;top:12px;margin:0">Zatvori</button>${body}</div></div>`);
+  const cl=()=>document.getElementById('profov')?.remove();$('#profx').onclick=cl;$('#profov').onclick=e=>{if(e.target.id==='profov')cl()};document.addEventListener('keydown',function k(e){if(e.key==='Escape'){cl();document.removeEventListener('keydown',k)}})}
+main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){e.preventDefault();showProfile(t.dataset.nick)}});
+
+/* ---------- Početna i Napredak: niz, zvanje, značke, moj profil ---------- */
+{const _rh=renderHome;renderHome=function(){_rh.apply(this,arguments);const p=prof(),h=main.querySelector('.panel h2');if(!h)return;
+  h.insertAdjacentHTML('afterend',`<p style="margin:0 0 2px;color:var(--muted)">Zvanje: <b style="color:var(--ink)">${zvanje(overall(p))}</b></p>${streakBox(p)}`)}}
+{const _rp=renderProgress;renderProgress=function(){_rp.apply(this,arguments);const p=prof(),h=main.querySelector('.panel h2');if(!h)return;
+  const nb=Object.keys(p.badges||{}).length;
+  h.insertAdjacentHTML('afterend',`<div style="border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:6px 0 18px">
+   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Zvanje: <b>${zvanje(overall(p))}</b> · ukupna razina <b>${fmt(overall(p))}</b></span><button class="ghost" data-nick="${p.nick.replace(/"/g,'')}" style="margin:0">Kako te drugi vide</button></div>
+   ${streakBox(p)}
+   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Značke: ${nb} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(p)}</div></details>
+   ${Remote?`<details style="margin-top:8px" id="mojprof"><summary style="cursor:pointer;font-weight:600">Moj profil: ime i prezime</summary><div style="margin-top:10px">
+     <label>Ime i prezime (neobavezno)<br><input type="text" id="fname" maxlength="60" placeholder="npr. Ana Horvat" style="margin-top:4px"></label>
+     <p class="note" style="margin:6px 0">Vidi ga samo nastavnik i ne utječe na ocjenu. Služi za pregled korištenja radionice. Možeš ga promijeniti ili obrisati u bilo kojem trenutku.</p>
+     <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="fshow" style="width:18px;height:18px"> Prikaži moje ime na javnom profilu</label>
+     <div class="row" style="margin-top:10px"><button class="primary" id="fsave" style="margin:0">Spremi</button><span class="note" id="fmsg"></span></div></div></details>`:''}</div>`);
+  if(Remote&&session){const fn=$('#fname'),fs=$('#fshow'),msg=$('#fmsg');
+    Remote.rpc('get_me',{p_token:session.token}).then(({data})=>{const r=data&&data[0];if(r){fn.value=r.full_name||'';fs.checked=!!r.show_name}}).catch(()=>{});
+    $('#fsave').onclick=async()=>{const nm=fn.value.trim();if(fs.checked&&!nm){msg.textContent='Za prikaz upiši ime.';return}msg.textContent='Spremam…';
+      try{const {error}=await Remote.rpc('set_name',{p_token:session.token,p_name:nm,p_show:fs.checked&&!!nm});msg.textContent=error?'Spremanje nije uspjelo.':'Spremljeno.'}catch(e){msg.textContent='Nema veze s bazom.'}}}}}
+
+async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`<h2>Ljestvica: ovaj tjedan</h2><p class="note" style="margin-top:-6px">Tjedan od ${wk.split('-').reverse().join('.')}. Svaki ponedjeljak kreće ispočetka.</p>`;let rows=[],err='';
+  if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
+    try{const {data,error}=await Remote.rpc('leaderboard_week',{p_week:wk});if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
+    if(view!=='board'||boardAll!=='week')return}
+  else rows=Object.values(state.profiles).filter(p=>p.week&&p.week.id===wk&&p.week.pts>0).map(p=>({nick:p.nick,pts:p.week.pts})).sort((a,b)=>b.pts-a.pts);
+  main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
+  <table><tr><th></th><th>Nadimak</th><th>Bodovi</th></tr>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Ovaj tjedan još nitko nema bodova.</td></tr>'}</table>
+  <p class="note">Bodovi: 1 za svaki točan odgovor u Vježbi i Ispitu, a u Zadacima onoliko koliko zadatak donese. Ovdje se ne gleda razina, nego trud.</p>
+  ${Remote?'<div id="stats"><p class="note">Učitavam statistiku…</p></div>':''}</div>`;
+  modbar();if(Remote)boardStats(null)}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
