@@ -1419,8 +1419,6 @@ function dayTick(correct,pts){const p=prof();if(!p)return;const D=gDays(p),t=zgD
   if(correct){D.run++;D.bestRun=Math.max(D.bestRun,D.run);if(D.run>=FREE_EVERY){D.run=0;if(D.free<FREE_MAX){D.free++;toast('🛡️ Zaslužen je slobodan dan!')}}}else D.run=0;
   gWeek(p).pts+=pts==null?(correct?1:0):pts;
   checkBadges(p)}
-const ZVANJA=[[3,'Iskra'],[5,'Žarulja'],[7,'Generator'],[9,'Transformator'],[11,'Munja']];
-const zvanje=r=>ZVANJA.find(([m])=>r<m)[1];
 const tagsOk=p=>Object.values(p.tags||{}).filter(t=>t.n>=5&&t.c/t.n>=0.8).length;
 const rt=(p,k)=>(p.ratings&&p.ratings[k])||{r:2,n:0,c:0};
 const totC=p=>Object.values(p.ratings||{}).reduce((s,x)=>s+(x.c||0),0);
@@ -1465,7 +1463,7 @@ async function showProfile(nick){let d=null,err='';
   let body=err?`<p class="msg bad">${err}</p>`:'';
   if(P){const ov=overall(P),zd=P.zad||{},bars=[['estat','Elektrostatika'],['serpar','Serija ili paralela'],['ruk','Ukupni otpor'],['kont','Konturne struje'],['cvor','Naponi čvorova']].map(([k,l])=>{const x=rt(P,k);return `<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><span style="width:150px;font-size:14px">${l}</span><div style="flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.max(3,(x.r-1)/9*100)}%;background:var(--ok)"></div></div><b style="width:34px;text-align:right">${fmt(x.r)}</b></div>`}).join('');
     body=`<h2 style="margin:0">${esc(d.nick)}${d.name?` <span style="font-weight:400;color:var(--muted);font-size:20px">(${esc(d.name)})</span>`:''}</h2>
-    <p style="margin:4px 0 0">${zvanje(ov)} · ukupna razina <b>${fmt(ov)}</b></p>
+    <p style="margin:4px 0 0">Ukupna razina <b>${fmt(ov)}</b></p>
     ${streakBox(P).replace(/\d+\/\d+ točnih zaredom do sljedećeg slobodnog dana|Imaš najviše slobodnih dana\./,'')}
     <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} · točnih odgovora: ${totC(P)} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
     <h3 style="margin:10px 0 6px">Razine po gradivima</h3>${bars}
@@ -1476,11 +1474,11 @@ main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){
 
 /* ---------- Početna i Napredak: niz, zvanje, značke, moj profil ---------- */
 {const _rh=renderHome;renderHome=function(){_rh.apply(this,arguments);const p=prof(),h=main.querySelector('.panel h2');if(!h)return;
-  h.insertAdjacentHTML('afterend',`<p style="margin:0 0 2px;color:var(--muted)">Zvanje: <b style="color:var(--ink)">${zvanje(overall(p))}</b></p>${streakBox(p)}`)}}
+  h.insertAdjacentHTML('afterend',streakBox(p))}}
 {const _rp=renderProgress;renderProgress=function(){_rp.apply(this,arguments);const p=prof(),h=main.querySelector('.panel h2');if(!h)return;
   const nb=Object.keys(p.badges||{}).length;
   h.insertAdjacentHTML('afterend',`<div style="border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:6px 0 18px">
-   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Zvanje: <b>${zvanje(overall(p))}</b> · ukupna razina <b>${fmt(overall(p))}</b></span><button class="ghost" data-nick="${p.nick.replace(/"/g,'')}" style="margin:0">Kako te drugi vide</button></div>
+   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Ukupna razina <b>${fmt(overall(p))}</b></span><button class="ghost" data-nick="${p.nick.replace(/"/g,'')}" style="margin:0">Kako te drugi vide</button></div>
    ${streakBox(p)}
    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Značke: ${nb} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(p)}</div></details>
    ${Remote?`<details style="margin-top:8px" id="mojprof"><summary style="cursor:pointer;font-weight:600">Moj profil: ime i prezime</summary><div style="margin-top:10px">
