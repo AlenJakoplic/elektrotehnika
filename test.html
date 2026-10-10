@@ -61,7 +61,7 @@ th{font-weight:700;color:var(--muted);font-size:14px}
 .num{font-family:var(--f-head);font-size:22px;font-weight:600}
 .bar{height:8px;background:var(--btn);border-radius:4px;overflow:hidden;min-width:80px}
 .bar i{display:block;height:100%;background:var(--ink)}
-input[type=text]{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);width:100%;max-width:320px}
+input[type=text],input[type=password]{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);width:100%;max-width:320px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .note{color:var(--muted);font-size:14px}
 .banklist{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -305,7 +305,7 @@ function renderWelcomeRemote(msg=''){
   main.innerHTML=`<div class="sheet panel welcome"><h2>Prijava</h2>
   <p>Upiši nadimak i PIN od 4 znamenke. Nadimak se vidi na ljestvici, pa odaberi nešto po čemu te drugi ne prepoznaju. Rezultati se ne ocjenjuju. S istim nadimkom i PIN-om nastavljaš na bilo kojem uređaju.</p>
   <div class="row" style="align-items:flex-end"><label>Nadimak<br><input type="text" id="nick" maxlength="24" placeholder="npr. Kirchhoffov_unuk" autocomplete="username"></label>
-  <label>PIN<br><input type="text" id="pin" inputmode="numeric" maxlength="4" placeholder="4 znamenke" style="max-width:120px" autocomplete="off"></label></div>
+  <label>PIN<br><span style="position:relative;display:inline-block"><input type="password" id="pin" inputmode="numeric" maxlength="4" placeholder="4 znamenke" style="max-width:140px;padding-right:38px" autocomplete="off"><button type="button" id="pineye" class="pineye" title="Drži za prikaz PIN-a" aria-label="Drži za prikaz PIN-a" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);margin:0;padding:4px 6px;background:none;border:none;color:var(--muted);cursor:pointer;line-height:0;touch-action:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label></div>
   <div class="row" style="margin-top:14px"><button class="primary" id="reg" style="margin:0">Novi nadimak</button><button class="ghost" id="log">Prijavi se</button></div>
   <p class="msg bad" id="werr">${msg}</p>
   <p class="note" style="margin:16px 0 0">Koristi radionicu kao pomoć u učenju. Za potpunu pripremu i dalje su važne auditorne vježbe i samostalno rješavanje zadataka.</p>
@@ -1336,7 +1336,7 @@ async function boardStats(mod){let s=null;try{const {data,error}=await Remote.rp
 
 /* ---------- Brisanje profila ---------- */
 function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="sheet" style="margin-top:20px;padding:16px;border-color:var(--bad)"><p style="margin:0 0 10px"><b>Obrisati profil „${p.nick.replace(/[<>&]/g,'')}“?</b> Nadimak, razine i svi rezultati bit će trajno obrisani${Remote?' iz baze':''}. Ovo se ne može poništiti.</p>
-  ${Remote?`<label>Za potvrdu upiši svoj PIN<br><input type="password" id="delpin" inputmode="numeric" maxlength="4" style="max-width:140px;margin:4px 0 10px" autocomplete="off"></label>`:''}
+  ${Remote?`<label>Za potvrdu upiši svoj PIN<br><span style="position:relative;display:inline-block;margin:4px 0 10px"><input type="password" id="delpin" inputmode="numeric" maxlength="4" style="max-width:140px;padding-right:38px" autocomplete="off"><button type="button" class="pineye" title="Drži za prikaz PIN-a" aria-label="Drži za prikaz PIN-a" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);margin:0;padding:4px 6px;background:none;border:none;color:var(--muted);cursor:pointer;line-height:0;touch-action:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>`:''}
   <div class="row"><button class="primary" id="dely" style="margin:0;background:var(--bad)">Trajno obriši profil</button><button class="ghost" id="deln">Odustani</button></div><p class="msg bad" id="delerr"></p></div>`;
   $('#deln').onclick=()=>{box.innerHTML=''};
   $('#dely').onclick=async()=>{const err=$('#delerr');
@@ -1366,6 +1366,11 @@ async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno
   <p class="note">Ukupna razina je prosjek razina iz svih gradiva, pri čemu gradiva s više riješenih zadataka imaju veću težinu.</p>
   ${Remote?'<div id="stats"><p class="note">Učitavam statistiku…</p></div>':'<p class="note">Ljestvica prikazuje samo nadimke koji su vježbali u ovom pregledniku.</p>'}</div>`;
   modbar();if(Remote)boardStats(null)}
+
+/* ---------- Prikaz PIN-a dok se drži oko ---------- */
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.pineye');if(!b)return;e.preventDefault();const i=b.parentNode.querySelector('input');if(!i)return;i.type='text';
+  const off=()=>{i.type='password';document.removeEventListener('pointerup',off);document.removeEventListener('pointercancel',off);b.removeEventListener('pointerleave',off)};
+  document.addEventListener('pointerup',off);document.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off)});
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
