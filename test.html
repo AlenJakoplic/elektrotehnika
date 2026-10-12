@@ -492,7 +492,7 @@ async function renderBoardRemote(mod){
   const me=prof().nick;
   main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: ${MODNAME[mod]}</h2>${err?`<p class="msg bad">${err}</p>`:''}
   <table><tr><th></th><th>Nadimak</th><th>Razina</th><th>Riješeno</th><th>Točno</th></tr>
-  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${p.nick.replace(/[<>&"]/g,'')}">${p.nick.replace(/[<>&]/g,'')}</a></td><td class="num">${fmt(p.r)}</td><td>${p.n}</td><td>${p.n?Math.round(100*p.c/p.n):0} %</td></tr>`).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table><div id="stats"><p class="note">Učitavam statistiku…</p></div></div>`;
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${p.nick.replace(/[<>&"]/g,'')}">${p.nick.replace(/[<>&]/g,'')}</a></td><td class="num">${fmt(p.r)}</td><td>${p.n}</td><td>${p.c==null?'<span class="note" title="Skriveno">–</span>':(p.n?Math.round(100*p.c/p.n):0)+' %'}</td></tr>`).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table><div id="stats"><p class="note">Učitavam statistiku…</p></div></div>`;
   modbar();
   boardStats(mod);
 }
@@ -1465,8 +1465,8 @@ async function showProfile(nick){let d=null,err='';
     const nAll=Object.values(P.ratings||{}).reduce((s,x)=>s+(x.n||0),0),zn=zd.n||0,tile=(v,l)=>`<div style="border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:110px"><div style="font-size:24px;font-weight:700;font-family:var(--f-head)">${v}</div><div style="font-size:13px;color:var(--muted)">${l}</div></div>`;
     body=`<h2 style="margin:0">${esc(d.nick)}${d.name?` <span style="font-weight:400;color:var(--muted);font-size:20px">(${esc(d.name)})</span>`:''}</h2>
     <p style="margin:4px 0 0">Ukupna razina <b>${fmt(ov)}</b></p>
-    ${streakBox(P).replace(/\d+\/\d+ točnih zaredom do sljedećeg slobodnog dana|Imaš najviše slobodnih dana\./,'')}
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll+zn,'riješeno ukupno')}${tile(nAll,'u Vježbi i Ispitu')}${tile(zn,'u Zadacima')}${tile(totC(P),'točnih odgovora')}</div>
+    <p style="margin:10px 0 4px"><span style="font-size:22px">🔥</span> <b style="font-size:20px">${curStreak(P)}</b> ${curStreak(P)===1?'dan':'dana'} zaredom</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll+zn,'riješeno ukupno')}${tile(nAll,'u Vježbi i Ispitu')}${tile(zn,'u Zadacima')}${P.showAcc&&Object.values(P.ratings||{}).some(x=>x.c!=null)?tile(totC(P),'točnih odgovora'):''}</div>
     <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} ${gDays(P).best===1?'dan':'dana'} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
     <h3 style="margin:10px 0 6px">Razine po gradivima</h3>${bars}
     <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">Značke: ${Object.keys(P.badges||{}).length} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(P,true)}</div></details>`}
@@ -1484,12 +1484,14 @@ main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){
    ${streakBox(p)}
    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Značke: ${nb} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(p)}</div></details>
    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Promijeni nadimak</summary><div style="margin-top:10px">
-     <div class="row" style="align-items:flex-end;gap:8px"><label>Novi nadimak<br><input type="text" id="nnick" maxlength="24" value="${p.nick.replace(/"/g,'')}" style="margin-top:4px"></label><button class="primary" id="nsave" style="margin:0">Spremi</button></div>
+     <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap"><label>Novi nadimak<br><input type="text" id="nnick" maxlength="24" value="${p.nick.replace(/"/g,'')}" style="margin-top:4px"></label><button class="primary" id="nsave" style="margin:0 0 2px 0">Spremi</button></div>
      <p class="note" id="nmsg" style="margin:6px 0 0">Nadimak se vidi na ljestvici, pa odaberi nešto po čemu te drugi ne prepoznaju. Napredak ostaje isti.</p></div></details>
-   ${Remote?`<details style="margin-top:8px" id="mojprof"><summary style="cursor:pointer;font-weight:600">Moj profil: ime i prezime</summary><div style="margin-top:10px">
+   ${Remote?`<details style="margin-top:8px" id="mojprof"><summary style="cursor:pointer;font-weight:600">Moj profil: ime, prezime i privatnost</summary><div style="margin-top:10px">
      <label>Ime i prezime (neobavezno)<br><input type="text" id="fname" maxlength="60" placeholder="npr. Ana Horvat" style="margin-top:4px"></label>
      <p class="note" style="margin:6px 0">Vidi ga samo nastavnik i ne utječe na ocjenu. Služi za pregled korištenja radionice. Možeš ga promijeniti ili obrisati u bilo kojem trenutku.</p>
      <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="fshow" style="width:18px;height:18px"> Prikaži moje ime na javnom profilu</label>
+     <label style="display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:6px"><input type="checkbox" id="facc" style="width:18px;height:18px" ${p.showAcc?'checked':''}> Prikaži moju točnost (postotak točnih odgovora) na ljestvici i profilu</label>
+     <p class="note" style="margin:4px 0 0">Bez kvačice je točnost skrivena i drugi vide samo razinu i broj riješenih zadataka.</p>
      <div class="row" style="margin-top:10px"><button class="primary" id="fsave" style="margin:0">Spremi</button><span class="note" id="fmsg"></span></div></div></details>`:''}</div>`);
   $('#nsave').onclick=async()=>{const nn=$('#nnick').value.trim(),msg=$('#nmsg');if(nn===p.nick){msg.textContent='To je već tvoj nadimak.';return}
     if(nn.length<2||nn.length>24){msg.textContent='Nadimak mora imati 2 do 24 znaka.';return}
@@ -1500,7 +1502,7 @@ main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){
   if(Remote&&session){const fn=$('#fname'),fs=$('#fshow'),msg=$('#fmsg');
     Remote.rpc('get_me',{p_token:session.token}).then(({data})=>{const r=data&&data[0];if(r){fn.value=r.full_name||'';fs.checked=!!r.show_name}}).catch(()=>{});
     $('#fsave').onclick=async()=>{const nm=fn.value.trim();if(fs.checked&&!nm){msg.textContent='Za prikaz upiši ime.';return}msg.textContent='Spremam…';
-      try{const {error}=await Remote.rpc('set_name',{p_token:session.token,p_name:nm,p_show:fs.checked&&!!nm});msg.textContent=error?'Spremanje nije uspjelo.':'Spremljeno.'}catch(e){msg.textContent='Nema veze s bazom.'}}}}}
+      p.showAcc=$('#facc').checked;save();try{const {error}=await Remote.rpc('set_name',{p_token:session.token,p_name:nm,p_show:fs.checked&&!!nm});msg.textContent=error?'Spremanje nije uspjelo.':'Spremljeno.'}catch(e){msg.textContent='Nema veze s bazom.'}}}}}
 
 async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`<h2>Ljestvica: ovaj tjedan</h2><p class="note" style="margin-top:-6px">Tjedan od ${wk.split('-').reverse().join('.')}. Svaki ponedjeljak kreće ispočetka.</p>`;let rows=[],err='';
   if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
