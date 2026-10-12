@@ -1526,7 +1526,7 @@ const VERS=[
  ['0.12','9. 10. 2026.',['Nova adresa i prijava nadimkom i PIN-om','Napredak se sprema na poslužitelj i vidi na svim uređajima','Zajednička ljestvica, ukupna ljestvica i statistika svih korisnika','Brisanje profila','Početna stranica s preporukom za danas','Rješenje prikazano na shemi: struje i naponi']],
  ['0.11','8. 10. 2026.',['Kondenzatori: ukupni kapacitet','Metode rješavanja mreža: konturne struje i naponi čvorova, strujni izvori','Zadaci s brojevima i postupkom rješenja','Baza zadataka s mogućnošću isprobavanja','Vodič kroz aplikaciju, tamna tema i preskakanje prelaganih zadataka']],
  ['0.10','7. 10. 2026.',['Prva verzija: Serija ili paralela na generiranim mrežama','Razina od 1 do 10, Vježba, Ispit, Napredak i Ljestvica','Ukupni otpor: redukcija mreže korak po korak','Bojanje čvorova','Elektrostatika i Lekcija s primjerima']]];
-function verHtml(){const [v,d]=VERS[0];return `<p class="note" style="margin-top:14px"><span id="vertxt" style="cursor:default;user-select:none">Verzija ${v} · ${d}</span> · <a href="#" id="verlink" style="color:inherit">Što je novo?</a></p><div id="verlist" hidden style="margin-top:8px">${VERS.map(([v,d,l],i)=>`<details ${i?'':'open'} style="margin:6px 0"><summary style="cursor:pointer;font-weight:600">Verzija ${v} · ${d}</summary><ul style="margin:6px 0 0 20px;padding:0">${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`).join('')}</div>`}
+function verHtml(){const [v,d]=VERS[0];return `<p class="note" style="margin-top:14px"><span id="vertxt" style="cursor:default;user-select:none">Verzija ${v} · ${d}</span> · <a href="#" id="verlink" style="color:inherit">Što je novo?</a></p><div id="verlist" hidden style="margin-top:8px">${VERS.map(([v,d,l],i)=>`<details ${i?'':'open'} style="margin:6px 0"><summary style="cursor:pointer;font-weight:600">Verzija ${v} · ${d}</summary><ul style="margin:6px 0 0 20px;padding:0">${l.map(x=>`<li>${x==='Easter egg'?'<span class="eggli" style="cursor:default;user-select:none">Easter egg</span>':x}</li>`).join('')}</ul></details>`).join('')}</div>`}
 function verBind(){const a=document.getElementById('verlink');if(a)a.onclick=e=>{e.preventDefault();const l=document.getElementById('verlist');l.hidden=!l.hidden}}
 
 /* ---------- Easter egg: 5 klikova na verziju ---------- */
@@ -1551,13 +1551,23 @@ function eggPanel(y0,title,lines,prof){const W=640;let s=`<g transform="translat
   const pos=[[165,66],[475,66],[165,104],[475,104],[165,142],[475,142]];
   lines.slice(0,6).forEach((t,i)=>{const[x,y]=pos[i],w=Math.min(292,t.length*6.2+22);s+=`<g><rect x="${x-w/2}" y="${y-16}" width="${w}" height="30" rx="14" fill="#fff" stroke="#222" stroke-width="1.2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" fill="#111" font-family="Inter,Arial,sans-serif">${t}</text></g>`});
   s+=`<circle cx="262" cy="160" r="3" fill="#fff"/><circle cx="272" cy="148" r="4" fill="#fff"/></g>`;return s}
-function eggShow(){document.getElementById('eggov')?.remove();
+function eggShow(){document.getElementById('eggov')?.remove();try{gcSend('easter-egg','Easter egg');if(Remote&&session)Remote.rpc('egg_found',{p_token:session.token}).then(()=>{},()=>{})}catch(e){}
   const A=['Je li R₂ u seriji ili paraleli?','Konturna struja je negativna… je li to loše?','Je li uzemljenje stvarno 0 V?','Trebam li ponoviti metodu čvorova?','Zašto C u seriji ide kao R u paraleli?','Još jedan zadatak pa spavam…'];
   const B=['Je li tolerancija od 5 % previše?','Zašto GitHub treba dvije minute?','Hoće li itko otvoriti aplikaciju?','Je li ovo verzija 0.14 ili 0.15?','Još samo jedna značka pa spavam…','Tko je obrisao bazu? Aha, ja.'];
   const svg=`<img src="easter-egg-2.jpg" alt="Studenti noć prije kolokvija i profesor koji radi aplikaciju za učenje" style="max-width:100%;max-height:82vh;width:auto;height:auto;display:block;margin:0 auto;border-radius:10px">`;
   document.body.insertAdjacentHTML('beforeend',`<div id="eggov" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9995;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto"><div style="max-width:640px;width:100%;background:var(--sheet);border-radius:12px;padding:10px;position:relative">${svg}</div></div>`);
   document.getElementById('eggov').onclick=()=>document.getElementById('eggov').remove()}
 let eggN=0,eggT=0;document.addEventListener('click',e=>{if(!e.target.closest('#vertxt'))return;const t=Date.now();eggN=t-eggT<1500?eggN+1:1;eggT=t;if(eggN>=5){eggN=0;eggShow()}});
+
+async function eggList(){document.getElementById('eggov')?.remove();let rows=[],err='';
+  if(Remote){try{const {data,error}=await Remote.rpc('egg_list');if(error)err='Popis se trenutačno ne može učitati.';else rows=data||[]}catch(e){err='Nema veze s bazom.'}}else err='Popis je dostupan samo uz prijavu.';
+  const me=prof()&&prof().nick,esc=s=>String(s).replace(/[<>&]/g,'');
+  document.body.insertAdjacentHTML('beforeend',`<div id="eggov" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9995;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px;overflow:auto"><div class="sheet" style="max-width:420px;width:100%;background:var(--sheet);border-radius:12px;padding:20px 22px">
+   <h3 style="margin:0 0 10px">🥚 Pronašli su ga do sada:</h3>${err?`<p class="msg bad">${err}</p>`:''}
+   ${rows.length?`<ol style="margin:0 0 0 22px;padding:0">${rows.map(r=>`<li${r.nick===me?' style="font-weight:700"':''}>${esc(r.nick)} · <span class="note" style="margin:0">${new Date(r.found_at).toLocaleDateString('hr-HR',{day:'numeric',month:'numeric'})}</span></li>`).join('')}</ol>`:err?'':'<p>Još nitko. 🤫</p>'}
+   <p style="margin:12px 0 0"><b>Ukupno: ${rows.length}</b></p></div></div>`);
+  document.getElementById('eggov').onclick=()=>document.getElementById('eggov').remove()}
+let eggN2=0,eggT2=0;document.addEventListener('click',e=>{if(!e.target.closest('.eggli'))return;const t=Date.now();eggN2=t-eggT2<1500?eggN2+1:1;eggT2=t;if(eggN2>=5){eggN2=0;eggList()}});
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
