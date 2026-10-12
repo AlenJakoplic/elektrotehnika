@@ -83,7 +83,7 @@ footer{max-width:1180px;margin:0 auto;padding:4px 20px 10px;color:var(--muted);f
 .steps li{padding:6px 0;border-bottom:1px dashed var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .chip{border:1.5px solid var(--ink);border-radius:5px;padding:2px 8px;font-size:15px;color:#1C2B3A}
-a[data-nick]{color:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;cursor:pointer}a[data-nick]:hover{text-decoration-style:solid}
+a[data-nick]{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}a[data-nick]:hover{text-decoration-thickness:2px}
 .msg{margin-top:12px;font-size:15px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
 .ruk-in{display:flex;gap:8px;align-items:center;margin-top:10px}.ruk-in input{max-width:140px}
 .help h3{font-family:var(--f-head);font-size:22px;margin:22px 0 4px}
@@ -1461,13 +1461,15 @@ async function showProfile(nick){let d=null,err='';
   const esc=s=>String(s||'').replace(/[<>&"]/g,'');
   document.getElementById('profov')?.remove();
   let body=err?`<p class="msg bad">${err}</p>`:'';
-  if(P){const ov=overall(P),zd=P.zad||{},bars=[['estat','Elektrostatika'],['serpar','Serija ili paralela'],['ruk','Ukupni otpor'],['kont','Konturne struje'],['cvor','Naponi čvorova']].map(([k,l])=>{const x=rt(P,k);return `<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><span style="width:150px;font-size:14px">${l}</span><div style="flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.max(3,(x.r-1)/9*100)}%;background:var(--ok)"></div></div><b style="width:34px;text-align:right">${fmt(x.r)}</b></div>`}).join('');
+  if(P){const ov=overall(P),zd=P.zad||{},bars=[['estat','Elektrostatika'],['serpar','Serija ili paralela'],['ruk','Ukupni otpor'],['kont','Konturne struje'],['cvor','Naponi čvorova']].map(([k,l])=>{const x=rt(P,k);return `<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><span style="width:150px;font-size:14px">${l}</span><div style="flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.max(3,(x.r-1)/9*100)}%;background:var(--ok)"></div></div><b style="width:34px;text-align:right">${fmt(x.r)}</b><span style="width:110px;font-size:13px;color:var(--muted)">${x.n} ${x.n%10===1&&x.n%100!==11?'zadatak':(x.n%10>=2&&x.n%10<=4&&(x.n%100<12||x.n%100>14))?'zadatka':'zadataka'}</span></div>`}).join('');
+    const nAll=Object.values(P.ratings||{}).reduce((s,x)=>s+(x.n||0),0),zn=zd.n||0,tile=(v,l)=>`<div style="border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:110px"><div style="font-size:24px;font-weight:700;font-family:var(--f-head)">${v}</div><div style="font-size:13px;color:var(--muted)">${l}</div></div>`;
     body=`<h2 style="margin:0">${esc(d.nick)}${d.name?` <span style="font-weight:400;color:var(--muted);font-size:20px">(${esc(d.name)})</span>`:''}</h2>
     <p style="margin:4px 0 0">Ukupna razina <b>${fmt(ov)}</b></p>
     ${streakBox(P).replace(/\d+\/\d+ točnih zaredom do sljedećeg slobodnog dana|Imaš najviše slobodnih dana\./,'')}
-    <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} · točnih odgovora: ${totC(P)} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll+zn,'riješeno ukupno')}${tile(nAll,'u Vježbi i Ispitu')}${tile(zn,'u Zadacima')}${tile(totC(P),'točnih odgovora')}</div>
+    <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} ${gDays(P).best===1?'dan':'dana'} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
     <h3 style="margin:10px 0 6px">Razine po gradivima</h3>${bars}
-    <h3 style="margin:16px 0 8px">Značke (${Object.keys(P.badges||{}).length}/${BADGES.length})</h3>${badgeGrid(P,true)}`}
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">Značke: ${Object.keys(P.badges||{}).length} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(P,true)}</div></details>`}
   document.body.insertAdjacentHTML('beforeend',`<div id="profov" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto"><div class="sheet" style="max-width:640px;width:100%;padding:22px 24px;border-radius:10px;background:var(--sheet);position:relative"><button class="ghost" id="profx" style="position:absolute;right:12px;top:12px;margin:0">Zatvori</button>${body}</div></div>`);
   const cl=()=>document.getElementById('profov')?.remove();$('#profx').onclick=cl;$('#profov').onclick=e=>{if(e.target.id==='profov')cl()};document.addEventListener('keydown',function k(e){if(e.key==='Escape'){cl();document.removeEventListener('keydown',k)}})}
 main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){e.preventDefault();showProfile(t.dataset.nick)}});
@@ -1481,11 +1483,20 @@ main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){
    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Ukupna razina <b>${fmt(overall(p))}</b></span><button class="ghost" data-nick="${p.nick.replace(/"/g,'')}" style="margin:0">Kako te drugi vide</button></div>
    ${streakBox(p)}
    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Značke: ${nb} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(p)}</div></details>
+   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Promijeni nadimak</summary><div style="margin-top:10px">
+     <div class="row" style="align-items:flex-end;gap:8px"><label>Novi nadimak<br><input type="text" id="nnick" maxlength="24" value="${p.nick.replace(/"/g,'')}" style="margin-top:4px"></label><button class="primary" id="nsave" style="margin:0">Spremi</button></div>
+     <p class="note" id="nmsg" style="margin:6px 0 0">Nadimak se vidi na ljestvici, pa odaberi nešto po čemu te drugi ne prepoznaju. Napredak ostaje isti.</p></div></details>
    ${Remote?`<details style="margin-top:8px" id="mojprof"><summary style="cursor:pointer;font-weight:600">Moj profil: ime i prezime</summary><div style="margin-top:10px">
      <label>Ime i prezime (neobavezno)<br><input type="text" id="fname" maxlength="60" placeholder="npr. Ana Horvat" style="margin-top:4px"></label>
      <p class="note" style="margin:6px 0">Vidi ga samo nastavnik i ne utječe na ocjenu. Služi za pregled korištenja radionice. Možeš ga promijeniti ili obrisati u bilo kojem trenutku.</p>
      <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="fshow" style="width:18px;height:18px"> Prikaži moje ime na javnom profilu</label>
      <div class="row" style="margin-top:10px"><button class="primary" id="fsave" style="margin:0">Spremi</button><span class="note" id="fmsg"></span></div></div></details>`:''}</div>`);
+  $('#nsave').onclick=async()=>{const nn=$('#nnick').value.trim(),msg=$('#nmsg');if(nn===p.nick){msg.textContent='To je već tvoj nadimak.';return}
+    if(nn.length<2||nn.length>24){msg.textContent='Nadimak mora imati 2 do 24 znaka.';return}
+    if(Remote){msg.textContent='Spremam…';try{const {error}=await Remote.rpc('rename_nick',{p_token:session.token,p_nick:nn});if(error){msg.textContent=(error.message||'').includes('nick_taken')?'Taj nadimak je zauzet.':'Promjena trenutačno ne uspijeva.';return}}catch(e){msg.textContent='Nema veze s bazom.';return}
+      delete state.profiles[p.nick];p.nick=nn;state.profiles[nn]=p;state.active=nn;session.nick=nn;Store.set('session',session)}
+    else{if(state.profiles[nn]&&state.profiles[nn]!==p){msg.textContent='Taj nadimak već postoji na ovom uređaju.';return}delete state.profiles[p.nick];p.nick=nn;state.profiles[nn]=p;state.active=nn}
+    save();header();renderProgress();toast('Nadimak je promijenjen.')};
   if(Remote&&session){const fn=$('#fname'),fs=$('#fshow'),msg=$('#fmsg');
     Remote.rpc('get_me',{p_token:session.token}).then(({data})=>{const r=data&&data[0];if(r){fn.value=r.full_name||'';fs.checked=!!r.show_name}}).catch(()=>{});
     $('#fsave').onclick=async()=>{const nm=fn.value.trim();if(fs.checked&&!nm){msg.textContent='Za prikaz upiši ime.';return}msg.textContent='Spremam…';
