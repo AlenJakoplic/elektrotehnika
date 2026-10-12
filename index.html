@@ -61,7 +61,7 @@ th{font-weight:700;color:var(--muted);font-size:14px}
 .num{font-family:var(--f-head);font-size:22px;font-weight:600}
 .bar{height:8px;background:var(--btn);border-radius:4px;overflow:hidden;min-width:80px}
 .bar i{display:block;height:100%;background:var(--ink)}
-input[type=text]{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);width:100%;max-width:320px}
+input[type=text],input[type=password]{font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);width:100%;max-width:320px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .note{color:var(--muted);font-size:14px}
 .banklist{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -83,6 +83,7 @@ footer{max-width:1180px;margin:0 auto;padding:4px 20px 10px;color:var(--muted);f
 .steps li{padding:6px 0;border-bottom:1px dashed var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .chip{border:1.5px solid var(--ink);border-radius:5px;padding:2px 8px;font-size:15px;color:#1C2B3A}
+a[data-nick]{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}a[data-nick]:hover{text-decoration-thickness:2px}
 .msg{margin-top:12px;font-size:15px}.msg.bad{color:var(--bad)}.msg.ok{color:var(--ok)}
 .ruk-in{display:flex;gap:8px;align-items:center;margin-top:10px}.ruk-in input{max-width:140px}
 .help h3{font-family:var(--f-head);font-size:22px;margin:22px 0 4px}
@@ -108,6 +109,7 @@ svg.es [data-g].on circle{stroke-width:4;stroke:var(--mark)}svg.es [data-g].on l
 @media (prefers-reduced-motion:no-preference){.opt{transition:border-color .12s}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+<script data-goatcounter="https://alenjakoplic.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <header>
@@ -277,7 +279,7 @@ function explain(q){
 let view='practice',cur=null,answered=false,exam=null,bankSel=null,bankLevel=0;
 const $=s=>document.querySelector(s);
 const main=$('#main');
-const TABHELP={home:'Pregled tvojih gradiva i razina te preporuka što dalje vježbati.',lesson:'Kratko objašnjenje gradiva na primjerima, korak po korak. Kreni odavde.',practice:'Rješavaš zadatke u aplikaciji i odmah vidiš je li točno. Zadaci se prilagođavaju tvojoj razini.',zad:'Zadaci s brojevima koje rješavaš na papiru, a zatim usporediš s rješenjem i postupkom.',exam:'Niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena. Provjeri koliko znaš.',progress:'Tvoja razina po gradivima i vrste zadataka u kojima najčešće griješiš.',bank:'Svi zadaci s rješenjima. Možeš isprobati bilo koji i vidjeti svoje rezultate.',board:'Poredak po razini u odabranom gradivu.',help:'Kako aplikacija radi i kako s njom učiti.'};
+const TABHELP={home:'Pregled tvojih gradiva i razina te preporuka što dalje vježbati.',lesson:'Kratko objašnjenje gradiva na primjerima, korak po korak. Kreni odavde.',practice:'Rješavaš zadatke u aplikaciji i odmah vidiš je li točno. Zadaci se prilagođavaju tvojoj razini.',zad:'Zadaci s brojevima koje rješavaš na papiru. Upišeš rezultate, a aplikacija ih provjeri i dodijeli bodove.',exam:'Niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena. Provjeri koliko znaš.',progress:'Tvoja razina po gradivima i vrste zadataka u kojima najčešće griješiš.',bank:'Svi zadaci s rješenjima. Možeš isprobati bilo koji i vidjeti svoje rezultate.',board:'Poredak po razini u odabranom gradivu.',help:'Kako aplikacija radi i kako s njom učiti.'};
 function header(){
   const p=prof();
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
@@ -305,7 +307,7 @@ function renderWelcomeRemote(msg=''){
   main.innerHTML=`<div class="sheet panel welcome"><h2>Prijava</h2>
   <p>Upiši nadimak i PIN od 4 znamenke. Nadimak se vidi na ljestvici, pa odaberi nešto po čemu te drugi ne prepoznaju. Rezultati se ne ocjenjuju. S istim nadimkom i PIN-om nastavljaš na bilo kojem uređaju.</p>
   <div class="row" style="align-items:flex-end"><label>Nadimak<br><input type="text" id="nick" maxlength="24" placeholder="npr. Kirchhoffov_unuk" autocomplete="username"></label>
-  <label>PIN<br><input type="text" id="pin" inputmode="numeric" maxlength="4" placeholder="4 znamenke" style="max-width:120px" autocomplete="off"></label></div>
+  <label>PIN<br><span style="position:relative;display:inline-block"><input type="password" id="pin" inputmode="numeric" maxlength="4" placeholder="4 znamenke" style="max-width:140px;padding-right:38px" autocomplete="off"><button type="button" id="pineye" class="pineye" title="Drži za prikaz PIN-a" aria-label="Drži za prikaz PIN-a" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);margin:0;padding:4px 6px;background:none;border:none;color:var(--muted);cursor:pointer;line-height:0;touch-action:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label></div>
   <div class="row" style="margin-top:14px"><button class="primary" id="reg" style="margin:0">Novi nadimak</button><button class="ghost" id="log">Prijavi se</button></div>
   <p class="msg bad" id="werr">${msg}</p>
   <p class="note" style="margin:16px 0 0">Koristi radionicu kao pomoć u učenju. Za potpunu pripremu i dalje su važne auditorne vježbe i samostalno rješavanje zadataka.</p>
@@ -422,7 +424,7 @@ function renderProgress(){
   <tr><td class="note">Ukupno, sva gradiva</td><td class="num" style="color:var(--muted)">${fmt(overall(p))}</td><td class="note">${p.answered}</td><td></td></tr></table>
   <h2 style="font-size:24px;margin-top:26px">Vrste zamki</h2>
   ${rows?`<table><tr><th>Zamka</th><th>Točno</th><th></th></tr>${rows}</table><p class="note">Zamke u kojima imaš manje od 60 % točnih odgovora aplikacija će ti češće zadavati.</p>`:'<p class="note">Riješi nekoliko zadataka iz ovog gradiva pa će se ovdje vidjeti gdje griješiš.</p>'}
-  <div id="rstbox"></div><div class="row" style="margin-top:22px"><button class="ghost" id="rst">Resetiraj napredak</button><button class="ghost" id="sw">${Remote?'Odjavi se':'Promijeni nadimak ili korisnika'}</button><button class="ghost" id="th">Svijetla / tamna tema</button><button class="ghost" id="delp" style="color:var(--bad)">Obriši profil</button></div></div>`;
+  <div id="rstbox"></div><div class="row" style="margin-top:22px"><button class="ghost" id="th">Svijetla / tamna tema</button><button class="ghost" id="sw">${Remote?'Odjavi se':'Promijeni nadimak ili korisnika'}</button><button class="ghost" id="delp" style="color:var(--bad)">Obriši profil</button><button class="ghost" id="rst">Resetiraj napredak</button></div></div>`;
   modbar();$('#delp').onclick=delAsk;
   $('#rst').onclick=()=>rstAsk(mod);
   $('#sw').onclick=()=>{if(Remote){session=null;Store.set('session',null);state.profiles={}}state.active=null;Store.set('state',state);render()};
@@ -467,7 +469,7 @@ function renderHelp(){
   <p>Niz zadataka bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena. Dobra provjera prije kolokvija.</p>
   <h3>Gdje se sprema napredak</h3>
   <p>Napredak se sprema samo u tvom pregledniku. Ako promijeniš uređaj ili preglednik, ili obrišeš podatke preglednika, kreneš ispočetka.</p>
-  <p class="note" style="margin-top:24px;padding-top:14px;border-top:1px solid var(--line)">Aplikaciju je izradio dr. sc. Alen Jakoplić, 7. listopada 2026., uz pomoć velikog jezičnog modela Claude Opus 5.5 tvrtke Anthropic. Kao podloga korištena je literatura prof. dr. sc. Nina Stojkovića.</p></div>`;
+  <p class="note" style="margin-top:24px;padding-top:14px;border-top:1px solid var(--line)">Aplikaciju je izradio dr. sc. Alen Jakoplić, 7. listopada 2026., uz pomoć velikog jezičnog modela Claude Opus 5.5 tvrtke Anthropic. Kao podloga korištena je literatura prof. dr. sc. Nina Stojkovića.</p>${verHtml()}</div>`;setTimeout(verBind,0);
   $('#tourbtn').onclick=()=>tourStart();
 }
 
@@ -478,7 +480,7 @@ function renderBoard(){
   const rows=Object.values(state.profiles).filter(p=>p.ratings[mod]&&p.ratings[mod].n>0).sort((a,b)=>b.ratings[mod].r-a.ratings[mod].r);
   main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: ${MODNAME[mod]}</h2>
   <table><tr><th></th><th>Nadimak</th><th>Razina</th><th>Riješeno</th><th>Točno</th></tr>
-  ${rows.map((p,i)=>{const R=p.ratings[mod];return `<tr${p.nick===state.active?' style="font-weight:700"':''}><td>${i+1}.</td><td>${p.nick}</td><td class="num">${fmt(R.r)}</td><td>${R.n}</td><td>${Math.round(100*R.c/R.n)} %</td></tr>`}).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table>
+  ${rows.map((p,i)=>{const R=p.ratings[mod];return `<tr${p.nick===state.active?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${p.nick.replace(/"/g,'')}">${p.nick}</a></td><td class="num">${fmt(R.r)}</td><td>${R.n}</td><td>${Math.round(100*R.c/R.n)} %</td></tr>`}).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table>
   <p class="note">Ljestvica prikazuje samo nadimke koji su vježbali u ovom pregledniku.</p></div>`;
   modbar();
 }
@@ -491,7 +493,7 @@ async function renderBoardRemote(mod){
   const me=prof().nick;
   main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: ${MODNAME[mod]}</h2>${err?`<p class="msg bad">${err}</p>`:''}
   <table><tr><th></th><th>Nadimak</th><th>Razina</th><th>Riješeno</th><th>Točno</th></tr>
-  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td>${p.nick.replace(/[<>&]/g,'')}</td><td class="num">${fmt(p.r)}</td><td>${p.n}</td><td>${p.n?Math.round(100*p.c/p.n):0} %</td></tr>`).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table><div id="stats"><p class="note">Učitavam statistiku…</p></div></div>`;
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${p.nick.replace(/[<>&"]/g,'')}">${p.nick.replace(/[<>&]/g,'')}</a></td><td class="num">${fmt(p.r)}</td><td>${p.n}</td><td>${p.c==null?'<span class="note" title="Skriveno">–</span>':(p.n?Math.round(100*p.c/p.n):0)+' %'}</td></tr>`).join('')||'<tr><td colspan="5">Još nema rezultata iz ovog gradiva.</td></tr>'}</table><div id="stats"><p class="note">Učitavam statistiku…</p></div></div>`;
   modbar();
   boardStats(mod);
 }
@@ -1230,16 +1232,18 @@ function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=z
   main.innerHTML=`<div class="modwrap"><span class="modlabel">Vrsta zadatka:</span><div class="modbar">${[['ruk',Z.type==='cap'?'Ukupni kapacitet':'Ukupni otpor',['ruk','cap']],['ui','Struje i naponi',['ui']],['kont','Metode rješavanja',['kont','cvor']]].map(([k,l,g])=>`<button data-zt="${g.includes(Z.type)?Z.type:k}" aria-current="${g.includes(Z.type)}">${l}</button>`).join('')}</div>${Z.type==='ruk'||Z.type==='cap'?`<div class="modbar"><button data-zt="ruk" aria-current="${Z.type==='ruk'}">Otpornici</button><button data-zt="cap" aria-current="${Z.type==='cap'}">Kondenzatori</button></div>`:''}${Z.type==='kont'||Z.type==='cvor'?`<div class="modbar"><button data-zt="kont" aria-current="${Z.type==='kont'}">Konturne struje</button><button data-zt="cvor" aria-current="${Z.type==='cvor'}">Naponi čvorova</button></div>`:''}<span class="modlvl">Težina mreže: <b>${z.d}</b> od 6</span></div>
   <div class="board"><div class="sheet"><div class="meta"><span>Mreža ${z.net.id}</span><span>riješi na papiru</span></div><div class="schem" id="zsch">${zDraw(z,null)}</div></div>
   <div class="sheet side"><p style="margin:0 0 14px">${zText(z)}</p>
+  ${zFieldsHtml(z)}<p class="msg bad" id="zmsg" style="margin:4px 0 0"></p>
   ${zShow?`<h3 style="font-family:var(--f-head);font-size:22px;margin:6px 0">Rješenje</h3><ol class="steps" id="zsteps">${sol.steps.map(s=>`<li data-hl="${s[0].join(',')}" style="cursor:default">${s[1]}</li>`).join('')}</ol>${sol.table||''}
-    <p class="q" style="font-size:16px;margin:16px 0 8px">Je li tvoje rješenje točno?</p><div class="mbtns"><button class="opt" id="zok">Točno</button><button class="opt" id="zbad">Netočno</button></div>`
-  :`<button class="primary" id="zsol" style="margin:0">Prikaži rješenje</button>`}
+    `
+  :`<button class="ghost" id="zsol" style="margin:14px 0 0">${zad.ans&&zad.ans.done?'Prikaži postupak':'Prikaži rješenje (zadatak tada nosi 0 bodova)'}</button>`}
   <div class="mbtns" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line)"><button class="ghost" id="zeasy">Lakši</button><button class="ghost" id="znew">Novi zadatak</button><button class="ghost" id="zhard">Teži</button></div>
-  <p class="note" style="margin-top:10px">Zadatak riješi na papiru, pa usporedi s rješenjem. Ne utječe na razinu.</p></div></div>`;
+  <p class="note" style="margin-top:10px">Zadatak riješi na papiru i upiši rezultate. Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Bodovi se računaju u niz dana, tjednu ligu i značke.</p></div></div>`;
   main.querySelectorAll('#zsteps li').forEach(li=>{li.onmouseenter=()=>{$('#zsch').innerHTML=zDraw(z,li.dataset.hl.split(','));li.style.background='color-mix(in srgb,var(--mark) 22%,transparent)'};li.onmouseleave=()=>{$('#zsch').innerHTML=zDraw(z,null);li.style.background=''}});
   main.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{Z.type=b.dataset.zt;save();zNew();renderZad()});
   const mv=dd=>{Z.d[Z.type]=Math.max(1,Math.min(6,Z.d[Z.type]+dd));save();zNew();renderZad();window.scrollTo(0,0)};
-  if($('#zsol'))$('#zsol').onclick=()=>{zShow=true;renderZad()};
-  if($('#zok'))$('#zok').onclick=()=>{Z.n++;Z.ok++;mv(0.5)};if($('#zbad'))$('#zbad').onclick=()=>{Z.n++;mv(-0.5)};
+  if($('#zsol'))$('#zsol').onclick=()=>{if(!z.ans.done)zFinish(z,true);zShow=true;renderZad()};
+  if($('#zcheck'))$('#zcheck').onclick=()=>{if(zCheck(z))renderZad()};
+  main.querySelectorAll('[data-zf]').forEach(i=>i.onkeydown=e=>{if(e.key==='Enter'&&$('#zcheck'))$('#zcheck').click()});
   $('#zeasy').onclick=()=>mv(-1);$('#zhard').onclick=()=>mv(1);$('#znew').onclick=()=>mv(0)}
 /* ---------- Kratki vodič ---------- */
 const TOUR=[
@@ -1247,18 +1251,18 @@ const TOUR=[
  {v:'practice',sel:'nav [data-v="lesson"]',t:'Lekcija',h:'Kreni odavde: kratko objašnjenje gradiva na primjerima, korak po korak.'},
  {v:'practice',sel:'nav [data-v="practice"]',t:'Vježba',h:'Rješavaš zadatke u aplikaciji i odmah vidiš je li točno. Zadaci se prilagođavaju tvojoj razini.'},
  {v:'practice',m:'serpar',sel:'.side',t:'Pomoć i preskakanje',h:'<b>Bojice potencijala</b> pomažu kad zapneš (uz njih napreduješ sporije). Ako je zadatak prelagan, klikni <b>Prelagano</b> i dobit ćeš teži.'},
- {v:'zad',sel:'nav [data-v="zad"]',t:'Zadaci',h:'Zadaci s brojevima koje rješavaš na papiru. Zatim otvoriš rješenje s postupkom i usporediš.'},
- {v:'zad',sel:'nav [data-v="exam"]',t:'Ispit',h:'Niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena. Dobra provjera prije kolokvija.'},
- {v:'zad',sel:'nav [data-v="bank"]',t:'Napredak i Baza zadataka',h:'U <b>Napretku</b> vidiš gdje najčešće griješiš. U <b>Bazi zadataka</b> su svi zadaci s rješenjima i tvoji rezultati.'},
- {v:'zad',sel:'#hdrRating',t:'Ukupna razina',h:'Ovdje je tvoja ukupna razina. Sve se sprema samo u tvom pregledniku i nitko drugi to ne vidi. Sretno!'}];
+ {v:'zad',sel:'nav [data-v="zad"]',t:'Zadaci',h:'Zadaci s brojevima koje rješavaš na papiru. Upišeš rezultate, a aplikacija provjeri jesu li točni i dodijeli bodove. Postupak rješavanja možeš pogledati nakon predaje.'},
+ {v:'zad',sel:'nav [data-v="exam"]',t:'Ispit',h:'Niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena.'},
+ {v:'zad',sel:'nav [data-v="progress"],nav [data-v="bank"]',t:'Napredak i Baza zadataka',h:'U <b>Napretku</b> vidiš gdje najčešće griješiš. U <b>Bazi zadataka</b> su svi zadaci s rješenjima i tvoji rezultati.'},
+ {v:'zad',sel:'#hdrRating',t:'Ukupna razina',h:'Ovdje je tvoja ukupna razina. Klikom na nju otvaraš Napredak. Sretno!'}];
 let tourI=-1;
 function tourStart(){const p=prof();p.tourOffered=true;save();document.getElementById('tourask')?.remove();tourI=0;tourShow()}
 function tourEnd(){tourI=-1;document.documentElement.style.overflow='';document.getElementById('tourlay')?.remove();if(prof()){view='home';render()}}
 function tourShow(){const s=TOUR[tourI],p=prof();if(s.m&&p.module!==s.m){p.module=s.m;save()}if(view!==s.v||s.m){view=s.v;exam=null;render()}
-  document.getElementById('tourlay')?.remove();const el=document.querySelector(s.sel);if(!el){tourI<TOUR.length-1?(tourI++,tourShow()):tourEnd();return}
-  document.documentElement.style.overflow='';el.scrollIntoView({block:'center'});document.documentElement.style.overflow='hidden';const r=el.getBoundingClientRect(),pad=6,lay=document.createElement('div');lay.id='tourlay';
+  document.getElementById('tourlay')?.remove();const els=[...document.querySelectorAll(s.sel)],el=els[0];if(!el){tourI<TOUR.length-1?(tourI++,tourShow()):tourEnd();return}
+  document.documentElement.style.overflow='';el.scrollIntoView({block:'center'});document.documentElement.style.overflow='hidden';const rs=els.map(e=>e.getBoundingClientRect()),pad=6,lay=document.createElement('div');lay.id='tourlay';const r={left:Math.min(...rs.map(x=>x.left)),top:Math.min(...rs.map(x=>x.top)),right:Math.max(...rs.map(x=>x.right)),bottom:Math.max(...rs.map(x=>x.bottom))};r.width=r.right-r.left;r.height=r.bottom-r.top;
   const below=r.bottom+200<innerHeight,tw=Math.min(340,innerWidth-24),tl=Math.max(12,Math.min(innerWidth-tw-12,r.left));
-  lay.innerHTML=`<div style="position:fixed;inset:0;z-index:50"></div><div style="position:fixed;left:${r.left-pad}px;top:${r.top-pad}px;width:${r.width+2*pad}px;height:${r.height+2*pad}px;border-radius:10px;box-shadow:0 0 0 9999px rgba(10,18,26,.6);outline:3px solid var(--mark);z-index:51;pointer-events:none"></div>
+  lay.innerHTML=`<div style="position:fixed;inset:0;z-index:50"></div><svg style="position:fixed;inset:0;width:100vw;height:100vh;z-index:51;pointer-events:none"><defs><mask id="tmask"><rect width="100%" height="100%" fill="#fff"/>${rs.map(x=>`<rect x="${x.left-pad}" y="${x.top-pad}" width="${x.width+2*pad}" height="${x.height+2*pad}" rx="10" fill="#000"/>`).join('')}</mask></defs><rect width="100%" height="100%" fill="rgba(10,18,26,.6)" mask="url(#tmask)"/></svg>${rs.map(x=>`<div style="position:fixed;left:${x.left-pad}px;top:${x.top-pad}px;width:${x.width+2*pad}px;height:${x.height+2*pad}px;border-radius:10px;outline:3px solid var(--mark);z-index:51;pointer-events:none"></div>`).join('')}
   <div role="dialog" aria-label="Vodič" style="position:fixed;left:${tl}px;${below?`top:${r.bottom+pad+12}px`:`bottom:${innerHeight-r.top+pad+12}px`};width:${tw}px;z-index:52;background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25)">
   <div class="note" style="margin-bottom:2px">Korak ${tourI+1} od ${TOUR.length}</div><div style="font-family:var(--f-head);font-size:22px;font-weight:700;margin-bottom:4px">${s.t}</div><div style="font-size:15px">${s.h}</div>
   <div class="row" style="margin-top:12px;justify-content:space-between"><button class="ghost" id="tclose" style="padding:6px 10px">Zatvori</button><span class="row">${tourI>0?'<button class="ghost" id="tprev" style="padding:6px 12px">Natrag</button>':''}<button class="primary" id="tnext" style="margin:0;padding:8px 14px">${tourI===TOUR.length-1?'Završi':'Dalje'}</button></span></div></div>`;
@@ -1336,7 +1340,7 @@ async function boardStats(mod){let s=null;try{const {data,error}=await Remote.rp
 
 /* ---------- Brisanje profila ---------- */
 function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="sheet" style="margin-top:20px;padding:16px;border-color:var(--bad)"><p style="margin:0 0 10px"><b>Obrisati profil „${p.nick.replace(/[<>&]/g,'')}“?</b> Nadimak, razine i svi rezultati bit će trajno obrisani${Remote?' iz baze':''}. Ovo se ne može poništiti.</p>
-  ${Remote?`<label>Za potvrdu upiši svoj PIN<br><input type="password" id="delpin" inputmode="numeric" maxlength="4" style="max-width:140px;margin:4px 0 10px" autocomplete="off"></label>`:''}
+  ${Remote?`<label>Za potvrdu upiši svoj PIN<br><span style="position:relative;display:inline-block;margin:4px 0 10px"><input type="password" id="delpin" inputmode="numeric" maxlength="4" style="max-width:140px;padding-right:38px" autocomplete="off"><button type="button" class="pineye" title="Drži za prikaz PIN-a" aria-label="Drži za prikaz PIN-a" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);margin:0;padding:4px 6px;background:none;border:none;color:var(--muted);cursor:pointer;line-height:0;touch-action:none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>`:''}
   <div class="row"><button class="primary" id="dely" style="margin:0;background:var(--bad)">Trajno obriši profil</button><button class="ghost" id="deln">Odustani</button></div><p class="msg bad" id="delerr"></p></div>`;
   $('#deln').onclick=()=>{box.innerHTML=''};
   $('#dely').onclick=async()=>{const err=$('#delerr');
@@ -1350,11 +1354,11 @@ function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="she
 /* ---------- Ljestvica: ukupno ---------- */
 let boardAll=false;
 {const _mb=modbar;modbar=function(){_mb();if(view!=='board')return;const bar=main.querySelector('.modbar');if(!bar)return;
-  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll}">Ukupno</button>`);
+  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll==='week'}" data-wk="1">Ovaj tjedan</button><button data-all="1" aria-current="${boardAll===true}">Ukupno</button>`);
   bar.addEventListener('click',e=>{if(e.target.closest('[data-m]'))boardAll=false},true);
-  bar.querySelector('[data-all]').onclick=()=>{boardAll=true;render()};
-  if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
-{const _rb=renderBoard;renderBoard=function(){if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
+  bar.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{boardAll=b.dataset.wk?'week':true;render()});
+  if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=boardAll==='week'?`Tvoji bodovi ovaj tjedan: <b>${zN(gWeek(prof()).pts)}</b>`:`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
+{const _rb=renderBoard;renderBoard=function(){if(boardAll==='week')return renderBoardWeek();if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
 async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno</h2>';let rows=[],err='';
   if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
     try{const {data,error}=await Remote.rpc('leaderboard_total');if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
@@ -1362,10 +1366,166 @@ async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno
   else rows=Object.values(state.profiles).map(p=>({nick:p.nick,r:overall(p),n:Object.keys(TOPICS).reduce((s,k)=>s+((p.ratings[k]||{}).n||0),0)})).filter(x=>x.n>0).sort((a,b)=>b.r-a.r);
   main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
   <table><tr><th></th><th>Nadimak</th><th>Ukupna razina</th><th>Riješeno</th></tr>
-  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td>${String(p.nick).replace(/[<>&]/g,'')}</td><td class="num">${fmt(p.r)}</td><td>${p.n}</td></tr>`).join('')||'<tr><td colspan="4">Još nema rezultata.</td></tr>'}</table>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${fmt(p.r)}</td><td>${p.n}</td></tr>`).join('')||'<tr><td colspan="4">Još nema rezultata.</td></tr>'}</table>
   <p class="note">Ukupna razina je prosjek razina iz svih gradiva, pri čemu gradiva s više riješenih zadataka imaju veću težinu.</p>
   ${Remote?'<div id="stats"><p class="note">Učitavam statistiku…</p></div>':'<p class="note">Ljestvica prikazuje samo nadimke koji su vježbali u ovom pregledniku.</p>'}</div>`;
   modbar();if(Remote)boardStats(null)}
+
+/* ---------- Prikaz PIN-a dok se drži oko ---------- */
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('.pineye');if(!b)return;e.preventDefault();const i=b.parentNode.querySelector('input');if(!i)return;i.type='text';
+  const off=()=>{i.type='password';document.removeEventListener('pointerup',off);document.removeEventListener('pointercancel',off);b.removeEventListener('pointerleave',off)};
+  document.addEventListener('pointerup',off);document.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off)});
+
+/* ---------- Zadaci: upis vrijednosti i bodovanje ---------- */
+const ZTOL=0.05;
+function zFields(z){if(z.fields)return z.fields;const pickR=arr=>arr[Math.floor(Math.random()*arr.length)];let F=[];
+  if(z.type==='ruk'||z.type==='cap')F=[{lab:z.type==='cap'?'C<sub>uk</sub>':'R<sub>uk</sub>',unit:z.unit,val:z.tr.root.v,w:2}];
+  else if(z.type==='ui'){const L=z.all.filter(g=>g.type==='leaf').sort((a,b)=>+a.name.slice(1)-+b.name.slice(1)),a=pickR(L),b=pickR(L.filter(x=>x!==a))||a;
+    F=[{lab:'R<sub>uk</sub>',unit:z.unit,val:z.tr.root.v,w:1},{lab:'I',unit:z.iu,val:z.tr.root.I,w:1},{lab:`I<sub>${a.name.slice(1)}</sub>`,unit:z.iu,val:a.I,w:1},{lab:`U<sub>${b.name.slice(1)}</sub>`,unit:'V',val:b.U,w:2}]}
+  else{const res=z.res,br=z.q.c.br.filter(b=>b.R&&Math.abs(res.br[b.id])>1e-9),b=pickR(br.length?br:z.q.c.br.filter(b=>b.R));
+    if(z.type==='kont')F=res.X.map((x,i)=>({lab:IK(i),unit:z.iu,val:x,w:1,sign:1}));
+    else F=Object.keys(res.Vn).map(n=>({lab:UN(+n),unit:'V',val:res.Vn[n],w:1,sign:1}));
+    F.push({lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(res.br[b.id]),w:2,desc:`iznos struje kroz ${sub(b.R)}`})}
+  z.fields=F;z.ans={v:F.map(()=>''),ok:F.map(()=>null),tries:0,done:false,pts:0};return F}
+const zParse=s=>{s=String(s).trim().replace(/\s/g,'').replace(',','.').replace(/[−–]/g,'-');return s===''||!/^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?NaN:+s};
+const zMatch=(x,e)=>Math.abs(e)<1e-9?Math.abs(x)<=0.005:Math.abs(x-e)<=ZTOL*Math.abs(e)+1e-9;
+function zFieldsHtml(z){const F=zFields(z),A=z.ans,max=F.reduce((s,f)=>s+f.w,0);
+  const row=(f,i)=>{const ok=A.ok[i],lock=A.done||ok===true,col=ok===true?'var(--ok)':ok===false?'var(--bad)':'var(--line)';
+    return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:44px;text-align:right;font-weight:600">${f.lab} =</span><input type="text" inputmode="decimal" data-zf="${i}" value="${String(A.v[i]).replace(/"/g,'')}" ${lock?'disabled':''} style="max-width:120px;padding:6px 10px;border-color:${col}"><span>${f.unit}</span>${f.desc?`<span class="note" style="margin:0">(${f.desc})</span>`:''}${ok===true?'<span style="color:var(--ok);font-weight:700">✓</span>':ok===false?`<span style="color:var(--bad);font-weight:700">✗${A.done?` <span style="font-weight:500">točno: ${zN(f.val).replace(/^-/,'−')}</span>`:''}</span>`:''}</div>`};
+  return `<div id="zform"><p style="margin:0 0 4px;font-weight:600">Upiši rezultate:</p>${F.map(row).join('')}
+   ${z.type==='kont'||z.type==='cvor'?'<p class="note" style="margin:4px 0">Konturne struje i napone čvorova upiši s predznakom.</p>':''}
+   <p class="note" style="margin:4px 0">Priznaje se odstupanje do 5 %. Decimalni zarez ili točka.</p>
+   ${A.done?`<p style="margin:10px 0 0;font-size:18px">Bodovi: <b>${zN(A.pts)}</b> od ${max}${A.pts>=max?' 🎉':''}</p>`
+     :`<div class="row" style="margin-top:10px"><button class="primary" id="zcheck" style="margin:0">${A.tries?'Provjeri ponovno':'Provjeri'}</button>${A.tries?'<span class="note">Ispravi crvena polja. Drugi pokušaj nosi pola boda.</span>':''}</div>`}</div>`}
+function zFinish(z,shown){const F=zFields(z),A=z.ans,Z=zProf(),max=F.reduce((s,f)=>s+f.w,0);if(A.done)return;A.done=true;if(shown)A.pts=0;
+  Z.n=(Z.n||0)+1;Z.pts=(Z.pts||0)+A.pts;Z.max=(Z.max||0)+max;const full=A.pts>=max;if(full){Z.ok=(Z.ok||0)+1;Z.full=Z.full||{};Z.full[z.type]=(Z.full[z.type]||0)+1}
+  const fr=A.pts/max;Z.d[z.type]=Math.max(1,Math.min(6,(Z.d[z.type]||2)+(fr>=0.8?0.5:fr<0.5?-0.5:0)));
+  if(!shown)dayTick(full,A.pts);save();
+  try{if(Remote&&session)Remote.rpc('record_answer',{p_token:session.token,p_qid:'Z-'+z.type,p_topic:'z'+z.type,p_score:fr,p_help:true,p_mode:'zadaci',p_qbase:0,p_qdelta:0}).then(()=>{},()=>{});gcSend&&gcSend('zadatak/z'+z.type+'/'+(full?'tocno':'netocno'))}catch(e){}}
+function zCheck(z){const F=zFields(z),A=z.ans;main.querySelectorAll('[data-zf]').forEach(i=>A.v[+i.dataset.zf]=i.value);
+  if(F.some((f,i)=>A.ok[i]!==true&&isNaN(zParse(A.v[i])))){const m=$('#zmsg');if(m)m.textContent='Upiši broj u svako polje.';return false}
+  A.tries++;F.forEach((f,i)=>{if(A.ok[i]===true)return;const ok=zMatch(zParse(A.v[i]),f.val);if(ok)A.pts+=A.tries===1?f.w:f.w/2;A.ok[i]=ok});
+  if(A.tries>=2||A.ok.every(x=>x===true))zFinish(z,false);return true}
+
+/* ---------- Gamifikacija: niz dana, slobodni dani, značke, zvanja, tjedna liga ---------- */
+const FREE_EVERY=10,FREE_MAX=3;
+const zgDate=(t)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Zagreb',year:'numeric',month:'2-digit',day:'2-digit'}).format(t||new Date());
+const dDiff=(a,b)=>Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/864e5);
+const weekId=ds=>{const d=new Date(ds+'T00:00:00Z'),k=(d.getUTCDay()+6)%7;return new Date(d-k*864e5).toISOString().slice(0,10)};
+function gDays(p){p.days=p.days||{streak:0,best:0,last:null,free:0,run:0,bestRun:0};return p.days}
+function curStreak(p){const D=gDays(p);if(!D.last)return 0;const g=dDiff(D.last,zgDate())-1;return g<=0||g<=D.free?D.streak:0}
+function gWeek(p){const w=weekId(zgDate());if(!p.week||p.week.id!==w)p.week={id:w,pts:0};return p.week}
+function dayTick(correct,pts){const p=prof();if(!p)return;const D=gDays(p),t=zgDate();
+  if(D.last!==t){if(!D.last)D.streak=1;else{const g=dDiff(D.last,t)-1;if(g<=0)D.streak++;else if(D.free>=g){D.free-=g;D.streak++}else D.streak=1}D.last=t;D.best=Math.max(D.best,D.streak)}
+  if(correct){D.run++;D.bestRun=Math.max(D.bestRun,D.run);if(D.run>=FREE_EVERY){D.run=0;if(D.free<FREE_MAX){D.free++;toast('🛡️ Zaslužen je slobodan dan!')}}}else D.run=0;
+  gWeek(p).pts+=pts==null?(correct?1:0):pts;
+  checkBadges(p)}
+const tagsOk=p=>Object.values(p.tags||{}).filter(t=>t.n>=5&&t.c/t.n>=0.8).length;
+const rt=(p,k)=>(p.ratings&&p.ratings[k])||{r:2,n:0,c:0};
+const totC=p=>Object.values(p.ratings||{}).reduce((s,x)=>s+(x.c||0),0);
+const zfull=(p,t)=>((p.zad&&p.zad.full)||{})[t]||0;
+const BADGES=[
+ ['prvi','🎯','Prvi korak','Prvi točan odgovor.',p=>totC(p)>=1],
+ ['n3','🔥','Tri dana zaredom','Vježbanje 3 dana zaredom.',p=>gDays(p).best>=3],
+ ['n7','🔥','Tjedan zaredom','Vježbanje 7 dana zaredom.',p=>gDays(p).best>=7],
+ ['n30','🏆','Mjesec zaredom','Vježbanje 30 dana zaredom.',p=>gDays(p).best>=30],
+ ['r10','⚡','Deset zaredom','10 točnih odgovora zaredom.',p=>gDays(p).bestRun>=10],
+ ['r30','⚡','Trideset zaredom','30 točnih odgovora zaredom.',p=>gDays(p).bestRun>=30],
+ ['c100','💯','Stotka','100 točnih odgovora ukupno.',p=>totC(p)>=100],
+ ['c500','🧮','Petsto','500 točnih odgovora ukupno.',p=>totC(p)>=500],
+ ['t5','🪤','Lov na zamke','5 svladanih vrsta zamki (barem 80 % točno).',p=>tagsOk(p)>=5],
+ ['t15','🪤','Zamke pod kontrolom','15 svladanih vrsta zamki.',p=>tagsOk(p)>=15],
+ ['estat5','⚛️','Elektrostatika: razina 5','Razina 5 iz elektrostatike.',p=>rt(p,'estat').r>=5],
+ ['serpar5','🔗','Serija ili paralela: razina 5','Razina 5 iz serije i paralele.',p=>rt(p,'serpar').r>=5],
+ ['ruk5','Ω','Ukupni otpor: razina 5','Razina 5 iz ukupnog otpora.',p=>rt(p,'ruk').r>=5],
+ ['met5','🔄','Metode: razina 5','Razina 5 iz konturnih struja ili napona čvorova.',p=>Math.max(rt(p,'kont').r,rt(p,'cvor').r)>=5],
+ ['sve','🌐','Svestranost','Barem 10 odgovora iz svakog gradiva.',p=>['estat','serpar','ruk'].every(k=>rt(p,k).n>=10)&&rt(p,'kont').n+rt(p,'cvor').n>=10],
+ ['z1','📝','Puni bodovi','Prvi zadatak riješen s punim bodovima.',p=>Object.values((p.zad&&p.zad.full)||{}).reduce((a,b)=>a+b,0)>=1],
+ ['z10','📝','Deset punih','10 zadataka s punim bodovima.',p=>Object.values((p.zad&&p.zad.full)||{}).reduce((a,b)=>a+b,0)>=10],
+ ['zk5','🔁','Konturne struje u malom prstu','5 zadataka konturnih struja s punim bodovima.',p=>zfull(p,'kont')>=5],
+ ['zc5','📍','Naponi čvorova u malom prstu','5 zadataka napona čvorova s punim bodovima.',p=>zfull(p,'cvor')>=5]];
+function checkBadges(p){p.badges=p.badges||{};const nw=[];for(const[id,ic,nm,,f]of BADGES)if(!p.badges[id]&&f(p)){p.badges[id]=zgDate();nw.push(ic+' '+nm)}
+  if(nw.length)toast('Nova značka: '+nw.join(', '))}
+function toast(t){const d=document.createElement('div');d.textContent=t;d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:10px 18px;border-radius:10px;font-weight:600;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center';document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
+{const _ar4=applyResult;applyResult=function(q,correct){const r=_ar4.apply(this,arguments);try{if(!(tryQ&&q&&q.id===tryQ)){const ok=typeof correct==='number'?correct>=0.5:!!correct;dayTick(ok)}}catch(e){}return r}}
+function badgeGrid(p,small){p.badges=p.badges||{};return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${small?120:150}px,1fr));gap:8px">${BADGES.map(([id,ic,nm,ds])=>{const on=p.badges[id];return `<div title="${ds}${on?' Osvojeno '+on.split('-').reverse().join('.')+'.':''}" style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;${on?'':'opacity:.38;filter:grayscale(1)'}"><div style="font-size:22px;line-height:1.2">${ic}</div><div style="font-size:13px;font-weight:600;line-height:1.25">${nm}</div>${small?'':`<div style="font-size:12px;color:var(--muted);line-height:1.25;margin-top:2px">${ds}</div>`}</div>`}).join('')}</div>`}
+function streakBox(p){const D=gDays(p),s=curStreak(p);return `<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:10px 0 4px">
+  <span title="Dan se računa kad riješiš barem jedan zadatak."><span style="font-size:22px">🔥</span> <b style="font-size:20px">${s}</b> ${s===1?'dan':'dana'} zaredom</span>
+  <span title="Slobodan dan čuva niz kad propustiš dan. Dobiva se za svakih ${FREE_EVERY} točnih odgovora zaredom, najviše ${FREE_MAX}."><span style="font-size:22px">🛡️</span> <b style="font-size:20px">${D.free}</b> / ${FREE_MAX} slobodna dana</span>
+  <span style="color:var(--muted);font-size:14px">${D.free>=FREE_MAX?'Imaš najviše slobodnih dana.':`${D.run}/${FREE_EVERY} točnih zaredom do sljedećeg slobodnog dana`}</span></div>`}
+
+/* ---------- Javni profil ---------- */
+async function showProfile(nick){let d=null,err='';
+  if(Remote){try{const {data,error}=await Remote.rpc('public_profile',{p_nick:nick});if(error||!data)err='Profil se ne može učitati.';else d=data}catch(e){err='Nema veze s bazom.'}}
+  else{const p=state.profiles[nick];if(p)d={nick:p.nick,since:p.created?new Date(p.created).toISOString():null,state:p}}
+  const P=d?Object.assign({ratings:{},tags:{}},d.state||{}):null;
+  const esc=s=>String(s||'').replace(/[<>&"]/g,'');
+  document.getElementById('profov')?.remove();
+  let body=err?`<p class="msg bad">${err}</p>`:'';
+  if(P){const ov=overall(P),zd=P.zad||{},bars=[['estat','Elektrostatika'],['serpar','Serija ili paralela'],['ruk','Ukupni otpor'],['kont','Konturne struje'],['cvor','Naponi čvorova']].map(([k,l])=>{const x=rt(P,k);return `<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><span style="width:150px;font-size:14px">${l}</span><div style="flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.max(3,(x.r-1)/9*100)}%;background:var(--ok)"></div></div><b style="width:34px;text-align:right">${fmt(x.r)}</b><span style="width:110px;font-size:13px;color:var(--muted)">${x.n} ${x.n%10===1&&x.n%100!==11?'zadatak':(x.n%10>=2&&x.n%10<=4&&(x.n%100<12||x.n%100>14))?'zadatka':'zadataka'}</span></div>`}).join('');
+    const nAll=Object.values(P.ratings||{}).reduce((s,x)=>s+(x.n||0),0),zn=zd.n||0,tile=(v,l)=>`<div style="border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:110px"><div style="font-size:24px;font-weight:700;font-family:var(--f-head)">${v}</div><div style="font-size:13px;color:var(--muted)">${l}</div></div>`;
+    body=`<h2 style="margin:0">${esc(d.nick)}${d.name?` <span style="font-weight:400;color:var(--muted);font-size:20px">(${esc(d.name)})</span>`:''}</h2>
+    <p style="margin:4px 0 0">Ukupna razina <b>${fmt(ov)}</b></p>
+    <p style="margin:10px 0 4px"><span style="font-size:22px">🔥</span> <b style="font-size:20px">${curStreak(P)}</b> ${curStreak(P)===1?'dan':'dana'} zaredom</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll+zn,'riješeno ukupno')}${tile(nAll,'u Vježbi i Ispitu')}${tile(zn,'u Zadacima')}${P.showAcc&&Object.values(P.ratings||{}).some(x=>x.c!=null)?tile(totC(P),'točnih odgovora'):''}</div>
+    <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} ${gDays(P).best===1?'dan':'dana'} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
+    <h3 style="margin:10px 0 6px">Razine po gradivima</h3>${bars}
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">Značke: ${Object.keys(P.badges||{}).length} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(P,true)}</div></details>`}
+  document.body.insertAdjacentHTML('beforeend',`<div id="profov" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto"><div class="sheet" style="max-width:640px;width:100%;padding:22px 24px;border-radius:10px;background:var(--sheet);position:relative"><button class="ghost" id="profx" style="position:absolute;right:12px;top:12px;margin:0">Zatvori</button>${body}</div></div>`);
+  const cl=()=>document.getElementById('profov')?.remove();$('#profx').onclick=cl;$('#profov').onclick=e=>{if(e.target.id==='profov')cl()};document.addEventListener('keydown',function k(e){if(e.key==='Escape'){cl();document.removeEventListener('keydown',k)}})}
+main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){e.preventDefault();showProfile(t.dataset.nick)}});
+
+/* ---------- Početna i Napredak: niz, zvanje, značke, moj profil ---------- */
+{const _rh=renderHome;renderHome=function(){_rh.apply(this,arguments);const p=prof(),h=main.querySelector('.panel h2');if(!h)return;
+  h.insertAdjacentHTML('afterend',streakBox(p))}}
+{const _rp=renderProgress;renderProgress=function(){_rp.apply(this,arguments);const p=prof(),h=main.querySelector('.panel h2');if(!h)return;
+  const nb=Object.keys(p.badges||{}).length;
+  h.insertAdjacentHTML('afterend',`<div style="border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:6px 0 18px">
+   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span>Ukupna razina <b>${fmt(overall(p))}</b></span><button class="ghost" data-nick="${p.nick.replace(/"/g,'')}" style="margin:0">Kako te drugi vide</button></div>
+   ${streakBox(p)}
+   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Značke: ${nb} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(p)}</div></details>
+   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Promijeni nadimak</summary><div style="margin-top:10px">
+     <label for="nnick">Novi nadimak</label><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><input type="text" id="nnick" maxlength="24" value="${p.nick.replace(/"/g,'')}" style="width:240px;max-width:100%"><button class="primary" id="nsave" style="margin:0">Spremi</button></div>
+     <p class="note" id="nmsg" style="margin:6px 0 0">Nadimak se vidi na ljestvici, pa odaberi nešto po čemu te drugi ne prepoznaju. Napredak ostaje isti.</p></div></details>
+   ${Remote?`<details style="margin-top:8px" id="mojprof"><summary style="cursor:pointer;font-weight:600">Moj profil: ime, prezime i privatnost</summary><div style="margin-top:10px">
+     <label>Ime i prezime (neobavezno)<br><input type="text" id="fname" maxlength="60" placeholder="npr. Ana Horvat" style="margin-top:4px"></label>
+     <p class="note" style="margin:6px 0">Vidi ga samo nastavnik i ne utječe na ocjenu. Služi za pregled korištenja radionice. Možeš ga promijeniti ili obrisati u bilo kojem trenutku.</p>
+     <label style="display:flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="fshow" style="width:18px;height:18px"> Prikaži moje ime na javnom profilu</label>
+     <label style="display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:6px"><input type="checkbox" id="facc" style="width:18px;height:18px" ${p.showAcc?'checked':''}> Prikaži moju točnost (postotak točnih odgovora) na ljestvici i profilu</label>
+     <p class="note" style="margin:4px 0 0">Bez kvačice je točnost skrivena i drugi vide samo razinu i broj riješenih zadataka.</p>
+     <div class="row" style="margin-top:10px"><button class="primary" id="fsave" style="margin:0">Spremi</button><span class="note" id="fmsg"></span></div></div></details>`:''}</div>`);
+  $('#nsave').onclick=async()=>{const nn=$('#nnick').value.trim(),msg=$('#nmsg');if(nn===p.nick){msg.textContent='To je već tvoj nadimak.';return}
+    if(nn.length<2||nn.length>24){msg.textContent='Nadimak mora imati 2 do 24 znaka.';return}
+    if(Remote){msg.textContent='Spremam…';try{const {error}=await Remote.rpc('rename_nick',{p_token:session.token,p_nick:nn});if(error){msg.textContent=(error.message||'').includes('nick_taken')?'Taj nadimak je zauzet.':'Promjena trenutačno ne uspijeva.';return}}catch(e){msg.textContent='Nema veze s bazom.';return}
+      delete state.profiles[p.nick];p.nick=nn;state.profiles[nn]=p;state.active=nn;session.nick=nn;Store.set('session',session)}
+    else{if(state.profiles[nn]&&state.profiles[nn]!==p){msg.textContent='Taj nadimak već postoji na ovom uređaju.';return}delete state.profiles[p.nick];p.nick=nn;state.profiles[nn]=p;state.active=nn}
+    save();header();renderProgress();toast('Nadimak je promijenjen.')};
+  if(Remote&&session){const fn=$('#fname'),fs=$('#fshow'),msg=$('#fmsg');
+    Remote.rpc('get_me',{p_token:session.token}).then(({data})=>{const r=data&&data[0];if(r){fn.value=r.full_name||'';fs.checked=!!r.show_name}}).catch(()=>{});
+    $('#fsave').onclick=async()=>{const nm=fn.value.trim();if(fs.checked&&!nm){msg.textContent='Za prikaz upiši ime.';return}msg.textContent='Spremam…';
+      p.showAcc=$('#facc').checked;save();try{const {error}=await Remote.rpc('set_name',{p_token:session.token,p_name:nm,p_show:fs.checked&&!!nm});msg.textContent=error?'Spremanje nije uspjelo.':'Spremljeno.'}catch(e){msg.textContent='Nema veze s bazom.'}}}}}
+
+async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`<h2>Ljestvica: ovaj tjedan</h2><p class="note" style="margin-top:-6px">Tjedan od ${wk.split('-').reverse().join('.')}. Svaki ponedjeljak kreće ispočetka.</p>`;let rows=[],err='';
+  if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
+    try{const {data,error}=await Remote.rpc('leaderboard_week',{p_week:wk});if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
+    if(view!=='board'||boardAll!=='week')return}
+  else rows=Object.values(state.profiles).filter(p=>p.week&&p.week.id===wk&&p.week.pts>0).map(p=>({nick:p.nick,pts:p.week.pts})).sort((a,b)=>b.pts-a.pts);
+  main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
+  <table><tr><th></th><th>Nadimak</th><th>Bodovi</th></tr>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Ovaj tjedan još nitko nema bodova.</td></tr>'}</table>
+  <p class="note">Bodovi: 1 za svaki točan odgovor u Vježbi i Ispitu, a u Zadacima onoliko koliko zadatak donese. Ovdje se ne gleda razina, nego trud.</p>
+  ${Remote?'<div id="stats"><p class="note">Učitavam statistiku…</p></div>':''}</div>`;
+  modbar();if(Remote)boardStats(null)}
+
+/* ---------- Verzije ---------- */
+const VERS=[
+ ['0.14','12. 10. 2026.',['Promjena nadimka','Točnost je zadano skrivena, a može se prikazati na ljestvici i profilu','Skriveni PIN pri upisu, s okom za prikaz','Poboljšan vodič kroz aplikaciju']],
+ ['0.13','10. 10. 2026.',['Niz dana i slobodni dani','Upis rezultata u Zadacima s bodovanjem i drugim pokušajem','Značke','Tjedna liga na Ljestvici','Javni profil: klik na nadimak na ljestvici']],
+ ['0.12','9. 10. 2026.',['Nova adresa i prijava nadimkom i PIN-om','Napredak se sprema na poslužitelj i vidi na svim uređajima','Zajednička ljestvica, ukupna ljestvica i statistika svih korisnika','Brisanje profila','Početna stranica s preporukom za danas','Rješenje prikazano na shemi: struje i naponi']],
+ ['0.11','8. 10. 2026.',['Kondenzatori: ukupni kapacitet','Metode rješavanja mreža: konturne struje i naponi čvorova, strujni izvori','Zadaci s brojevima i postupkom rješenja','Baza zadataka s mogućnošću isprobavanja','Vodič kroz aplikaciju, tamna tema i preskakanje prelaganih zadataka']],
+ ['0.10','7. 10. 2026.',['Prva verzija: Serija ili paralela na generiranim mrežama','Razina od 1 do 10, Vježba, Ispit, Napredak i Ljestvica','Ukupni otpor: redukcija mreže korak po korak','Bojanje čvorova','Elektrostatika i Lekcija s primjerima']]];
+function verHtml(){const [v,d]=VERS[0];return `<p class="note" style="margin-top:14px">Verzija ${v} · ${d} · <a href="#" id="verlink" style="color:inherit">Što je novo?</a></p><div id="verlist" hidden style="margin-top:8px">${VERS.map(([v,d,l],i)=>`<details ${i?'':'open'} style="margin:6px 0"><summary style="cursor:pointer;font-weight:600">Verzija ${v} · ${d}</summary><ul style="margin:6px 0 0 20px;padding:0">${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`).join('')}</div>`}
+function verBind(){const a=document.getElementById('verlink');if(a)a.onclick=e=>{e.preventDefault();const l=document.getElementById('verlist');l.hidden=!l.hidden}}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
