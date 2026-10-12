@@ -462,13 +462,15 @@ function renderHelp(){
   <h3>Prelagano?</h3>
   <p>Na početku zadatka u vježbi možeš kliknuti „Prelagano, daj mi teži zadatak”. Zadatak se preskače bez utjecaja na razinu, a idući je teži.</p>
   <h3>Zadaci</h3>
-  <p>Zadaci s brojevima (ukupni otpor, ukupni kapacitet, struje i naponi) koje rješavaš na papiru. Kad završiš, otvori rješenje s cijelim postupkom i označi je li tvoje rješenje točno. Prema tome se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti.</p>
+  <p>Zadaci s brojevima (ukupni otpor, ukupni kapacitet, struje i naponi) koje rješavaš na papiru. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti.</p>
   <h3>Baza zadataka</h3>
   <p>Svi zadaci s rješenjima. Svaki možeš isprobati gumbom „Isprobaj”, bez utjecaja na razinu, a uz „Prikaži moje rezultate” vidiš koji su ti zadaci točni (zeleno), koji netočni (crveno), a koji još nisu rješavani (sivo).</p>
   <h3>Ispit</h3>
-  <p>Niz zadataka bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena. Dobra provjera prije kolokvija.</p>
+  <p>Niz zadataka bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena.</p>
   <h3>Gdje se sprema napredak</h3>
-  <p>Napredak se sprema samo u tvom pregledniku. Ako promijeniš uređaj ili preglednik, ili obrišeš podatke preglednika, kreneš ispočetka.</p>
+  <p>Napredak se sprema uz tvoj nadimak i PIN, pa ga imaš na svakom uređaju. Na ljestvici se vidi samo nadimak. Točnost i ime su skriveni dok ih sam ne uključiš na Napretku.</p>
+  <h3>Niz dana, značke i tjedna liga</h3>
+  <p>Dan se računa kad riješiš barem jedan zadatak. Za 10 točnih odgovora zaredom dobiješ slobodan dan (najviše 3), koji čuva niz kad propustiš dan. Značke se dobivaju za niz dana, točne odgovore zaredom i svladane zamke. U tjednoj ligi na Ljestvici se broje bodovi ovog tjedna, a svaki ponedjeljak kreće ispočetka.</p>
   <p class="note" style="margin-top:24px;padding-top:14px;border-top:1px solid var(--line)">Aplikaciju je izradio dr. sc. Alen Jakoplić, 7. listopada 2026., uz pomoć velikog jezičnog modela Claude Opus 5.5 tvrtke Anthropic. Kao podloga korištena je literatura prof. dr. sc. Nina Stojkovića.</p>${verHtml()}</div>`;setTimeout(verBind,0);
   $('#tourbtn').onclick=()=>tourStart();
 }
@@ -1519,13 +1521,43 @@ async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`
 
 /* ---------- Verzije ---------- */
 const VERS=[
- ['0.14','12. 10. 2026.',['Promjena nadimka','Točnost je zadano skrivena, a može se prikazati na ljestvici i profilu','Skriveni PIN pri upisu, s okom za prikaz','Poboljšan vodič kroz aplikaciju']],
+ ['0.14','12. 10. 2026.',['Promjena nadimka','Točnost je zadano skrivena, a može se prikazati na ljestvici i profilu','Skriveni PIN pri upisu, s okom za prikaz','Poboljšan vodič kroz aplikaciju','Easter egg']],
  ['0.13','10. 10. 2026.',['Niz dana i slobodni dani','Upis rezultata u Zadacima s bodovanjem i drugim pokušajem','Značke','Tjedna liga na Ljestvici','Javni profil: klik na nadimak na ljestvici']],
  ['0.12','9. 10. 2026.',['Nova adresa i prijava nadimkom i PIN-om','Napredak se sprema na poslužitelj i vidi na svim uređajima','Zajednička ljestvica, ukupna ljestvica i statistika svih korisnika','Brisanje profila','Početna stranica s preporukom za danas','Rješenje prikazano na shemi: struje i naponi']],
  ['0.11','8. 10. 2026.',['Kondenzatori: ukupni kapacitet','Metode rješavanja mreža: konturne struje i naponi čvorova, strujni izvori','Zadaci s brojevima i postupkom rješenja','Baza zadataka s mogućnošću isprobavanja','Vodič kroz aplikaciju, tamna tema i preskakanje prelaganih zadataka']],
  ['0.10','7. 10. 2026.',['Prva verzija: Serija ili paralela na generiranim mrežama','Razina od 1 do 10, Vježba, Ispit, Napredak i Ljestvica','Ukupni otpor: redukcija mreže korak po korak','Bojanje čvorova','Elektrostatika i Lekcija s primjerima']]];
-function verHtml(){const [v,d]=VERS[0];return `<p class="note" style="margin-top:14px">Verzija ${v} · ${d} · <a href="#" id="verlink" style="color:inherit">Što je novo?</a></p><div id="verlist" hidden style="margin-top:8px">${VERS.map(([v,d,l],i)=>`<details ${i?'':'open'} style="margin:6px 0"><summary style="cursor:pointer;font-weight:600">Verzija ${v} · ${d}</summary><ul style="margin:6px 0 0 20px;padding:0">${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`).join('')}</div>`}
+function verHtml(){const [v,d]=VERS[0];return `<p class="note" style="margin-top:14px"><span id="vertxt" style="cursor:default;user-select:none">Verzija ${v} · ${d}</span> · <a href="#" id="verlink" style="color:inherit">Što je novo?</a></p><div id="verlist" hidden style="margin-top:8px">${VERS.map(([v,d,l],i)=>`<details ${i?'':'open'} style="margin:6px 0"><summary style="cursor:pointer;font-weight:600">Verzija ${v} · ${d}</summary><ul style="margin:6px 0 0 20px;padding:0">${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`).join('')}</div>`}
 function verBind(){const a=document.getElementById('verlink');if(a)a.onclick=e=>{e.preventDefault();const l=document.getElementById('verlist');l.hidden=!l.hidden}}
+
+/* ---------- Easter egg: 5 klikova na verziju ---------- */
+function eggPanel(y0,title,lines,prof){const W=640;let s=`<g transform="translate(0,${y0})"><rect width="${W}" height="330" fill="#1E2A44"/>`;
+  for(let i=0;i<28;i++)s+=`<circle cx="${(i*97)%W}" cy="${(i*53)%120+8}" r="${i%3?1:1.6}" fill="#fff" opacity=".7"/>`;
+  s+=`<circle cx="590" cy="40" r="16" fill="#F4E9B8"/><circle cx="597" cy="35" r="14" fill="#1E2A44"/>`;
+  s+=`<text x="${W/2}" y="34" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="Barlow Condensed,Arial Narrow,sans-serif">${title}</text>`;
+  // noćni ormarić, sat/šalica
+  s+=`<rect x="40" y="235" width="80" height="70" rx="4" fill="#3B4A6B"/><rect x="48" y="250" width="64" height="4" fill="#2A3653"/>`;
+  s+=prof?`<rect x="62" y="210" width="24" height="26" rx="3" fill="#E7E2D8"/><path d="M86 216 q12 0 12 9 q0 9 -12 9" fill="none" stroke="#E7E2D8" stroke-width="3"/><path d="M68 205 q4 -8 0 -14 M78 205 q4 -8 0 -14" stroke="#C9C3B8" stroke-width="2" fill="none"/>`
+          :`<circle cx="80" cy="218" r="17" fill="#F2F0EA" stroke="#C84B31" stroke-width="3"/><path d="M80 218 L80 207 M80 218 L88 218" stroke="#222" stroke-width="2.5"/><text x="80" y="246" text-anchor="middle" font-size="11" fill="#fff" font-family="sans-serif">3:00</text>`;
+  // krevet
+  s+=`<rect x="170" y="200" width="320" height="105" rx="10" fill="#7A3E2B"/><rect x="160" y="170" width="22" height="135" rx="6" fill="#5E2E20"/><rect x="180" y="215" width="300" height="70" rx="8" fill="#C8483C"/>`;
+  s+=`<ellipse cx="225" cy="205" rx="42" ry="18" fill="#E9EEF5"/>`;
+  // glava
+  s+=`<circle cx="228" cy="188" r="26" fill="#F2C9A0"/><path d="M203 180 q25 -30 50 0 q-6 -18 -25 -18 q-19 0 -25 18z" fill="#2B2B2B"/>`;
+  s+=`<circle cx="219" cy="190" r="4.5" fill="#fff"/><circle cx="237" cy="190" r="4.5" fill="#fff"/><circle cx="219" cy="191" r="2" fill="#222"/><circle cx="237" cy="191" r="2" fill="#222"/>`;
+  s+=`<path d="M213 199 q6 3 12 0 M231 199 q6 3 12 0" stroke="#9A6B4F" stroke-width="1.5" fill="none"/><path d="M222 205 q6 -4 12 0" stroke="#7A3E2B" stroke-width="2" fill="none"/>`;
+  s+=prof?`<rect x="250" y="196" width="64" height="40" rx="3" fill="#2B3446" transform="rotate(-8 282 216)"/><rect x="255" y="200" width="54" height="30" rx="2" fill="#8FD3FF" opacity=".85" transform="rotate(-8 282 216)"/><text x="282" y="220" text-anchor="middle" font-size="9" fill="#123" transform="rotate(-8 282 216)" font-family="monospace">git push</text>`
+          :`<rect x="262" y="214" width="46" height="34" rx="2" fill="#F5F0E1" transform="rotate(6 285 231)"/><path d="M268 224h32M268 231h28M268 238h30" stroke="#999" stroke-width="1.5" transform="rotate(6 285 231)"/><text x="285" y="221" text-anchor="middle" font-size="8" fill="#555" transform="rotate(6 285 231)" font-family="sans-serif">R₁ R₂ R₃</text>`;
+  // oblačići
+  const pos=[[165,66],[475,66],[165,104],[475,104],[165,142],[475,142]];
+  lines.slice(0,6).forEach((t,i)=>{const[x,y]=pos[i],w=Math.min(292,t.length*6.2+22);s+=`<g><rect x="${x-w/2}" y="${y-16}" width="${w}" height="30" rx="14" fill="#fff" stroke="#222" stroke-width="1.2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" fill="#111" font-family="Inter,Arial,sans-serif">${t}</text></g>`});
+  s+=`<circle cx="262" cy="160" r="3" fill="#fff"/><circle cx="272" cy="148" r="4" fill="#fff"/></g>`;return s}
+function eggShow(){document.getElementById('eggov')?.remove();
+  const A=['Je li R₂ u seriji ili paraleli?','Konturna struja je negativna… je li to loše?','Je li uzemljenje stvarno 0 V?','Trebam li ponoviti metodu čvorova?','Zašto C u seriji ide kao R u paraleli?','Još jedan zadatak pa spavam…'];
+  const B=['Je li tolerancija od 5 % previše?','Zašto GitHub treba dvije minute?','Hoće li itko otvoriti aplikaciju?','Je li ovo verzija 0.14 ili 0.15?','Još samo jedna značka pa spavam…','Tko je obrisao bazu? Aha, ja.'];
+  const svg=`<img src="easter-egg.jpg" alt="Studenti noć prije kolokvija i profesor koji radi aplikaciju za učenje" style="max-width:100%;max-height:82vh;width:auto;height:auto;display:block;margin:0 auto;border-radius:10px">`;
+  document.body.insertAdjacentHTML('beforeend',`<div id="eggov" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9995;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto"><div style="max-width:640px;width:100%;background:var(--sheet);border-radius:12px;padding:10px;position:relative">${svg}<p class="note" style="text-align:center;margin:8px 0 4px">Pronađeno skriveno iznenađenje. Klikni bilo gdje za zatvaranje.</p></div></div>`);
+  document.getElementById('eggov').onclick=()=>document.getElementById('eggov').remove()}
+let eggN=0,eggT=0;document.addEventListener('click',e=>{if(!e.target.closest('#vertxt'))return;const t=Date.now();eggN=t-eggT<1500?eggN+1:1;eggT=t;if(eggN>=5){eggN=0;eggShow()}});
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
