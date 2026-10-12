@@ -1551,7 +1551,7 @@ function eggPanel(y0,title,lines,prof){const W=640;let s=`<g transform="translat
   const pos=[[165,66],[475,66],[165,104],[475,104],[165,142],[475,142]];
   lines.slice(0,6).forEach((t,i)=>{const[x,y]=pos[i],w=Math.min(292,t.length*6.2+22);s+=`<g><rect x="${x-w/2}" y="${y-16}" width="${w}" height="30" rx="14" fill="#fff" stroke="#222" stroke-width="1.2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" fill="#111" font-family="Inter,Arial,sans-serif">${t}</text></g>`});
   s+=`<circle cx="262" cy="160" r="3" fill="#fff"/><circle cx="272" cy="148" r="4" fill="#fff"/></g>`;return s}
-function eggShow(){document.getElementById('eggov')?.remove();
+function eggShow(){document.getElementById('eggov')?.remove();try{gcSend('easter-egg','Easter egg')}catch(e){}
   const A=['Je li R₂ u seriji ili paraleli?','Konturna struja je negativna… je li to loše?','Je li uzemljenje stvarno 0 V?','Trebam li ponoviti metodu čvorova?','Zašto C u seriji ide kao R u paraleli?','Još jedan zadatak pa spavam…'];
   const B=['Je li tolerancija od 5 % previše?','Zašto GitHub treba dvije minute?','Hoće li itko otvoriti aplikaciju?','Je li ovo verzija 0.14 ili 0.15?','Još samo jedna značka pa spavam…','Tko je obrisao bazu? Aha, ja.'];
   const svg=`<img src="easter-egg-2.jpg" alt="Studenti noć prije kolokvija i profesor koji radi aplikaciju za učenje" style="max-width:100%;max-height:82vh;width:auto;height:auto;display:block;margin:0 auto;border-radius:10px">`;
