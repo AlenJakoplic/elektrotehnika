@@ -1484,7 +1484,7 @@ main.addEventListener('click',e=>{const t=e.target.closest('[data-nick]');if(t){
    ${streakBox(p)}
    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Značke: ${nb} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(p)}</div></details>
    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Promijeni nadimak</summary><div style="margin-top:10px">
-     <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap"><label>Novi nadimak<br><input type="text" id="nnick" maxlength="24" value="${p.nick.replace(/"/g,'')}" style="margin-top:4px"></label><button class="primary" id="nsave" style="margin:0 0 2px 0">Spremi</button></div>
+     <label for="nnick">Novi nadimak</label><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><input type="text" id="nnick" maxlength="24" value="${p.nick.replace(/"/g,'')}" style="width:240px;max-width:100%"><button class="primary" id="nsave" style="margin:0">Spremi</button></div>
      <p class="note" id="nmsg" style="margin:6px 0 0">Nadimak se vidi na ljestvici, pa odaberi nešto po čemu te drugi ne prepoznaju. Napredak ostaje isti.</p></div></details>
    ${Remote?`<details style="margin-top:8px" id="mojprof"><summary style="cursor:pointer;font-weight:600">Moj profil: ime, prezime i privatnost</summary><div style="margin-top:10px">
      <label>Ime i prezime (neobavezno)<br><input type="text" id="fname" maxlength="60" placeholder="npr. Ana Horvat" style="margin-top:4px"></label>
