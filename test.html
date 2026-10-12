@@ -1518,11 +1518,11 @@ async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`
 
 /* ---------- Verzije ---------- */
 const VERS=[
- ['0.14','12. 10. 2026.',['Promjena nadimka','Točnost je zadano skrivena, a može se prikazati na ljestvici i profilu','Skriveni PIN pri upisu, s okom za prikaz','Poboljšan vodič kroz aplikaciju']],
- ['0.13','10. 10. 2026.',['Niz dana i slobodni dani','Upis rezultata u Zadacima s bodovanjem i drugim pokušajem','Značke','Tjedna liga na Ljestvici','Javni profil: klik na nadimak na ljestvici']],
- ['0.12','9. 10. 2026.',['Nova adresa i prijava nadimkom i PIN-om','Napredak se sprema na poslužitelj i vidi na svim uređajima','Zajednička ljestvica, ukupna ljestvica i statistika svih korisnika','Brisanje profila','Početna stranica s preporukom za danas','Rješenje prikazano na shemi: struje i naponi']],
- ['0.11','8. 10. 2026.',['Kondenzatori: ukupni kapacitet','Metode rješavanja mreža: konturne struje i naponi čvorova, strujni izvori','Zadaci s brojevima i postupkom rješenja','Baza zadataka s mogućnošću isprobavanja','Vodič kroz aplikaciju, tamna tema i preskakanje prelaganih zadataka']],
- ['0.10','7. 10. 2026.',['Prva verzija: Serija ili paralela na generiranim mrežama','Razina od 1 do 10, Vježba, Ispit, Napredak i Ljestvica','Ukupni otpor: redukcija mreže korak po korak','Bojanje čvorova','Elektrostatika i Lekcija s primjerima']]];
+ ['0.14','12. 10. 2026.',['Promjena nadimka, skrivena točnost i PIN, poboljšan vodič']],
+ ['0.13','10. 10. 2026.',['Niz dana i slobodni dani, upis rezultata u Zadacima s bodovanjem, značke, tjedna liga, javni profil']],
+ ['0.12','9. 10. 2026.',['Rješenje prikazano na shemi (struje i naponi)','Početna stranica s preporukom za danas','Nova adresa, prijava nadimkom i PIN-om, napredak na svim uređajima, zajednička ljestvica i statistika','Ukupna ljestvica, brisanje profila']],
+ ['0.11','8. 10. 2026.',['Kondenzatori (ukupni kapacitet)','Metode rješavanja mreža: konturne struje i naponi čvorova, strujni izvori','Zadaci s brojevima i postupkom rješenja, Baza zadataka s „Isprobaj“','Vodič kroz aplikaciju, tamna tema, preskakanje prelaganih zadataka']],
+ ['0.10','7. 10. 2026.',['Serija ili paralela, generirane mreže, razina 1–10, Vježba, Ispit, Napredak, Ljestvica','Ukupni otpor (redukcija mreže korak po korak), bojanje čvorova','Elektrostatika, Lekcija s primjerima']]];
 function verHtml(){const [v,d]=VERS[0];return `<p class="note" style="margin-top:14px">Verzija ${v} · ${d} · <a href="#" id="verlink" style="color:inherit">Što je novo?</a></p><div id="verlist" hidden style="margin-top:8px">${VERS.map(([v,d,l],i)=>`<details ${i?'':'open'} style="margin:6px 0"><summary style="cursor:pointer;font-weight:600">Verzija ${v} · ${d}</summary><ul style="margin:6px 0 0 20px;padding:0">${l.map(x=>`<li>${x}</li>`).join('')}</ul></details>`).join('')}</div>`}
 function verBind(){const a=document.getElementById('verlink');if(a)a.onclick=e=>{e.preventDefault();const l=document.getElementById('verlist');l.hidden=!l.hidden}}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
