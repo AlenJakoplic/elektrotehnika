@@ -326,3 +326,20 @@ language sql security definer set search_path = public as $$
 $$;
 revoke all on function public.leaderboard_zad from public;
 grant execute on function public.leaderboard_zad to anon, authenticated;
+
+-- Statistika Zadataka za sve (zbirno).
+create or replace function public.stats_zad()
+returns jsonb
+language sql security definer set search_path = public as $$
+  select jsonb_build_object(
+    'users', (select count(distinct profile_id) from answers where mode = 'zadaci'),
+    'n',     (select count(*) from answers where mode = 'zadaci'),
+    'avg',   (select avg(score) from answers where mode = 'zadaci'),
+    'full',  (select count(*) from answers where mode = 'zadaci' and score >= 0.999),
+    'types', coalesce((select jsonb_object_agg(topic, v) from (
+        select topic, jsonb_build_object('n', count(*), 'users', count(distinct profile_id), 'avg', avg(score),
+                                         'full', count(*) filter (where score >= 0.999)) v
+        from answers where mode = 'zadaci' group by topic) t), '{}'::jsonb));
+$$;
+revoke all on function public.stats_zad from public;
+grant execute on function public.stats_zad to anon, authenticated;
