@@ -110,6 +110,9 @@ svg.es [data-g].on circle{stroke-width:4;stroke:var(--mark)}svg.es [data-g].on l
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
 <script data-goatcounter="https://alenjakoplic.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
 <body>
 <header>
@@ -1356,11 +1359,11 @@ function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="she
 /* ---------- Ljestvica: ukupno ---------- */
 let boardAll=false;
 {const _mb=modbar;modbar=function(){_mb();if(view!=='board')return;const bar=main.querySelector('.modbar');if(!bar)return;
-  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll==='week'}" data-wk="1">Ovaj tjedan</button><button data-all="1" aria-current="${boardAll===true}">Ukupno</button>`);
+  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll==='week'}" data-wk="1">Ovaj tjedan</button><button data-all="1" aria-current="${boardAll===true}">Ukupno</button><button data-all="1" data-zl="1" aria-current="${boardAll==='zad'}">Zadaci</button>`);
   bar.addEventListener('click',e=>{if(e.target.closest('[data-m]'))boardAll=false},true);
-  bar.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{boardAll=b.dataset.wk?'week':true;render()});
-  if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=boardAll==='week'?`Tvoji bodovi ovaj tjedan: <b>${zN(gWeek(prof()).pts)}</b>`:`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
-{const _rb=renderBoard;renderBoard=function(){if(boardAll==='week')return renderBoardWeek();if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
+  bar.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{boardAll=b.dataset.wk?'week':b.dataset.zl?'zad':true;render()});
+  if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=boardAll==='zad'?`Tvoji bodovi iz Zadataka: <b>${zN((prof().zad||{}).pts||0)}</b>`:boardAll==='week'?`Tvoji bodovi ovaj tjedan: <b>${zN(gWeek(prof()).pts)}</b>`:`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
+{const _rb=renderBoard;renderBoard=function(){if(boardAll==='zad')return renderBoardZad();if(boardAll==='week')return renderBoardWeek();if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
 async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno</h2>';let rows=[],err='';
   if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
     try{const {data,error}=await Remote.rpc('leaderboard_total');if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
@@ -1469,7 +1472,7 @@ async function showProfile(nick){let d=null,err='';
     body=`<h2 style="margin:0">${esc(d.nick)}${d.name?` <span style="font-weight:400;color:var(--muted);font-size:20px">(${esc(d.name)})</span>`:''}</h2>
     <p style="margin:4px 0 0">Ukupna razina <b>${fmt(ov)}</b></p>
     <p style="margin:10px 0 4px"><span style="font-size:22px">🔥</span> <b style="font-size:20px">${curStreak(P)}</b> ${curStreak(P)===1?'dan':'dana'} zaredom</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll+zn,'riješeno ukupno')}${tile(nAll,'u Vježbi i Ispitu')}${tile(zn,'u Zadacima')}${P.showAcc&&Object.values(P.ratings||{}).some(x=>x.c!=null)?tile(totC(P),'točnih odgovora'):''}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll,'riješeno u Vježbi i Ispitu')}${tile(zN(zd.pts||0),'bodova iz Zadataka')}${P.showAcc&&Object.values(P.ratings||{}).some(x=>x.c!=null)?tile(totC(P),'točnih odgovora'):''}</div>
     <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} ${gDays(P).best===1?'dan':'dana'} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
     <h3 style="margin:10px 0 6px">Razine po gradivima</h3>${bars}
     <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">Značke: ${Object.keys(P.badges||{}).length} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(P,true)}</div></details>`}
@@ -1568,6 +1571,29 @@ async function eggList(){document.getElementById('eggov')?.remove();let rows=[],
    <p style="margin:12px 0 0"><b>Ukupno: ${rows.length}</b></p></div></div>`);
   document.getElementById('eggov').onclick=()=>document.getElementById('eggov').remove()}
 let eggN2=0,eggT2=0;document.addEventListener('click',e=>{if(!e.target.closest('.eggli'))return;const t=Date.now();eggN2=t-eggT2<1500?eggN2+1:1;eggT2=t;if(eggN2>=5){eggN2=0;eggList()}});
+
+async function renderBoardZad(){const me=prof().nick,head='<h2>Ljestvica: Zadaci</h2>';let rows=[],err='';
+  if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
+    try{const {data,error}=await Remote.rpc('leaderboard_zad');if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
+    if(view!=='board'||boardAll!=='zad')return}
+  else rows=Object.values(state.profiles).filter(p=>p.zad&&p.zad.n>0).map(p=>({nick:p.nick,pts:p.zad.pts||0,n:p.zad.n,full_n:Object.values(p.zad.full||{}).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.pts-a.pts||b.full_n-a.full_n);
+  main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
+  <table><tr><th></th><th>Nadimak</th><th>Bodovi</th></tr>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Još nitko nije riješio zadatak.</td></tr>'}</table>
+  <p class="note">Bodovi su zbroj bodova iz kartice Zadaci.</p>
+  ${Remote?'<div id="zstats"><p class="note">Učitavam statistiku…</p></div>':''}</div>`;
+  modbar();if(Remote)zadStats()}
+async function zadStats(){let s=null;try{const {data,error}=await Remote.rpc('stats_zad');if(!error)s=data}catch(e){}
+  const box=document.getElementById('zstats');if(!box)return;if(!s){box.innerHTML='<p class="note">Statistika se trenutačno ne može učitati.</p>';return}
+  const pc=x=>x==null?'–':Math.round(100*x)+' %',tile=(v,l)=>`<div style="border:1px solid var(--line);border-radius:8px;padding:10px 12px"><div style="font-size:26px;font-weight:700;font-family:var(--f-head)">${v}</div><div style="font-size:13px;color:var(--muted)">${l}</div></div>`;
+  const TN={zruk:'Ukupni otpor',zcap:'Ukupni kapacitet',zui:'Struje i naponi',zkont:'Konturne struje',zcvor:'Naponi čvorova'};
+  const rows=Object.keys(TN).filter(k=>s.types[k]).map(k=>{const t=s.types[k];return `<tr><td>${TN[k]}</td><td class="num">${t.users}</td><td class="num">${t.n}</td><td class="num">${pc(t.avg)}</td><td class="num">${pc(t.n?t.full/t.n:null)}</td></tr>`}).join('');
+  box.innerHTML=`<h3 style="margin:28px 0 10px">Statistika Zadataka za sve korisnike</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">${tile(s.users,'korisnika')}${tile(s.n,'riješenih zadataka')}${tile(pc(s.avg),'prosječno bodova')}${tile(pc(s.n?s.full/s.n:null),'s punim bodovima')}</div>
+  <p style="margin:-4px 0 16px">${(()=>{const u=s.users,n=s.n,d=u%10,dd=u%100,one=d===1&&dd!==11,few=d>=2&&d<=4&&(dd<12||dd>14),nz=n%10===1&&n%100!==11?'zadatak':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'zadatka':'zadataka';
+    return `Zadatke ${one?`je rješavao <b>${u}</b> korisnik`:few?`su rješavala <b>${u}</b> korisnika`:`je rješavalo <b>${u}</b> korisnika`}, ukupno <b>${n}</b> ${nz}. Prosječno je osvojeno <b>${pc(s.avg)}</b> mogućih bodova, a <b>${pc(s.n?s.full/s.n:null)}</b> zadataka riješeno je bez greške.`})()}</p>
+  ${rows?`<table><tr><th>Vrsta zadatka</th><th>Korisnika</th><th>Zadataka</th><th>Prosječno bodova</th><th>Puni bodovi</th></tr>${rows}</table>`:''}
+  <p class="note">Prikazani su samo zbirni podaci. „Prosječno bodova“ je udio osvojenih od mogućih bodova.</p>`}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
