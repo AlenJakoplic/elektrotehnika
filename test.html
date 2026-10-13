@@ -1472,7 +1472,7 @@ async function showProfile(nick){let d=null,err='';
     body=`<h2 style="margin:0">${esc(d.nick)}${d.name?` <span style="font-weight:400;color:var(--muted);font-size:20px">(${esc(d.name)})</span>`:''}</h2>
     <p style="margin:4px 0 0">Ukupna razina <b>${fmt(ov)}</b></p>
     <p style="margin:10px 0 4px"><span style="font-size:22px">🔥</span> <b style="font-size:20px">${curStreak(P)}</b> ${curStreak(P)===1?'dan':'dana'} zaredom</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll+zn,'riješeno ukupno')}${tile(nAll,'u Vježbi i Ispitu')}${tile(zn,'u Zadacima')}${P.showAcc&&Object.values(P.ratings||{}).some(x=>x.c!=null)?tile(totC(P),'točnih odgovora'):''}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px">${tile(nAll,'riješeno u Vježbi i Ispitu')}${tile(zN(zd.pts||0),'bodova iz Zadataka')}${P.showAcc&&Object.values(P.ratings||{}).some(x=>x.c!=null)?tile(totC(P),'točnih odgovora'):''}</div>
     <p style="margin:2px 0 12px;color:var(--muted);font-size:14px">Najdulji niz: ${gDays(P).best} ${gDays(P).best===1?'dan':'dana'} · zadataka s punim bodovima: ${Object.values(zd.full||{}).reduce((a,b)=>a+b,0)}${d.since?` · od ${new Date(d.since).toLocaleDateString('hr-HR')}`:''}</p>
     <h3 style="margin:10px 0 6px">Razine po gradivima</h3>${bars}
     <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">Značke: ${Object.keys(P.badges||{}).length} od ${BADGES.length}</summary><div style="margin-top:10px">${badgeGrid(P,true)}</div></details>`}
