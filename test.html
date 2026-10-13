@@ -1590,6 +1590,8 @@ async function zadStats(){let s=null;try{const {data,error}=await Remote.rpc('st
   const rows=Object.keys(TN).filter(k=>s.types[k]).map(k=>{const t=s.types[k];return `<tr><td>${TN[k]}</td><td class="num">${t.users}</td><td class="num">${t.n}</td><td class="num">${pc(t.avg)}</td><td class="num">${pc(t.n?t.full/t.n:null)}</td></tr>`}).join('');
   box.innerHTML=`<h3 style="margin:28px 0 10px">Statistika Zadataka za sve korisnike</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">${tile(s.users,'korisnika')}${tile(s.n,'riješenih zadataka')}${tile(pc(s.avg),'prosječno bodova')}${tile(pc(s.n?s.full/s.n:null),'s punim bodovima')}</div>
+  <p style="margin:-4px 0 16px">${(()=>{const u=s.users,n=s.n,d=u%10,dd=u%100,one=d===1&&dd!==11,few=d>=2&&d<=4&&(dd<12||dd>14),nz=n%10===1&&n%100!==11?'zadatak':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'zadatka':'zadataka';
+    return `Zadatke ${one?`je rješavao <b>${u}</b> korisnik`:few?`su rješavala <b>${u}</b> korisnika`:`je rješavalo <b>${u}</b> korisnika`}, ukupno <b>${n}</b> ${nz}. Prosječno je osvojeno <b>${pc(s.avg)}</b> mogućih bodova, a <b>${pc(s.n?s.full/s.n:null)}</b> zadataka riješeno je bez greške.`})()}</p>
   ${rows?`<table><tr><th>Vrsta zadatka</th><th>Korisnika</th><th>Zadataka</th><th>Prosječno bodova</th><th>Puni bodovi</th></tr>${rows}</table>`:''}
   <p class="note">Prikazani su samo zbirni podaci. „Prosječno bodova“ je udio osvojenih od mogućih bodova.</p>`}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
