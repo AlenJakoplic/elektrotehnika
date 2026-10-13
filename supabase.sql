@@ -312,3 +312,17 @@ $$;
 
 revoke all on function public.egg_found, public.egg_list from public;
 grant execute on function public.egg_found, public.egg_list to anon, authenticated;
+-- Dodatak: ljestvica Zadataka. Pokreni jednom u SQL Editoru.
+create or replace function public.leaderboard_zad()
+returns table(nick text, pts real, n integer, full_n integer)
+language sql security definer set search_path = public as $$
+  select p.nick,
+         coalesce((p.state->'zad'->>'pts')::real, 0),
+         coalesce((p.state->'zad'->>'n')::int, 0),
+         coalesce((select sum(value::int) from jsonb_each_text(coalesce(p.state->'zad'->'full', '{}'::jsonb))), 0)::int
+  from profiles p
+  where coalesce((p.state->'zad'->>'n')::int, 0) > 0
+  order by 2 desc, 4 desc limit 200;
+$$;
+revoke all on function public.leaderboard_zad from public;
+grant execute on function public.leaderboard_zad to anon, authenticated;
