@@ -137,7 +137,7 @@ const BANK=JSON.parse(document.getElementById('bank').textContent);
 const NETS=Object.fromEntries(BANK.nets.map(n=>[n.id,n]));
 const QS=BANK.questions;
 const TOPICS={serpar:'Serija i paralela',ruk:'Ukupni otpor'};
-const TAGNAMES={dijagonala:'Otpornik u dijagonali',kratki_spoj:'Kratko spojeni otpornik',bez_struje:'Otpornik bez struje (slijepa grana)',skrivena_paralela:'Paralela koja ne izgleda kao paralela',udaljena_serija:'Serija kad otpornici nisu jedan do drugog',serija_iza_ugla:'Serija iza ugla',zajednicki_cvor:'Zajednički čvor, ali struja se grana',izgleda_paralelno:'Izgleda paralelno, a nije',formula_serija:'Formula za seriju',formula_paralela:'Formula za paralelu',formula_nista:'Kad nijedna formula ne vrijedi',redukcija:'Svođenje mreže na Ruk'};
+const TAGNAMES={dijagonala:'Otpornik u dijagonali',kratki_spoj:'Kratko spojeni otpornik',bez_struje:'Otpornik bez struje (slijepa grana)',skrivena_paralela:'Paralela koja ne izgleda kao paralela',udaljena_serija:'Serija kad otpornici nisu jedan do drugog',serija_iza_ugla:'Serija iza ugla',zajednicki_cvor:'Zajednički čvor, ali struja se grana',izgleda_paralelno:'Izgleda paralelno, a nije',formula_serija:'Formula za seriju',formula_paralela:'Formula za paralelu',formula_nista:'Kad nijedna formula ne vrijedi',redukcija:'Svođenje mreže na Ruk',ista_struja:'Ista struja (serija)',isti_napon:'Isti napon (paralela)',uljez:'Pronađi uljeza'};
 const ANS={series:'serijski',parallel:'paralelno',none:'ni serijski ni paralelno'};
 
 /* ---------- Spremište: lokalno sada, zajednička baza kasnije (ista sučelja) ---------- */
@@ -329,16 +329,16 @@ function renderWelcomeRemote(msg=''){
   $('#reg').onclick=()=>go('register');$('#log').onclick=()=>go('login');
   $('#pin').onkeydown=e=>{if(e.key==='Enter')go('login')};
 }
-function questionHTML(q){return `<p class="q">Kako su spojeni ${q.topic==='serparC'?'kondenzatori':'otpornici'} <strong>${sub(q.r1)}</strong> i <strong>${sub(q.r2)}</strong> gledano sa stezaljki A i B?</p>`}
-function optsHTML(){return `<div class="opts">${[['series','a','u seriju'],['parallel','b','u paralelu'],['none','c','ništa od navedenog']].map(([k,l,t])=>`<button class="opt" data-a="${k}"><kbd>${l})</kbd>${t}</button>`).join('')}</div>`}
+function questionHTML(q){if(q.type)return `<p class="q">${SPQ[q.type](q)}</p>`;return `<p class="q">Kako su spojeni ${q.topic==='serparC'?'kondenzatori':'otpornici'} <strong>${sub(q.r1)}</strong> i <strong>${sub(q.r2)}</strong> gledano sa stezaljki A i B?</p>`}
+function optsHTML(q){if(q&&q.type)return `<div class="opts">${q.opts.map((r,i)=>`<button class="opt" data-a="${r}"><kbd>${'abcd'[i]})</kbd>${sub(r)}</button>`).join('')}</div>`;return `<div class="opts">${[['series','a','u seriju'],['parallel','b','u paralelu'],['none','c','ništa od navedenog']].map(([k,l,t])=>`<button class="opt" data-a="${k}"><kbd>${l})</kbd>${t}</button>`).join('')}</div>`}
 
 function renderSerpar(){
   const p=prof();
   const TP=p.module;if(!cur||cur.topic!==TP||answered===null){cur=pickQuestion(TP);answered=false}
   const n=NETS[cur.net];
   const showCol=p.colors||answered;
-  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(cur))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:[cur.r1,cur.r2]})}</div></div>
-  <div class="sheet side">${questionHTML(cur)}${optsHTML()}<div id="fb"></div>
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(cur))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:cur.type?(cur.x?[cur.x]:[]):[cur.r1,cur.r2]})}</div></div>
+  <div class="sheet side">${questionHTML(cur)}${optsHTML(cur)}<div id="fb"></div>
   <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka.</small></span></label></div></div>`;
   $('#col').onchange=e=>{p.colors=e.target.checked;save();renderSerpar()};
   main.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerPractice(b.dataset.a));modbar();
@@ -349,7 +349,7 @@ function answerPractice(a){
   const d=applyResult(cur,ok,usedCol);
   renderSerpar();
   main.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.dataset.a===cur.ans)b.classList.add('right');else if(b.dataset.a===a)b.classList.add('wrong')});
-  $('#fb').innerHTML=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${cur.r1} i ${cur.r2} spojeni su ${ANS[cur.ans]}. ${explain(cur)}</p>
+  $('#fb').innerHTML=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${cur.type?`Točan odgovor: ${cur.ans}. ${spExplain(cur)}`:`${cur.r1} i ${cur.r2} spojeni su ${ANS[cur.ans]}. ${explain(cur)}`}</p>
   <span class="delta">Razina ${d>=0?'+':'−'}${fmt(Math.abs(d))} → ${fmt(p.ratings[cur.topic].r)}${ok&&usedCol?' (s bojicama)':''}</span><br><button class="primary" id="next">Sljedeće pitanje</button></div>`;
   header();$('#next').focus();$('#next').onclick=()=>{answered=null;renderSerpar()};
 }
@@ -359,6 +359,7 @@ document.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if(prof()&&prof().module==='formula'&&view==='practice'){const btn=main.querySelector(`.opt[data-key="${k}"]:not(:disabled)`);if(btn)btn.click();return}
   if(prof()&&prof().module==='ruk'&&view==='practice'){const op={a:'series',b:'parallel'}[k];const btn=op&&main.querySelector(`[data-op="${op}"]`);if(btn)btn.click();return}
+  if(view==='practice'&&cur&&cur.type&&prof()&&prof().module==='serpar'){const i='abcd'.indexOf(k)>=0?'abcd'.indexOf(k):'1234'.indexOf(k);const btn=i>=0&&main.querySelectorAll('.opt')[i];if(btn&&!btn.disabled)btn.click();return}
   if(m){const btn=main.querySelector(`.opt[data-a="${m}"]:not(:disabled)`);if(btn)btn.click()}
 });
 
@@ -372,7 +373,7 @@ function renderExam(){if(/^(kont|cvor|pretv)$/.test(prof().module))return metExa
     const desc={estat:'Osam kratkih pitanja iz elektrostatike: smjer sile i polja, zbrajanje vektora, rad i energija.',serpar:'Deset pitanja o tome jesu li otpornici u seriji, paraleli ili ništa od toga.',formula:'Deset pitanja: za označeni par odaberi točnu formulu.',rukC:'Tri mreže s kondenzatorima koje svodiš na C<sub>uk</sub>. Pazi: formule su obrnute nego kod otpornika.',serparC:'Deset pitanja o spoju kondenzatora.',ruk:'Tri mreže koje svodiš na R<sub>uk</sub>, bez bojica.'}[mod];
     main.innerHTML=`<div class="sheet panel"><h2>Ispit: ${MODNAME[mod]}</h2><p>${desc} Zadaci su prilagođeni tvojoj razini, bez pomoći i bez objašnjenja dok ne završiš. Mjeri se vrijeme, a rezultati se računaju u razinu kao i u vježbi.</p><button class="primary" id="start">Započni ispit</button></div>`;
     modbar();exam=null;
-    $('#start').onclick=()=>{exam={mod,qs:[],ans:[],res:[],i:0,t0:Date.now(),running:true};const ex=new Set();for(let i=0;i<N;i++){const q=pickQuestion(mod,ex);ex.add(q.id);exam.qs.push(q)}rk=null;renderExam()};return}
+    $('#start').onclick=()=>{exam={mod,qs:[],ans:[],res:[],i:0,t0:Date.now(),running:true};const ex=new Set(mod==='serpar'?Object.keys(SPX):[]);for(let i=0;i<N;i++){const q=pickQuestion(mod,ex);ex.add(q.id);exam.qs.push(q)}rk=null;renderExam()};return}
   if(mod==='estat'&&exam.running)return estatExamRun();
   if(exam.running){
     const q=exam.qs[exam.i];
@@ -516,7 +517,7 @@ function renderBank(){if(/^(kont|cvor|pretv)$/.test(prof().module))return metBan
   if((mod==='ruk'||mod==='rukC')){const t=qs[0];right=`<p><b>${n.id}</b>, razina ${n.level}</p><p class="note">Jedan mogući redoslijed svođenja:</p><ol class="steps">${solveSteps(n).map(x=>`<li>${x}</li>`).join('')}</ol><p class="note">Težina zadatka ${fmt(t.diff)}${state.qstats[t.id]?` → ${fmt(state.qstats[t.id].r)}`:''}</p>`}
   else{const lbl=q=>mod==='formula'?FANS[{series:'ser',parallel:'par',none:'none'}[q.ans]]:ANS[q.ans];
     right=`<p><b>${n.id}</b>, razina ${n.level}</p><table><tr><th>Par</th><th>${mod==='formula'?'Točna formula':'Odgovor'}</th><th>Težina</th><th>Zamke</th></tr>
-    ${qs.map(q=>{const s=state.qstats[q.id];return `<tr><td>${q.r1}, ${q.r2}</td><td>${lbl(q)}</td><td>${fmt(q.diff)}${s?` → ${fmt(s.r)} (${s.c}/${s.n})`:''}</td><td class="note">${q.tags.map(t=>TAGNAMES[t]).join('; ')||'–'}</td></tr>`}).join('')}</table>
+    ${qs.map(q=>{const s=state.qstats[q.id];return `<tr><td>${q.type?spShort(q):`${q.r1}, ${q.r2}`}</td><td>${q.type?q.ans:lbl(q)}</td><td>${fmt(q.diff)}${s?` → ${fmt(s.r)} (${s.c}/${s.n})`:''}</td><td class="note">${q.tags.map(t=>TAGNAMES[t]).join('; ')||'–'}</td></tr>`}).join('')}</table>
     <p class="note">${Object.entries(n.status).filter(([k,v])=>v!=='ok').map(([k,v])=>`${k}: ${v==='short'?'kratko spojen':'bez struje'}`).join(', ')}</p>`}
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Baza zadataka: ${MODNAME[mod]}</h2>
   <p class="note">${netIds.size} mreža, ${qsMod.length} ${(mod==='ruk'||mod==='rukC')?'zadataka':'pitanja'}. Za provjeru točnosti: bojice su uključene, a uz svaki zadatak je točan odgovor.</p>
@@ -1013,8 +1014,8 @@ function metPrompt(s,q){const K=q.topic==='kont';
   if(s.t==='conv')return{p:`Grana s ${su(s.sr.E)} i ${su(s.sr.R)} u seriji: za jednadžbu čvora pretvori je u strujni izvor ${frx(s.sr.E,s.sr.R)} paralelno s ${su(s.sr.R)}.`,opts:[{k:'conv',h:'Pretvori u strujni izvor'}]};
   if(s.t==='isrc')return{p:`Strujni izvor ${frx(s.sr.E,s.sr.R)} (na slici) spojen je na čvor ${s.k+1}. S kojim predznakom ide na desnu stranu jednadžbe?`,opts:[{k:1,h:'+'},{k:-1,h:'−'}]};
   if(s.t==='icur')return{p:`Strujni izvor ${su(s.cr.I)} spojen je na čvor ${s.k+1}. S kojim predznakom ide na desnu stranu jednadžbe?`,opts:[{k:1,h:'+'},{k:-1,h:'−'}]};
-  if(s.t==='ifix')return{p:`Petlja ${IK(s.k)} prolazi kroz strujni izvor ${su(s.f.I)} u vanjskoj grani. Što pišeš za tu petlju?`,opts:[{k:1,h:`${IK(s.k)} = ${su(s.f.I)}`},{k:-1,h:`${IK(s.k)} = −${su(s.f.I)}`},{k:0,h:'jednadžbu po algoritmu'}]};
-  if(s.t==='fixed')return{p:`Čvor ${s.n+1} spojen je s masom samo preko izvora ${su(s.f.E)}. Koliki je napon čvora ${s.n+1}?`,opts:[{k:1,h:`${UN(s.n)} = ${su(s.f.E)}`},{k:-1,h:`${UN(s.n)} = −${su(s.f.E)}`},{k:0,h:'treba napisati jednadžbu'}]};
+  if(s.t==='ifix')return{p:`Petlja ${IK(s.k)} prolazi kroz strujni izvor ${su(s.f.I)} u vanjskoj grani. Što pišeš za tu petlju?`,opts:[{k:1,h:`${IK(s.k)} = ${su(s.f.I)}`},{k:-1,h:`${IK(s.k)} = −${su(s.f.I)}`}]};
+  if(s.t==='fixed')return{p:`Čvor ${s.n+1} spojen je s masom samo preko izvora ${su(s.f.E)}. Koliki je napon čvora ${s.n+1}?`,opts:[{k:1,h:`${UN(s.n)} = ${su(s.f.E)}`},{k:-1,h:`${UN(s.n)} = −${su(s.f.E)}`}]};
   if(s.t==='branch'){const o=[];for(const a of[1,-1])for(const b of[1,-1])o.push({k:a+','+b,h:lin(a,b,s.i,s.j)});return{p:`Kolika je struja I<sub>R${s.R.slice(1)}</sub> kroz ${su(s.R)} u smjeru crvene strelice?`,opts:o}}}
 function metAns(s){return s.t==='conv'?'conv':s.t==='count'?s.ans:s.t==='nsign'?s.nb.sign:s.t==='esign'||s.t==='isrc'?s.sr.sign:s.t==='icur'?s.cr.sign:s.t==='ifix'?s.f.sign:s.t==='fixed'?s.f.pol:s.t==='branch'?s.a+','+s.b:null}
 function metWhy(s,q){const K=q.topic==='kont';
@@ -1852,6 +1853,54 @@ let fxLast='';new MutationObserver(()=>{if(view!=='practice'&&view!=='exam'&&vie
   const msgs=[...main.querySelectorAll('.msg.ok,.msg.bad,.fb.ok h3,.fb.bad h3')].map(e=>e.textContent.trim()).filter(Boolean);sig=msgs.join('|')+'#'+(main.querySelector('.meta span')||{}).textContent+'#'+(typeof ths!=='undefined'&&ths?ths.i:'')+'#'+(typeof mt!=='undefined'&&mt?mt.i:'')+'#'+(typeof rk!=='undefined'&&rk&&rk.steps?rk.steps.length:'');
   if(!msgs.length){fxLast='';return}if(sig===fxLast)return;fxLast=sig;const mm=[...main.querySelectorAll('.msg.ok,.msg.bad')].map(e=>e.textContent.trim()).filter(Boolean),t=mm.length?mm[mm.length-1]:msgs[msgs.length-1];if(/^Točno|^Točan/.test(t))fxPlay(true);else if(/^Nije točno|^Netočno|Pogrešno/.test(t))fxPlay(false)}).observe(main,{childList:true,subtree:true,characterData:true});
 
+/* ---------- Serija ili paralela: nove vrste pitanja ---------- */
+function spSolve(net,vals){const ids=[...new Set(Object.values(net.node))],ix={};ids.forEach((n,i)=>ix[n]=i);
+  const nA=net.node[net.A.join(',')],nB=net.node[net.B.join(',')],N=ids.length,G=ids.map(()=>Array(N).fill(0)),b=Array(N).fill(0),rs=[];
+  for(const s of net.segs){if(s.k!=='r')continue;const u=ix[net.node[s.a.join(',')]],v=ix[net.node[s.b.join(',')]];rs.push([s.n,u,v]);if(u===v)continue;const g=1/vals[s.n];G[u][u]+=g;G[v][v]+=g;G[u][v]-=g;G[v][u]-=g}
+  for(let i=0;i<N;i++)G[i][i]+=1e-13;
+  for(const[n,val]of[[nA,1],[nB,0]]){const i=ix[n];G[i]=Array(N).fill(0);G[i][i]=1;b[i]=val}
+  const A=G.map((r,i)=>[...r,b[i]]);
+  for(let i=0;i<N;i++){let m=i;for(let r=i+1;r<N;r++)if(Math.abs(A[r][i])>Math.abs(A[m][i]))m=r;[A[i],A[m]]=[A[m],A[i]];for(let r=0;r<N;r++){if(r===i)continue;const f=A[r][i]/A[i][i];for(let c=i;c<=N;c++)A[r][c]-=f*A[i][c]}}
+  const V=ids.map((n,i)=>A[i][N]/A[i][i]),I={},P={};for(const[n,u,v]of rs){I[n]=Math.abs(V[u]-V[v])/vals[n];P[n]=[u,v].sort().join('-')}return{T:[ix[nA],ix[nB]],I,P,E:Object.fromEntries(rs.map(([n,u,v])=>[n,[u,v]]))}}
+function spRel(net){let sd=7;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
+  const R=net.segs.filter(s=>s.k==='r').map(s=>s.n),t=[0,1].map(()=>spSolve(net,Object.fromEntries(R.map(r=>[r,1+rnd()*9])))),
+    live=R.filter(r=>net.status[r]==='ok'),eq=(a,b)=>Math.abs(a-b)<=1e-7*Math.max(a,b);
+  const E=t[0].E,deg={};for(const r of live){const[u,v]=E[r];if(u===v)continue;deg[u]=(deg[u]||0)+1;deg[v]=(deg[v]||0)+1}
+  const chain=(a,b)=>{for(const st of E[a]){let node=st,cur=a,k=0;while(deg[node]===2&&!t[0].T.includes(node)&&k++<50){const nx=live.find(r=>r!==cur&&E[r][0]!==E[r][1]&&E[r].includes(node));if(!nx)break;if(nx===b)return true;cur=nx;node=E[nx][0]===node?E[nx][1]:E[nx][0]}}return false};
+  const ser=(a,b)=>a!==b&&live.includes(a)&&live.includes(b)&&t.every(x=>eq(x.I[a],x.I[b]))&&t[0].P[a]!==t[0].P[b]&&chain(a,b),
+    par=(a,b)=>a!==b&&live.includes(a)&&live.includes(b)&&t[0].P[a]===t[0].P[b];
+  const sameI=(a,b)=>live.includes(a)&&live.includes(b)&&t.every(x=>eq(x.I[a],x.I[b]));
+  return{R,live,dead:R.filter(r=>!live.includes(r)),ser,par,sameI}}
+const SPX={};
+(function(){let sd=11;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647},shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+  const add=[];
+  for(const n of BANK.nets){const base=QS.filter(q=>q.topic==='serpar'&&q.net===n.id);if(!base.length)continue;
+    const d0=base.reduce((s,q)=>s+q.diff,0)/base.length,rel=spRel(n),{R,live,dead,ser,par,sameI}=rel;
+    const mk=(type,x,ans,others,diff,tags)=>{if(others.length<2)return;const opts=shuf([ans,...shuf(others).slice(0,3)]);add.push({id:n.id+'-'+type,net:n.id,topic:'serpar',type,x,ans,opts,diff:Math.round(Math.min(9,Math.max(1,diff))*10)/10,tags})};
+    // ista struja
+    for(const x of shuf(live)){const p=R.filter(r=>ser(x,r));if(!p.length)continue;const o=R.filter(r=>r!==x&&!sameI(x,r));if(o.length<2)continue;
+      mk('I',x,p[Math.floor(rnd()*p.length)],[...o.filter(r=>par(x,r)),...o.filter(r=>!par(x,r))].slice(0,4),d0+0.3,['ista_struja']);break}
+    // isti napon
+    for(const x of shuf(live)){const p=R.filter(r=>par(x,r));if(!p.length)continue;const o=R.filter(r=>r!==x&&!par(x,r));if(o.length<2)continue;
+      mk('U',x,p[Math.floor(rnd()*p.length)],[...o.filter(r=>ser(x,r)),...o.filter(r=>!ser(x,r))].slice(0,4),d0+0.3,['isti_napon']);break}
+    // bez struje
+    if(dead.length===1&&live.length>=2)mk('B',null,dead[0],live,d0+0.2,['bez_struje']);
+    // uljez: tri u seriji (ista struja) + jedan koji nije
+    for(const x of shuf(live)){const g=[x,...R.filter(r=>ser(x,r))];if(g.length<3)continue;const o=R.filter(r=>!g.includes(r)&&!sameI(x,r));if(!o.length)continue;
+      const three=shuf(g).slice(0,3),odd=o[Math.floor(rnd()*o.length)];add.push({id:n.id+'-X',net:n.id,topic:'serpar',type:'X',grp:three,ans:odd,opts:shuf([...three,odd]),diff:Math.round(Math.min(9,d0+0.6)*10)/10,tags:['uljez']});break}
+  }
+  for(const q of add){QS.push(q);SPX[q.id]=q}})();
+
+const SPQ={I:q=>`Kroz koji od ponuđenih otpornika teče <strong>ista struja</strong> kao kroz <strong>${sub(q.x)}</strong>?`,
+  U:q=>`Na kojem je od ponuđenih otpornika <strong>isti napon</strong> kao na <strong>${sub(q.x)}</strong>?`,
+  B:q=>`Kroz koji od ponuđenih otpornika <strong>ne teče struja</strong> kad se na stezaljke A i B spoji izvor?`,
+  X:q=>`Kroz tri od ova četiri otpornika teče ista struja (spojeni su serijski). Koji je <strong>uljez</strong>?`};
+function spExplain(q){const n=NETS[q.net],st=n.status;
+  if(q.type==='I')return `${q.x} i ${q.ans} spojeni su serijski: između njih struja nema kamo skrenuti, pa je struja ista. ${q.opts.filter(r=>r!==q.ans&&n.status[r]==='ok').some(r=>spRel(n).par(q.x,r))?'Paralelni otpornik ima isti napon, ali ne nužno i istu struju.':''}`;
+  if(q.type==='U')return `${q.x} i ${q.ans} spajaju ista dva potencijala (iste dvije boje), dakle spojeni su paralelno i na njima je isti napon.`;
+  if(q.type==='B')return st[q.ans]==='short'?`${q.ans} je kratko spojen: oba kraja su na istom potencijalu, pa kroz njega ne teče struja.`:`${q.ans} je u slijepoj grani: struja nema kamo nastaviti, pa kroz njega ne teče.`;
+  if(q.type==='X')return `${q.grp.join(', ')} su u seriji i kroz njih teče ista struja. ${q.ans} nije u toj seriji${st[q.ans]!=='ok'?' (kroz njega uopće ne teče struja)':''}.`}
+function spShort(q){return q.type==='I'?`ista struja kao ${q.x}`:q.type==='U'?`isti napon kao ${q.x}`:q.type==='B'?'bez struje':`uljez među ${q.opts.join(', ')}`}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
