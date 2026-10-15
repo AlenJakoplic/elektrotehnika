@@ -1997,7 +1997,7 @@ const MTX={};
     const ks=K?c.meshes.map((_,k)=>k).filter(k=>!meshEq(c,k).fix):c.ci.unk.map(u=>u.n);
     const cand=ks.map(k=>({k,e:mEq(q,k)})).map(x=>({...x,m:mMut(x.e)})).filter(x=>x.m.length>=3).sort((a,b)=>b.m.length-a.m.length);
     if(cand.length){const x=cand[Math.floor(rnd()*Math.min(2,cand.length))],h0=mHtml(x.e),ds=[];for(const m of shuf(x.m)){const h=mHtml(m.e);if(h!==h0&&!ds.includes(h))ds.push(h);if(ds.length===3)break}
-      if(ds.length===3)add.push({id:q.id+'-J',topic:q.topic,type:'J',c,k:x.k,ans:h0,opts:shuf([h0,...ds]),diff:Math.round((q.diff+0.3)*10)/10,tags:['m_jednadzba']});
+      if(ds.length===3)add.push({id:q.id+'-J',topic:q.topic,type:'J',c,k:x.k,ans:h0,opts:shuf([h0,ds[0]]),diff:Math.round((q.diff+0.3)*10)/10,tags:['m_jednadzba']});
       const y=cand[Math.floor(rnd()*cand.length)],mu=y.m[Math.floor(rnd()*y.m.length)];
       add.push({id:q.id+'-G',topic:q.topic,type:'G',c,k:y.k,good:mHtml(y.e),bad:mu.e,term:mu.term,why:mu.why,diff:Math.round((q.diff+0.6)*10)/10,tags:['m_greska']})}
     if(c.ci&&c.ci.unk.length){const nk=c.meshes.filter((_,k)=>!meshEq(c,k).fix).length,nv=c.ci.unk.length;
