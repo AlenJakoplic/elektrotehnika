@@ -297,7 +297,7 @@ const TABHELP={home:'Pregled tvojih gradiva i razina te preporuka što dalje vje
 function header(){
   const p=prof();
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
-  const tabs=[...(typeof kzActive==='function'&&kzActive()?[['kz','KZ1']]:[]),['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);try{if(typeof askUnseen==='function'&&askUnseen()){const t=tabs.find(x=>x[0]==='progress');if(t)t[1]='Napredak ●'}}catch(e){}if(typeof isAdmin!=='undefined'&&isAdmin)tabs.push(['fb',fbNew?`Povratne (${fbNew})`:'Povratne']);
+  const tabs=[...(typeof kzActive==='function'&&kzActive()?[['kz',isEtr()?'KZ1':'Priprema KZ']]:[]),['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);try{if(typeof askUnseen==='function'&&askUnseen()){const t=tabs.find(x=>x[0]==='progress');if(t)t[1]='Napredak ●'}}catch(e){}if(typeof isAdmin!=='undefined'&&isAdmin)tabs.push(['fb',fbNew?`Povratne (${fbNew})`:'Povratne']);
   $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k||(k==='zad'&&view==='exam')}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
   $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}if(b.dataset.v==='board'&&view!=='board')try{boardAll=true}catch(e){}},true));
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&b.dataset.v!=='exam'&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}if(b.dataset.v!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=b.dataset.v;render()});
@@ -313,9 +313,9 @@ function renderWelcome(){
   <p class="note" style="margin:16px 0 0">Koristi radionicu kao pomoć u učenju. Za potpunu pripremu i dalje su važne auditorne vježbe i samostalno rješavanje zadataka.</p>
   <p class="note" style="margin:8px 0 0">Radionica je izrađena pomoću umjetne inteligencije. U zadacima ili objašnjenjima moguće su povremene greške.</p>
   ${others.length?`<p class="note" style="margin-top:20px">Na ovom uređaju već postoje: ${others.map(o=>`<button class="ghost" data-n="${o}" style="margin:4px">${o}</button>`).join('')}</p>`:''}</div>`;
-  const go=()=>{const v=$('#nick').value.trim();if(!v)return $('#nick').focus();if(!state.profiles[v])state.profiles[v]=newProfile(v);state.active=v;save();view=(kzActive()?'kz':'home');render()};
+  const go=()=>{const v=$('#nick').value.trim();if(!v)return $('#nick').focus();if(!state.profiles[v])state.profiles[v]=newProfile(v);state.active=v;save();view=(kzActive()&&isEtr()?'kz':'home');render()};
   $('#go').onclick=go;$('#nick').onkeydown=e=>{if(e.key==='Enter')go()};
-  main.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{state.active=b.dataset.n;save();view=(kzActive()?'kz':'home');render()});
+  main.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{state.active=b.dataset.n;save();view=(kzActive()&&isEtr()?'kz':'home');render()});
 }
 
 function renderWelcomeRemote(msg=''){
@@ -335,7 +335,7 @@ function renderWelcomeRemote(msg=''){
     try{
       const {data,error}=await Remote.rpc(mode,{p_nick:nick,p_pin:pin});
       if(error){const m=error.message||'';err.textContent=m.includes('nick_taken')?'Taj nadimak je zauzet. Ako je tvoj, odaberi Prijavi se.':m.includes('bad_login')?'Nadimak ili PIN nisu točni.':m.includes('bad_nick')?'Nadimak mora imati 2 do 24 znaka.':'Baza trenutačno ne odgovara. Pokušaj ponovno za minutu.';return}
-      const row=data[0];session={token:row.token,nick:row.nick};Store.set('session',session);adopt(row.nick,row.state);if(mode==='register')save();fbCheckAdmin();view=(kzActive()?'kz':'home');render();
+      const row=data[0];session={token:row.token,nick:row.nick};Store.set('session',session);adopt(row.nick,row.state);if(mode==='register')save();fbCheckAdmin();view=(kzActive()&&isEtr()?'kz':'home');render();
     }catch(e){err.textContent='Nema veze s bazom. Provjeri internet i pokušaj ponovno.'}
   };
   $('#reg').onclick=()=>go('register');$('#log').onclick=()=>go('login');
@@ -2189,7 +2189,11 @@ function renderMag(){const p=prof();if(!mgq||mgq.topic!=='mag'){mgq=pickQuestion
 
 /* ---------- Zadaci / Testiraj se i obavijest o KZ ---------- */
 /* */const KZ1=new Date('2026-10-28T08:00:00+01:00');
-function kzBanner(){const now=new Date();if(now>new Date(KZ1.getTime()+60*60000))return '';const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),d1=new Date(KZ1.getFullYear(),KZ1.getMonth(),KZ1.getDate()),dn=Math.round((d1-d0)/864e5);
+const COURSES=[['etr','Elektrotehnika R (Tehnički fakultet u Rijeci)'],['drugi','Drugi kolegij']];
+function isEtr(){const p=prof();return !p||!p.course||p.course==='etr'}
+function courseAsk(force){const p=prof();if(!p||(!force&&p.course)||document.getElementById('fbm'))return;const m=fbModal(`<h3 style="margin:0 0 8px">Koji kolegij slušaš?</h3><p class="note" style="margin:0 0 10px">Aplikaciju koriste studenti više kolegija. Obavijesti o kontrolnim zadaćama i datumi odnose se na kolegij Elektrotehnika R.</p><select id="crs" class="ghost" style="width:100%;margin:0 0 12px">${COURSES.map(([k,t])=>`<option value="${k}" ${p.course===k?'selected':''}>${t}</option>`).join('')}</select><div class="row" style="justify-content:flex-end"><button class="primary" id="crsok" style="margin:0">Spremi</button></div><p class="note" style="margin:8px 0 0">Kolegij možeš promijeniti u Napretku.</p>`);
+  m.querySelector('#crsok').onclick=()=>{p.course=m.querySelector('#crs').value;save();m.remove();if(view==='kz'&&!isEtr())view='home';render()}}
+function kzBanner(){const now=new Date();if(now>new Date(KZ1.getTime()+60*60000))return '';if(!isEtr())return `<div style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:10px;padding:12px 16px;margin:0 0 18px;font-size:14px">Priprema za KZ1 u aplikaciji izrađena je za kolegij <b>Elektrotehnika R</b> (Tehnički fakultet u Rijeci). Datum i pravila tvoje kontrolne zadaće mogu biti drukčiji, pa ih provjeri kod svojih nastavnika.</div>`;const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),d1=new Date(KZ1.getFullYear(),KZ1.getMonth(),KZ1.getDate()),dn=Math.round((d1-d0)/864e5);
   const when=dn<=0?'<b>danas</b>':dn===1?'<b>sutra</b>':`za <b>${dn} ${dn%10>=2&&dn%10<=4&&(dn%100<12||dn%100>14)?'dana':'dana'}</b>`;
   return `<div style="border:2px solid var(--bad);border-radius:10px;padding:14px 16px;margin:0 0 18px"><div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Kontrolna zadaća 1</div><div style="font-size:19px;font-weight:700;margin:2px 0 6px">Srijeda, 28. 10. 2026. u 8:00 (60 min) · ${when}</div><div style="font-size:14px">Gradivo: elektrostatika i kondenzatori, metode rješavanja mreža, Theveninov i Nortonov teorem s prilagođenjem te magnetsko polje ravnih vodiča.</div><div class="note" style="margin-top:6px">Aplikacija je dodatak, a ne zamjena za predavanja, auditorne vježbe i samostalno rješavanje zadataka s kalkulatorom.</div></div>`}
 function zSubBar(){if(view!=='zad'&&view!=='exam')return;if(main.querySelector('#zsub'))return;const ex=view==='exam';
@@ -2250,7 +2254,7 @@ function renderKZ(){if(kzSim)return renderKZSim();const p=prof(),S=kzState(p);{c
   const b2=`<p class="note" style="margin:6px 0">Iz svake skupine riješi barem ${KZR.n2} zadatka s barem pola bodova, a ukupno barem ${KZR.tot2} zadataka (sada ${S.tot}).</p><table>${S.s2.map(x=>rowL(x,`${x.g} od ${KZR.n2}`,`<button class="ghost" style="padding:4px 10px;margin:0" data-kzt="${x.ts[0]}">Riješi zadatak</button>`,S.s2,KZDEP2)).join('')}</table>`;
   const sims=S.K.sims||[];const b3=`<p class="note" style="margin:6px 0">Simulacija kao na KZ1: 4 zadatka (6 + 6 + 6 + 2 boda), 60 + 5 minuta. Rezultati se provjeravaju tek nakon predaje. Prolaz je 6 bodova, a 12 i više bodova daje pravo na oslobođenje završnog ispita.</p><p class="note" style="margin:6px 0"><b>Napomena:</b> bodovanje simulacije nije isto kao stvarno bodovanje na kontrolnoj zadaći. Ovdje se gledaju samo konačni rezultati, a na KZ-u se ponekad boduje i postupak.</p>${sims.length?`<p style="margin:6px 0">Najbolji rezultat: <b>${zN(S.K.best||0)} / 20</b> · simulacija: ${sims.length}</p>`:''}<button class="primary" id="kzgo" style="margin:6px 0 0" ${S.ok2||IS_TEST?'':'disabled'}>Pokreni simulaciju</button>${IS_TEST&&!S.ok2?'<span class="note" style="margin-left:8px">TEST: simulacija otključana za isprobavanje</span>':''}`;
   main.innerHTML=`<div class="sheet panel" style="max-width:980px">${kzBanner()}
-  <h2 style="margin:0 0 6px">Priprema za KZ1</h2><div style="display:flex;align-items:center;gap:12px;margin:0 0 4px"><div style="flex:1">${bar(S.ready/100)}</div><b style="font-size:20px">${S.ready} %</b></div><p class="note" style="margin:0 0 8px">Spremnost: koliko je priprema gotova. Stadiji se otključavaju redom, a računa se i sve što je već riješeno.</p>
+  <h2 style="margin:0 0 6px">Priprema za KZ1${isEtr()?'':' (Elektrotehnika R)'}</h2><div style="display:flex;align-items:center;gap:12px;margin:0 0 4px"><div style="flex:1">${bar(S.ready/100)}</div><b style="font-size:20px">${S.ready} %</b></div><p class="note" style="margin:0 0 8px">Spremnost: koliko je priprema gotova. Stadiji se otključavaju redom, a računa se i sve što je već riješeno.</p>
   ${stage(1,'Vježba po gradivima',true,S.ok1,b1)}${stage(2,'Zadaci s brojevima',S.ok1,S.ok2,b2)}${stage(3,'Simulacija KZ1',S.ok2,(S.K.best||0)>=12,b3)}
   <p style="margin:14px 0 0"><button class="ghost" id="kzrules" style="margin:0">Pravila kolegija</button></p>${kzShowRules?`<div style="margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px">${KZRULES}</div>`:''}</div>`;
   main.querySelectorAll('[data-kgo]').forEach(b=>b.onclick=()=>{p.module=b.dataset.kgo;save();view='practice';render();window.scrollTo(0,0)});
@@ -2291,7 +2295,7 @@ function fbSurvey(which){const p=prof(),feats=[['lekcija','Lekcije'],['vjezba','
     try{await fbSend({kind:'anketa',msg:[m.querySelector('#sv1').value.trim(),m.querySelector('#sv2').value.trim()].filter(Boolean).join('\n---\n'),rating,anon:m.querySelector('#sva').checked,extra:{anketa:which,najkorisnije:[...m.querySelectorAll('[data-sf]:checked')].map(x=>x.dataset.sf),nedostaje:m.querySelector('#sv1').value.trim(),komentar:m.querySelector('#sv2').value.trim()}});done('sent');m.querySelector('div').innerHTML='<h3 style="margin:0 0 8px">Hvala!</h3><p>Odgovori su poslani.</p><div class="row" style="justify-content:flex-end"><button class="primary" id="fbc2" style="margin:0">Zatvori</button></div>';m.querySelector('#fbc2').onclick=()=>m.remove()}
     catch(e){m.querySelector('#svs').disabled=false;m.querySelector('#sve').textContent='Odgovori se trenutačno ne mogu poslati. Provjeri vezu.'}}}
 function fbTotal(p){let n=0;for(const k in p.ratings)n+=p.ratings[k].n||0;return n+((p.zad&&p.zad.n)||0)}
-function fbAfterRender(){const p=prof();if(!p)return;
+function fbAfterRender(){const p=prof();if(!p)return;if(!p.course&&!(tourI>=0)){setTimeout(()=>courseAsk(false),300)}
   const side=main.querySelector('.side');if(side&&(view==='practice'||view==='zad')&&!main.querySelector('#fbq')){const q=view==='zad'?(zad?`Z-${zad.type}${zad.kind?'-'+zad.kind:''}${zad.net&&zad.net.id&&!zad.cst?'-'+zad.net.id:''}`:null):(curQ()?curQ().id:null);
     if(q){side.insertAdjacentHTML('beforeend',`<p style="margin:10px 0 0;text-align:right;display:flex;gap:14px;justify-content:flex-end;flex-wrap:wrap"><a href="#" id="fbask" class="note" style="color:var(--ok);font-weight:600">Pitaj nastavnika</a><a href="#" id="fbq" class="note" style="color:var(--muted)">Prijavi grešku u ovom ${view==='zad'?'zadatku':'pitanju'}</a></p>`);$('#fbq').onclick=e=>{e.preventDefault();fbOpen({qid:q})};$('#fbask').onclick=e=>{e.preventDefault();askOpen(q)}}}
   if(!Remote||!session||document.getElementById('fbm'))return;const fs=p.fbs||{};
@@ -2465,7 +2469,7 @@ for(const nm of['renderExam','renderZad']){const f=window[nm];window[nm]=functio
 {const f=document.getElementById('fbfoot');if(f)f.onclick=e=>{e.preventDefault();if(!prof())return;fbOpen({})}}
 for(const nm of['renderSerpar','renderRuk','renderRukMC','renderEstat','metRender','thRender','renderMag','renderZad','renderKZ']){const f=window[nm];if(typeof f!=='function')continue;window[nm]=function(){const r=f.apply(this,arguments);try{fbAfterRender()}catch(e){}return r}}
 
-view=(kzActive()?'kz':'home');
+view=(kzActive()&&isEtr()?'kz':'home');
 boot();
 
 function kzLive(){return typeof kzSim!=='undefined'&&kzSim&&!kzSim.done}
@@ -2474,6 +2478,8 @@ function kzLeaveAsk(go){const m=fbModal(`<h3 style="margin:0 0 8px">Simulacija j
 document.addEventListener('click',e=>{if(!kzLive())return;const t=e.target.closest&&e.target.closest('#nav button,.brand,#fbfoot');if(!t)return;if(t.matches('#nav button')&&t.dataset.v==='kz')return;
   e.preventDefault();e.stopImmediatePropagation();kzLeaveAsk(()=>{t.click()})},true);
 addEventListener('beforeunload',e=>{if(kzLive()){e.preventDefault();e.returnValue=''}});
+
+{const _rpc=renderProgress;renderProgress=function(){const r=_rpc.apply(this,arguments);try{const p=prof(),pan=main.querySelector('.panel')||main.querySelector('.sheet');if(pan&&!document.getElementById('crsrow')){pan.insertAdjacentHTML('beforeend',`<p id="crsrow" style="margin:18px 0 0">Kolegij: <b>${(COURSES.find(c=>c[0]===p.course)||['','nije odabran'])[1]}</b> <button class="ghost" id="crsch" style="margin:0 0 0 8px;padding:4px 10px">Promijeni</button></p>`);$('#crsch').onclick=()=>courseAsk(true)}}catch(e){}return r}}
 </script>
 </body>
 </html>
