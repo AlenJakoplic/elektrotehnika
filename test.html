@@ -1079,10 +1079,11 @@ const LX={id:'L',topic:'kont',c:mkCirc({W:2,V:[{t:'E',pol:1},{t:'R'},{t:'E',pol:
 const LI={id:'L',topic:'kont',c:mkCirc({W:2,V:[{t:'E',pol:1},{t:'R'},{t:'R'}],T:[{t:'R'},{t:'ER',pol:1}],U:{a:1,b:2,t:'I',ip:-1},d:[1,1,1]})};LI.c.ci=cvorInfo(LI.c);const LIV={...LI,topic:'cvor'};
 
 /* ---------- Preskoči prelagan zadatak ---------- */
-function skipState(){const m=prof().module;if(m==='serpar')return{done:!!answered,reset:()=>{answered=null;cur=null}};if(m==='ruk'||m==='rukC')return{done:!rk||rk.done||rk.steps.length>0||rk.mistakes>0||rk.sel.length>0,reset:()=>{rk=null}};if(m==='estat')return{done:eAns!=null,reset:()=>{eq=null}};if(m==='kont'||m==='cvor')return{done:!mt||mt.i>0||mt.mistakes>0||mt.sel.size>0,reset:()=>{mt=null}};return null}
+function skipState(){const m=prof().module;if(m==='serpar')return{done:!!answered,reset:()=>{answered=null;cur=null}};if(m==='ruk'||m==='rukC')return{done:!rk||rk.done||rk.steps.length>0||rk.mistakes>0||rk.sel.length>0,reset:()=>{rk=null}};if(m==='estat')return{done:eAns!=null,reset:()=>{eq=null}};if(m==='kont'||m==='cvor')return{done:!mt||mt.i>0||mt.mistakes>0||mt.sel.size>0,reset:()=>{mt=null}};if(m==='thev'||m==='nort')return{done:!ths||ths.i>0||ths.mistakes>0||ths.sel.size>0||ths.exam,reset:()=>{ths=null}};return null}
 function addSkip(){if(view!=='practice'||(exam&&exam.running))return;const st=skipState(),side=main.querySelector('.side');if(!st||st.done||!side)return;
-  side.insertAdjacentHTML('beforeend','<button class="ghost" id="skipbtn" style="margin-top:14px;width:100%">Prelagano, daj mi teži zadatak</button>');
-  $('#skipbtn').onclick=()=>{const p=prof(),t=p.module;p.boost=p.boost||{};p.boost[t]=Math.min(4,(p.boost[t]||0)+1);save();st.reset();renderPractice()}}
+  side.insertAdjacentHTML('beforeend','<div class="row" id="skipbtn" style="margin-top:14px;gap:8px"><button class="ghost" id="skipe" style="margin:0;flex:1">Preteško, daj lakši</button><button class="ghost" id="skiph" style="margin:0;flex:1">Prelagano, daj teži</button></div><p class="note" style="margin:4px 0 0;font-size:12px">Lakši zadatak donosi manje napretka, a teži više.</p>');
+  const mv=d=>{const p=prof(),t=p.module;p.boost=p.boost||{};p.boost[t]=Math.max(-4,Math.min(4,(p.boost[t]||0)+d));save();st.reset();renderPractice()};
+  $('#skiph').onclick=()=>mv(1);$('#skipe').onclick=()=>mv(-1)}
 for(const nm of['renderSerpar','renderRuk','renderEstat','metRender']){const f=window[nm];window[nm]=function(){f.apply(this,arguments);addSkip()}}
 lstep.kont=0;lstep.cvor=0;lstep.pretv=0;
 LESSONS.kont=[
@@ -1771,7 +1772,7 @@ function thRender(){const p=prof(),ex=!!(exam&&exam.running);if(!ex){if(tryQ&&(!
     if(!miss.length&&!extra.length){ths.ok=true;ths.msg='Točno.';thAdv()}else{fail();ths.tries++;if(ths.tries>=2){ths.msg='Nije točno. '+(ex?'':s.why);thAdv()}else{ths.msg=`Nije točno.${ex?'':(miss.length?' Fali još nešto.':'')+(extra.length?' Odabrano je i nešto što ne pripada.':'')} Pokušaj ponovno.`;thRender()}}};
   main.querySelectorAll('[data-to]').forEach(b=>b.onclick=()=>{if(b.dataset.to===s.ans){ths.ok=true;ths.msg='Točno.'}else{fail();ths.msg='Nije točno. '+(ex?'':s.why)}thAdv()});
   if($('#tnext2'))$('#tnext2').onclick=()=>{if(ex){exam.res.push({mistakes:ths.mistakes});exam.i++;ths=null;if(exam.i>=exam.qs.length){exam.running=false;exam.t1=Date.now()}header();return renderExam()}ths=null;thRender()};
-  try{tryNote()}catch(e){}}
+  try{tryNote()}catch(e){}try{addSkip()}catch(e){}}
 function thAdv(){ths.i++;ths.sel.clear();ths.tries=0;if(ths.i>=ths.steps.length&&!ths.done){ths.done=true;const q=ths.q;ths.final={d:applyResult(q,Math.max(0,1-0.2*ths.mistakes),false)};
   const p=prof();for(const t of q.tags){const k=q.topic+':'+t,ts=p.tags[k];if(ts&&ths.wrongTags[t]&&ts.c>0)ts.c--}save();header()}thRender()}
 function thExam(){const mod=prof().module,N=3;
@@ -1807,6 +1808,32 @@ LESSONS.nort=[
  {svg:thPair2(thDrawQ(THI),thDrawM(THI,true)),t:'Primjer sa strujnim izvorom',h:`<p>Ugašen strujni izvor je <b>prekid</b>: izvadiš ga iz mreže (donja slika). Otpornik u seriji s njim ne bi ulazio u R<sub>N</sub>.</p><div class="rule">R<sub>N</sub> = ${rtS(THI)}</div>`},
  {svg:thPair(thDrawQ(THL),eqSvg({k:'N',RL:THL.R},230)),t:'3. Nadomjesna shema',h:`<p>Mrežu zamijeni Nortonovim izvorom i vrati ${thLbl(THL)} na stezaljke a–b. ${thLbl(THL)} je paralelno s R<sub>N</sub>, pa se struja dijeli:</p><div class="rule">I = I<sub>N</sub> · R<sub>N</sub> / (R<sub>N</sub> + ${thLbl(THL)})</div><p>Thevenin i Norton daju isti rezultat. Riješi onim koji ti je lakši pa prebaci: E<sub>T</sub> = I<sub>N</sub> · R<sub>N</sub>.</p>`}];
 {const _np2=newProfile;newProfile=function(n){const p=_np2(n);for(const t of['thev','nort'])p.ratings[t]={r:2.0,n:0,c:0};return p}}
+
+/* ---------- Povratna animacija točno / netočno ---------- */
+const FXN={flash:'Bljesak okvira',icon:'Velika kvačica / križić',shake:'Poskok i tresenje',confetti:'Konfeti / crveni puls',banner:'Traka na vrhu'};
+let fxMode=(()=>{try{return localStorage.getItem('cvoriste:fx')||'icon'}catch(e){return 'icon'}})();
+document.head.insertAdjacentHTML('beforeend',`<style>
+@keyframes fxFlashOk{0%{box-shadow:0 0 0 0 rgba(30,138,76,.0)}25%{box-shadow:0 0 0 6px rgba(30,138,76,.85)}100%{box-shadow:0 0 0 0 rgba(30,138,76,0)}}
+@keyframes fxFlashBad{0%{box-shadow:0 0 0 0 rgba(192,57,43,0)}25%{box-shadow:0 0 0 6px rgba(192,57,43,.85)}100%{box-shadow:0 0 0 0 rgba(192,57,43,0)}}
+@keyframes fxPop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{transform:translate(-50%,-50%) scale(1.1);opacity:1}70%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+@keyframes fxShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+@keyframes fxBounce{0%,100%{transform:scale(1)}40%{transform:scale(1.025)}}
+@keyframes fxConf{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+@keyframes fxPulse{0%{opacity:0}30%{opacity:.35}100%{opacity:0}}
+@keyframes fxBan{0%{transform:translate(-50%,-120%)}15%,80%{transform:translate(-50%,0)}100%{transform:translate(-50%,-120%)}}
+</style>`);
+function fxPlay(ok){const side=main.querySelector('.side')||main.querySelector('.panel')||main,board=main.querySelector('.board')||side,col=ok?'var(--ok)':'var(--bad)';
+  if(fxMode==='flash'){[...main.querySelectorAll('.board > .sheet')].forEach(e=>{e.style.animation='none';void e.offsetWidth;e.style.animation=`${ok?'fxFlashOk':'fxFlashBad'} .9s ease-out`})}
+  else if(fxMode==='icon'){const d=document.createElement('div');d.textContent=ok?'✓':'✗';d.style.cssText=`position:fixed;left:50%;top:45%;font-size:140px;font-weight:900;color:${col};text-shadow:0 4px 20px rgba(0,0,0,.25);pointer-events:none;z-index:9997;animation:fxPop .8s ease-out forwards;font-family:Arial`;document.body.appendChild(d);setTimeout(()=>d.remove(),850)}
+  else if(fxMode==='shake'){side.style.animation='none';void side.offsetWidth;side.style.animation=ok?'fxBounce .45s ease-out':'fxShake .45s ease-out';side.style.outline=`3px solid ${col}`;setTimeout(()=>side.style.outline='',700)}
+  else if(fxMode==='confetti'){if(ok){const r=side.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+Math.min(r.height/2,260);for(let i=0;i<28;i++){const s=document.createElement('i'),a=Math.random()*Math.PI*2,v=80+Math.random()*140;s.style.cssText=`position:fixed;left:${cx}px;top:${cy}px;width:8px;height:12px;background:${['#1E8A4C','#F2C230','#1D63C4','#D7263D','#7B3FB8'][i%5]};z-index:9997;pointer-events:none;--dx:${Math.cos(a)*v}px;--dy:${Math.sin(a)*v+60}px;animation:fxConf .9s ease-out forwards`;document.body.appendChild(s);setTimeout(()=>s.remove(),950)}}
+    else{const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:#C0392B;pointer-events:none;z-index:9997;animation:fxPulse .6s ease-out forwards';document.body.appendChild(d);setTimeout(()=>d.remove(),650)}}
+  else if(fxMode==='banner'){const d=document.createElement('div');d.textContent=ok?'✓ Točno!':'✗ Nije točno';d.style.cssText=`position:fixed;left:50%;top:0;padding:12px 28px;border-radius:0 0 12px 12px;background:${col};color:#fff;font-weight:800;font-size:20px;z-index:9997;pointer-events:none;animation:fxBan 1.3s ease-out forwards`;document.body.appendChild(d);setTimeout(()=>d.remove(),1350)}}
+let fxLast='';new MutationObserver(()=>{if(view!=='practice'&&view!=='exam'&&view!=='lesson')return;const m=main.querySelector('.msg.ok,.msg.bad,.fb.ok,.fb.bad');let sig='';
+  const msgs=[...main.querySelectorAll('.msg.ok,.msg.bad,.fb.ok h3,.fb.bad h3')].map(e=>e.textContent.trim()).filter(Boolean);sig=msgs.join('|')+'#'+(main.querySelector('.meta span')||{}).textContent+'#'+(typeof ths!=='undefined'&&ths?ths.i:'')+'#'+(typeof mt!=='undefined'&&mt?mt.i:'')+'#'+(typeof rk!=='undefined'&&rk&&rk.steps?rk.steps.length:'');
+  if(!msgs.length){fxLast='';return}if(sig===fxLast)return;fxLast=sig;const mm=[...main.querySelectorAll('.msg.ok,.msg.bad')].map(e=>e.textContent.trim()).filter(Boolean),t=mm.length?mm[mm.length-1]:msgs[msgs.length-1];if(/^Točno|^Točan/.test(t))fxPlay(true);else if(/^Nije točno|^Netočno|Pogrešno/.test(t))fxPlay(false)}).observe(main,{childList:true,subtree:true,characterData:true});
+if(document.title.includes('(test)')){document.body.insertAdjacentHTML('beforeend',`<div style="position:fixed;left:10px;bottom:10px;z-index:9996;background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.15)">Animacija: <select id="fxsel" style="font:inherit">${Object.entries(FXN).map(([k,v])=>`<option value="${k}" ${k===fxMode?'selected':''}>${v}</option>`).join('')}</select> <button class="ghost" id="fxtry" style="margin:0;padding:2px 8px;font-size:12px">✓</button><button class="ghost" id="fxtry2" style="margin:0 0 0 4px;padding:2px 8px;font-size:12px">✗</button></div>`);
+  $('#fxsel').onchange=e=>{fxMode=e.target.value;try{localStorage.setItem('cvoriste:fx',fxMode)}catch(_){}};$('#fxtry').onclick=()=>fxPlay(true);$('#fxtry2').onclick=()=>fxPlay(false)}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
