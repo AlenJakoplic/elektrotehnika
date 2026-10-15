@@ -461,14 +461,17 @@ function renderHelp(){
   <p><b>Serija ili paralela.</b> Za dva označena otpornika odlučiš jesu li spojeni serijski, paralelno ili ništa od toga. Zapamti: elementi su u <b>seriji</b> ako kroz njih teče <b>ista struja</b>, a u <b>paraleli</b> ako su na <b>istom naponu</b>, odnosno između ista dva potencijala.</p>
   <p><b>Ukupni otpor.</b> Klikneš dva otpornika i odabereš formulu: zbroj za seriju ili „puta kroz plus” za paralelu. Ako je korak točan, otpornici se zamijene jednim (npr. R<sub>12</sub>). Ponavljaš dok ne ostane samo jedan otpor između A i B. Uz prekidač <b>Kondenzatori</b> isto radiš za ukupni kapacitet, ali su formule obrnute: paralela je zbroj, a serija „puta kroz plus”.</p>
   <p><b>Metode rješavanja.</b> Korak po korak postavljaš jednadžbe <b>konturnih struja</b> ili <b>napona čvorova</b>: koliko jednadžbi treba, vlastiti otpori ili vodljivosti, predznaci susjednih petlji ili čvorova te izvori na desnoj strani. Strujni izvor u vanjskoj grani odmah određuje struju petlje, a naponski izvor u seriji s otporom kod čvorova pretvaraš u strujni izvor.</p>
+  <p><b>Teoremi mreža.</b> Theveninov i Nortonov teorem korak po korak: gašenje izvora, otpornici koji utječu na R<sub>T</sub>, izraz za R<sub>T</sub> i nadomjesna shema. Mrežu gledamo sa stezaljki a i b.</p>
+  <p><b>Vrste pitanja.</b> Osim osnovnih zadataka, u Vježbi se pojavljuju i kratka pitanja: ista struja ili isti napon, pronađi uljeza, koji par možeš odmah spojiti, zapis ukupnog otpora, točna jednadžba, pronađi grešku, koja metoda daje manje jednadžbi, prilagođenje i druga. Izbornikom <b>Vrsta pitanja</b> možeš se usredotočiti na jednu vrstu. Svaki put kad promijeniš gradivo, izbor se vraća na sve.</p>
+  <p><b>Magnetsko polje ravnih vodiča.</b> Lekcija o polju oko ravnog vodiča, pravilu desne ruke, zbrajanju polja više vodiča i silama, uz zadatke s brojevima. U zadacima prijeđi mišem preko vodiča pa ćeš vidjeti njegove silnice.</p>
   <h3>Razina</h3>
   <p>Svako gradivo ima svoju razinu od 1,0 do 10,0, a gore desno je ukupna razina. Točan odgovor podiže razinu, a pogrešan je spušta. Teža pitanja donose više. Aplikacija ti zadaje pitanja prilagođena tvojoj razini. Pitanja na kojima pogriješiš vratit će se kasnije, a vrste zamki koje ti ne idu dobivat ćeš češće.</p>
   <h3>Bojice potencijala</h3>
   <p>Svi vodiči na istom potencijalu oboje se istom bojom, pa se lakše vidi što je spojeno na što. Viša stezaljka (A) je crvena, niža (B) plava, a čvorovi između idu od toplijih prema hladnijim bojama. Pomažu, ali točan odgovor uz bojice donosi manje napretka. Pokušaj ih koristiti samo kad zapneš.</p>
-  <h3>Prelagano?</h3>
-  <p>Na početku zadatka u vježbi možeš kliknuti „Prelagano, daj mi teži zadatak”. Zadatak se preskače bez utjecaja na razinu, a idući je teži.</p>
+  <h3>Lakši ili teži?</h3>
+  <p>Ispod zadatka u vježbi su gumbi <b>Lakši</b>, <b>Novi zadatak</b> i <b>Teži</b>. Zadatak se preskače bez utjecaja na razinu, a idući je lakši ili teži.</p>
   <h3>Zadaci</h3>
-  <p>Zadaci s brojevima (ukupni otpor, ukupni kapacitet, struje i naponi) koje rješavaš na papiru. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti.</p>
+  <p>Zadaci s brojevima koje rješavaš na papiru: elektrostatika (naboji i kondenzatori), magnetsko polje, ukupni otpor i kapacitet, struje i naponi, metode rješavanja, teoremi i prilagođenje. Kod naboja i magnetskog polja možeš odabrati vrstu zadatka. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti. Na Ljestvici i Početnoj vidiš bodove i ukupno i po gradivima.</p>
   <h3>Baza zadataka</h3>
   <p>Svi zadaci s rješenjima. Svaki možeš isprobati gumbom „Isprobaj”, bez utjecaja na razinu, a uz „Prikaži moje rezultate” vidiš koji su ti zadaci točni (zeleno), koji netočni (crveno), a koji još nisu rješavani (sivo).</p>
   <h3>Ispit</h3>
@@ -1568,6 +1571,7 @@ async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`
 
 /* ---------- Verzije ---------- */
 const VERS=[
+ ['0.15','15. 10. 2026.',['Zadaci iz elektrostatike: naboji (polje, potencijal, sila, rad) i kondenzatori (C, Q, U, W)','Magnetsko polje ravnih vodiča: lekcija i zadaci, rješenje s vektorima na slici i silnice pri prelasku mišem','Teoremi mreža: Theveninov i Nortonov teorem','Nove vrste pitanja u Vježbi za sva gradiva i izbor vrste pitanja','Ljestvica i Početna po gradivima Zadataka','Traka napretka kod zadataka s više koraka','Nakon pogrešnog koraka objašnjenje ostaje vidljivo do klika na Dalje','Poveznica na lekciju kad zadatak ne ide']],
  ['0.14','12. 10. 2026.',['Promjena nadimka','Točnost je zadano skrivena, a može se prikazati na ljestvici i profilu','Skriveni PIN pri upisu, s okom za prikaz','Poboljšan vodič kroz aplikaciju','Easter egg']],
  ['0.13','10. 10. 2026.',['Niz dana i slobodni dani','Upis rezultata u Zadacima s bodovanjem i drugim pokušajem','Značke','Tjedna liga na Ljestvici','Javni profil: klik na nadimak na ljestvici']],
  ['0.12','9. 10. 2026.',['Nova adresa i prijava nadimkom i PIN-om','Napredak se sprema na poslužitelj i vidi na svim uređajima','Zajednička ljestvica, ukupna ljestvica i statistika svih korisnika','Brisanje profila','Početna stranica s preporukom za danas','Rješenje prikazano na shemi: struje i naponi']],
