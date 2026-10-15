@@ -340,7 +340,7 @@ function renderSerpar(){
   const showCol=p.colors||answered;
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(cur))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:cur.type?(cur.x?[cur.x]:[]):[cur.r1,cur.r2]})}</div></div>
   <div class="sheet side">${questionHTML(cur)}${optsHTML(cur)}<div id="fb"></div>
-  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
+  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka.</small></span></label></div></div>`;
   $('#col').onchange=e=>{p.colors=e.target.checked;save();renderSerpar()};
   main.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerPractice(b.dataset.a));modbar();
 }
@@ -566,7 +566,7 @@ function renderFormula(){
   const text=`Kojom formulom računaš zamjenski otpor otpornika <strong>${sub(q.r1)}</strong> i <strong>${sub(q.r2)}</strong>?`;
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(q))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:[q.r1,q.r2]})}</div></div>
   <div class="sheet side"><p class="q">${text}</p><div class="opts">${opts.map((o,i)=>`<button class="opt" data-a="${o.k}"><kbd>${'abcd'[i]})</kbd><span class="frm">${o.h}</span></button>`).join('')}</div><div id="fb"></div>
-  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${fAns?'disabled':''}><span>Bojice potencijala<small>Pomažu vidjeti jesu li u seriji ili paraleli. Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
+  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${fAns?'disabled':''}><span>Bojice potencijala<small>Pomažu vidjeti jesu li u seriji ili paraleli. Točan odgovor s bojicama donosi manje napretka.</small></span></label></div></div>`;
   modbar();
   $('#col').onchange=e=>{p.colors=e.target.checked;save();renderFormula()};
   main.querySelectorAll('.opt').forEach((b,i)=>{b.dataset.a=opts[i].k;b.onclick=()=>answerFormula(b.dataset.a)});
@@ -652,7 +652,7 @@ function renderRuk(){
   <div class="sheet side"><p class="q" style="margin-bottom:4px">Svedi mrežu na jedan ${rk.n.cap?'kondenzator C':'otpor R'}<sub>uk</sub> gledano sa stezaljki A i B.</p>
   ${action}<div class="msg ${rk.msgOk?'ok':'bad'}">${rk.msg}</div>
   ${steps?`<ol class="steps">${steps}</ol>`:''}
-  ${ex?'':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${rk.done?'disabled':''}><span>Bojice potencijala<small>Zadatak riješen uz bojice donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label>`}</div></div>`;
+  ${ex?'':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${rk.done?'disabled':''}><span>Bojice potencijala<small>Zadatak riješen uz bojice donosi manje napretka.</small></span></label>`}</div></div>`;
   modbar();
   if(ex)examTick();else{$('#col').onchange=e=>{p.colors=e.target.checked;if(p.colors)rk.usedHelp=true;save();renderRuk()};if(p.colors&&!rk.done)rk.usedHelp=true}
   if(!rk.done)$('#rsch').querySelectorAll('[data-r]').forEach(el=>el.onclick=()=>{
@@ -1939,7 +1939,7 @@ const RKX={};
     const withDead=dead.length?sum:null;
     let cands=[sum,parv,open1,withDead,ruk*2,ruk/2].filter(x=>x&&isFinite(x)&&x<1e6),ds=[];
     for(const c of cands){if([ruk,...ds].every(y=>Math.abs(c-y)/Math.max(c,y)>0.08))ds.push(c);if(ds.length===3)break}
-    if(ds.length===3)add.push({id:q0.id+'-N',net:n.id,topic:'ruk',type:'N',ans:String(+ruk.toFixed(2)),opts:shuf([ruk,...ds]).map(x=>String(+x.toFixed(2))),diff:Math.round(Math.min(9,q0.diff+0.5)*10)/10,tags:['iznos_ruk']});
+    if(false)add.push({id:q0.id+'-N',net:n.id,topic:'ruk',type:'N',ans:String(+ruk.toFixed(2)),opts:shuf([ruk,...ds]).map(x=>String(+x.toFixed(2))),diff:Math.round(Math.min(9,q0.diff+0.5)*10)/10,tags:['iznos_ruk']});
   }
   for(const q of add){QS.push(q);RKX[q.id]=q}})();
 function renderRukMC(){const p=prof(),q=rk.q,n=NETS[q.net],a=rk.mc,showCol=p.colors||!!a;
@@ -1950,7 +1950,7 @@ function renderRukMC(){const p=prof(),q=rk.q,n=NETS[q.net],a=rk.mc,showCol=p.col
     <span class="delta">Razina ${rk.final.d>=0?'+':'−'}${fmt(Math.abs(rk.final.d))} → ${fmt(p.ratings[q.topic].r)}</span><br><button class="primary" id="next">Sljedeći zadatak</button></div>`}
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina zadatka ${fmt(qRating(q))}</span></div><div class="schem" id="rsch">${drawNet(n,{colors:showCol,values:q.type==='N'?n.vals:null})}</div></div>
   <div class="sheet side"><p class="q">${text}</p><div class="opts">${q.opts.map((x,i)=>`<button class="opt ${a?(x===q.ans?'right':(x===a?'wrong':'')):''}" data-a="${x}" ${a?'disabled':''}><kbd>${'abcd'[i]})</kbd>${lab(x)}</button>`).join('')}</div>${fb}
-  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${a?'disabled':''}><span>Bojice potencijala<small>Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
+  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${a?'disabled':''}><span>Bojice potencijala<small>Točan odgovor s bojicama donosi manje napretka.</small></span></label></div></div>`;
   modbar();
   $('#col').onchange=e=>{p.colors=e.target.checked;save();renderRukMC()};
   main.querySelectorAll('.opt[data-a]').forEach(b=>b.onclick=()=>{if(rk.mc)return;rk.mc=b.dataset.a;rk.done=true;rk.final={d:applyResult(q,b.dataset.a===q.ans,p.colors)};header();renderRukMC()});
