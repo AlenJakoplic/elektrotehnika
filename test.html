@@ -288,7 +288,7 @@ function header(){
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
   const tabs=[['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['exam','Ispit'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);
   $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
-  $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}},true));
+  $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}if(b.dataset.v==='board'&&view!=='board')try{boardAll=true}catch(e){}},true));
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&b.dataset.v!=='exam'&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}if(b.dataset.v!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=b.dataset.v;render()});
 }
 function render(){header();if(!prof())return renderWelcome();({home:renderHome,lesson:renderLesson,help:renderHelp,zad:renderZad,practice:renderPractice,exam:renderExam,progress:renderProgress,board:renderBoard,bank:renderBank})[view]()}
