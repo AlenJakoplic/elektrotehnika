@@ -1155,7 +1155,7 @@ function addRes(){if(view!=='bank'||main.querySelector('#showres'))return;const 
 for(const nm of['renderBank','estatBank','metBank']){const f=window[nm];window[nm]=function(){f.apply(this,arguments);addRes()}}
 
 /* ---------- Zadaci s brojevima (rješavanje na papiru) ---------- */
-const ZT=[['nab','Naboji'],['capu','Kondenzatori U, Q, W'],['ruk','Ukupni otpor'],['cap','Ukupni kapacitet'],['ui','Struje i naponi'],['kont','Konturne struje'],['cvor','Naponi čvorova']];
+const ZT=[['nab','Naboji'],['capu','Kondenzatori U, Q, W'],['mag','Magnetsko polje'],['ruk','Ukupni otpor'],['cap','Ukupni kapacitet'],['ui','Struje i naponi'],['kont','Konturne struje'],['cvor','Naponi čvorova']];
 const ZV=[2,3,4,5,6,8,10,12,15,16,20,24,30,40,60];
 const nice=(x,d)=>isFinite(x)&&x>0&&Math.abs(x*d-Math.round(x*d))<1e-7;
 function zTree(net,vals,cap){const nd=k=>net.node[k.join(',')];
@@ -1167,7 +1167,7 @@ function zTree(net,vals,cap){const nd=k=>net.node[k.join(',')];
     const ng={members,name:grpName(members),a,b,v:sum?g1.v+g2.v:g1.v*g2.v/(g1.v+g2.v),type:best.r,kids:[g1,g2]};steps.push(ng);S.groups=G.filter(g=>g!==g1&&g!==g2);S.groups.push(ng)}
   return S.groups.length===1?{root:S.groups[0],steps}:null}
 function zBack(root,E){root.U=E;root.I=E/root.v;const out=[root];const go=g=>{if(!g.kids)return;for(const k of g.kids){if(g.type==='series'){k.I=g.I;k.U=g.I*k.v}else{k.U=g.U;k.I=g.U/k.v}out.push(k);go(k)}};go(root);return out}
-function zGen(type,d){if(type==='nab')return nabGen(d);if(TH_T.includes(type))return zthGen(type,d);if(type==='kont'||type==='cvor')return zmGen(type,d);const cap=type==='cap'||type==='capu',pool=BANK.nets.filter(n=>n.level<=(type==='capu'?4:6)&&Object.values(n.status).every(v=>v==='ok')&&QS.some(q=>q.topic==='ruk'&&q.net===n.id));
+function zGen(type,d){if(type==='nab')return nabGen(d);if(type==='mag')return magGen(d);if(TH_T.includes(type))return zthGen(type,d);if(type==='kont'||type==='cvor')return zmGen(type,d);const cap=type==='cap'||type==='capu',pool=BANK.nets.filter(n=>n.level<=(type==='capu'?4:6)&&Object.values(n.status).every(v=>v==='ok')&&QS.some(q=>q.topic==='ruk'&&q.net===n.id));
   const lv=Math.max(1,Math.min(6,Math.round(d)));let cand=pool.filter(n=>n.level===(type==='capu'?Math.max(1,Math.min(4,Math.ceil(lv*4/6))):lv));if(!cand.length)cand=pool;
   for(let t=0;t<3000;t++){const n0=cand[Math.floor(Math.random()*cand.length)],net=cap?NETS[n0.id+'C']:n0;if(!net)continue;
     const vals={};net.segs.forEach(s=>{if(s.k==='r')vals[s.n]=ZV[Math.floor(Math.random()*ZV.length)]});
@@ -1262,9 +1262,9 @@ function zNew(){const Z=zProf();if(Z.d[Z.type]==null)Z.d[Z.type]=2;zad=zGen(Z.ty
 function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=zad;
   const vl={};for(const n in z.vals)vl[n]=`${z.vals[n]} ${z.unit}`;
   const sol=zShow?zSol(z):null;
-  main.innerHTML=`<div class="modwrap"><span class="modlabel">Vrsta zadatka:</span><div class="modbar">${[['nab','Naboji',['nab']],['capu','Kondenzatori U, Q, W',['capu']],['ruk',Z.type==='cap'?'Ukupni kapacitet':'Ukupni otpor',['ruk','cap']],['ui','Struje i naponi',['ui']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi mreža',['thev','nort']],['pril','Prilagođenje po snazi',['pril']]].map(([k,l,g])=>`<button data-zt="${g.includes(Z.type)?Z.type:k}" aria-current="${g.includes(Z.type)}">${l}</button>`).join('')}</div>${Z.type==='ruk'||Z.type==='cap'?`<div class="modbar"><button data-zt="ruk" aria-current="${Z.type==='ruk'}">Otpornici</button><button data-zt="cap" aria-current="${Z.type==='cap'}">Kondenzatori</button></div>`:''}${Z.type==='kont'||Z.type==='cvor'?`<div class="modbar"><button data-zt="kont" aria-current="${Z.type==='kont'}">Konturne struje</button><button data-zt="cvor" aria-current="${Z.type==='cvor'}">Naponi čvorova</button></div>`:''}${Z.type==='thev'||Z.type==='nort'?`<div class="modbar"><button data-zt="thev" aria-current="${Z.type==='thev'}">Theveninov teorem</button><button data-zt="nort" aria-current="${Z.type==='nort'}">Nortonov teorem</button></div>`:''}<span class="modlvl">Težina${z.cst?'':' mreže'}: <b>${z.d}</b> od 6</span></div>
-  <div class="board"><div class="sheet"><div class="meta"><span>${z.cst?'Elektrostatika':z.simple?'Realni naponski izvor':'Mreža '+z.net.id}</span><span>riješi na papiru</span></div><div class="schem" id="zsch">${zDraw(z,null)}</div></div>
-  <div class="sheet side">${IS_TEST&&Z.type==='nab'?`<div class="note" style="margin-bottom:10px;padding:6px 8px;border:1px dashed var(--line);border-radius:6px">TEST – vrsta zadatka: <select id="ztk" class="ghost"><option value="">sve (po težini)</option>${[['jedan','Jedan naboj'],['ploce','Ploče'],['pravac2','Pravac, P između'],['pravac3','Pravac, P izvan'],['kut','Pravi kut'],['kvadrat','Kvadrat'],['rad','Rad']].map(([k,t])=>`<option value="${k}" ${zTestKind===k?'selected':''}>${t}</option>`).join('')}</select></div>`:''}<p style="margin:0 0 14px">${zText(z)}</p>${z.th?`<details id="zhow" ${zAB?'open':''} style="margin:0 0 14px"><summary style="cursor:pointer;font-weight:600">Kako se rješava?</summary><div style="margin-top:8px;font-size:15px">${TH_HOW[z.type]}</div></details>`:''}
+  main.innerHTML=`<div class="modwrap"><span class="modlabel">Vrsta zadatka:</span><div class="modbar">${[['nab','Naboji',['nab']],['capu','Kondenzatori U, Q, W',['capu']],['mag','Magnetsko polje',['mag']],['ruk',Z.type==='cap'?'Ukupni kapacitet':'Ukupni otpor',['ruk','cap']],['ui','Struje i naponi',['ui']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi mreža',['thev','nort']],['pril','Prilagođenje po snazi',['pril']]].map(([k,l,g])=>`<button data-zt="${g.includes(Z.type)?Z.type:k}" aria-current="${g.includes(Z.type)}">${l}</button>`).join('')}</div>${Z.type==='ruk'||Z.type==='cap'?`<div class="modbar"><button data-zt="ruk" aria-current="${Z.type==='ruk'}">Otpornici</button><button data-zt="cap" aria-current="${Z.type==='cap'}">Kondenzatori</button></div>`:''}${Z.type==='kont'||Z.type==='cvor'?`<div class="modbar"><button data-zt="kont" aria-current="${Z.type==='kont'}">Konturne struje</button><button data-zt="cvor" aria-current="${Z.type==='cvor'}">Naponi čvorova</button></div>`:''}${Z.type==='thev'||Z.type==='nort'?`<div class="modbar"><button data-zt="thev" aria-current="${Z.type==='thev'}">Theveninov teorem</button><button data-zt="nort" aria-current="${Z.type==='nort'}">Nortonov teorem</button></div>`:''}<span class="modlvl">Težina${z.cst?'':' mreže'}: <b>${z.d}</b> od 6</span></div>
+  <div class="board"><div class="sheet"><div class="meta"><span>${z.cst?(z.type==='mag'?'Magnetizam':'Elektrostatika'):z.simple?'Realni naponski izvor':'Mreža '+z.net.id}</span><span>riješi na papiru</span></div><div class="schem" id="zsch">${zDraw(z,null)}</div></div>
+  <div class="sheet side">${IS_TEST&&ZKINDS[Z.type]?`<div class="note" style="margin-bottom:10px;padding:6px 8px;border:1px dashed var(--line);border-radius:6px">TEST – vrsta zadatka: <select id="ztk" class="ghost"><option value="">sve (po težini)</option>${ZKINDS[Z.type].map(([k,t])=>`<option value="${k}" ${zTestKind===k?'selected':''}>${t}</option>`).join('')}</select></div>`:''}<p style="margin:0 0 14px">${zText(z)}</p>${z.th?`<details id="zhow" ${zAB?'open':''} style="margin:0 0 14px"><summary style="cursor:pointer;font-weight:600">Kako se rješava?</summary><div style="margin-top:8px;font-size:15px">${TH_HOW[z.type]}</div></details>`:''}
   ${zFieldsHtml(z)}<p class="msg bad" id="zmsg" style="margin:4px 0 0"></p>
   ${zShow?`<h3 style="font-family:var(--f-head);font-size:22px;margin:6px 0">Rješenje</h3><ol class="steps" id="zsteps">${sol.steps.map(s=>`<li data-hl="${s[0].join(',')}" style="cursor:default">${s[1]}</li>`).join('')}</ol>${sol.table||''}
     `
@@ -1273,7 +1273,7 @@ function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=z
   <p class="note" style="margin-top:10px">Zadatak riješi na papiru i upiši rezultate. Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Bodovi se računaju u niz dana, tjednu ligu i značke.</p></div></div>`;
   main.querySelectorAll('#zsteps li').forEach(li=>{li.onmouseenter=()=>{$('#zsch').innerHTML=zDraw(z,li.dataset.hl.split(','));li.style.background='color-mix(in srgb,var(--mark) 22%,transparent)'};li.onmouseleave=()=>{$('#zsch').innerHTML=zDraw(z,null);li.style.background=''}});
   if($('#ztk'))$('#ztk').onchange=e=>{zTestKind=e.target.value;zNew();renderZad()};
-  main.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{Z.type=b.dataset.zt;save();zNew();renderZad()});
+  main.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{zTestKind='';Z.type=b.dataset.zt;save();zNew();renderZad()});
   const mv=dd=>{Z.d[Z.type]=Math.max(1,Math.min(6,Z.d[Z.type]+dd));save();zNew();renderZad();window.scrollTo(0,0)};
   if($('#zsol'))$('#zsol').onclick=()=>{if(!z.ans.done)zFinish(z,true);zShow=true;renderZad()};
   if($('#zhow'))$('#zhow').ontoggle=()=>{zAB=$('#zhow').open;$('#zsch').innerHTML=zDraw(z,null)};
@@ -2089,7 +2089,7 @@ function nabSvg(o){const W=520,H=o.H||230,T='font-family="Barlow Condensed,Arial
     if(e.t==='pl')g+=`<rect x="${e.x-5}" y="${e.y1}" width="10" height="${e.y2-e.y1}" fill="${e.c}" stroke="var(--ink)" stroke-width="1.5"/><text x="${e.x}" y="${e.y1-8}" text-anchor="middle" ${T} font-size="20" font-weight="700" fill="var(--ink)">${e.lab}</text>`}
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%"><defs><pattern id="ng" width="13" height="13" patternUnits="userSpaceOnUse"><path d="M13 0H0V13" fill="none" stroke="var(--grid)"/></pattern><marker id="na" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1L9 5L0 9z" fill="var(--muted)"/></marker></defs>${g}</svg>`}
 function nabGen(d){const pk=a=>a[Math.floor(Math.random()*a.length)],sg=()=>Math.random()<0.5?1:-1,lv=Math.max(1,Math.min(6,Math.round(d)));
-  let kind0=null;if(IS_TEST&&zTestKind)kind0=zTestKind;const kinds={1:['jedan','ploce'],2:['jedan','pravac2'],3:['pravac2','pravac3'],4:['kut','pravac3'],5:['kvadrat','kut'],6:['rad','kvadrat']}[lv],kind=kind0||pk(kinds);
+  let kind0=null;if(IS_TEST&&zTestKind&&ZKINDS.nab.some(k=>k[0]===zTestKind))kind0=zTestKind;const kinds={1:['jedan','ploce'],2:['jedan','pravac2'],3:['pravac2','pravac3'],4:['kut','pravac3'],5:['kvadrat','kut'],6:['rad','kvadrat']}[lv],kind=kind0||pk(kinds);
   const Qs=[1,2,3,4,5,6,8,10],qs=[1,2,5,10],z={type:'nab',cst:true,d:lv,net:{id:'Naboji'}};const F=(lab,v,u,w,desc)=>{const[s,uu]=pfx(v,u);return{lab,val:s,unit:uu,w:w||1,desc}};
   const kt='k = <span class="frac"><span>1</span><span>4π·ε<sub>0</sub>·ε<sub>r</sub></span></span> = 8,99·10<sup>9</sup> N·m²/C²';
   if(kind==='jedan'){const Q=pk(Qs)*sg(),r=pk([1,2,3,5,10]),q=pk(qs)*sg(),Qc=Q*1e-9,rm=r/100,qc=q*1e-12,E=KE*Math.abs(Qc)/rm/rm,ph=KE*Qc/rm,Fo=Math.abs(qc)*E;
@@ -2132,6 +2132,50 @@ function nabGen(d){const pk=a=>a[Math.floor(Math.random()*a.length)],sg=()=>Math
     z.fields=[F('A',A,'J',2,'s predznakom')];
     z.sol=[kt,`A = k·Q·q·(<span class="frac"><span>1</span><span>r<sub>1</sub></span></span> − <span class="frac"><span>1</span><span>r<sub>2</sub></span></span>) = 8,99·10<sup>9</sup>·(${sci(Q*1e-9)})·(${sci(q*1e-9)})·(<span class="frac"><span>1</span><span>${sci(r1/100)}</span></span> − <span class="frac"><span>1</span><span>${sci(r2/100)}</span></span>)`,`A = <b>${sci(A)} J</b>`,A>0?'Rad je pozitivan: naboj se giba u smjeru električne sile (sam od sebe), energija se dobiva.':'Rad je negativan: naboj se giba protiv električne sile, energiju treba uložiti.']}
   z.kind=kind;z.ans={v:z.fields.map(()=>''),ok:z.fields.map(()=>null),tries:0,done:false,pts:0};return z}
+/* ---------- Zadaci: magnetsko polje ravnih vodiča ---------- */
+const MU0=4*Math.PI*1e-7;
+const ZKINDS={nab:[['jedan','Jedan naboj'],['ploce','Ploče'],['pravac2','Pravac, P između'],['pravac3','Pravac, P izvan'],['kut','Pravi kut'],['kvadrat','Kvadrat'],['rad','Rad']],
+  mag:[['jedan','Jedan vodič'],['izmedju','Dva vodiča, P između'],['izvan','Dva vodiča, P izvan'],['okomito','Dva vodiča, pravi kut'],['sila','Sila između vodiča'],['naboj','Sila na naboj u gibanju']]};
+function magSvg(els,H){const T='font-family="Barlow Condensed,Arial Narrow,sans-serif"';let extra='';
+  const w=els.filter(e=>e.t==='w');for(const e of w)extra+=`<circle cx="${e.x}" cy="${e.y}" r="17" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.2"/>${e.v>0?`<circle cx="${e.x}" cy="${e.y}" r="4" fill="var(--ink)"/>`:`<path d="M${e.x-9} ${e.y-9}L${e.x+9} ${e.y+9}M${e.x+9} ${e.y-9}L${e.x-9} ${e.y+9}" stroke="var(--ink)" stroke-width="2.4"/>`}<text x="${e.x}" y="${e.y-26}" text-anchor="middle" ${T} font-size="17" fill="var(--ink)">${e.lab}</text>`;
+  return nabSvg({els:els.filter(e=>e.t!=='w'),H:H||230}).replace('</svg>',extra+`<text x="510" y="${(H||230)-10}" text-anchor="end" ${T} font-size="14" fill="var(--muted)">⊙ struja iz papira, ⊗ struja u papir</text></svg>`)}
+function magGen(d){const pk=a=>a[Math.floor(Math.random()*a.length)],lv=Math.max(1,Math.min(6,Math.round(d)));
+  const kinds={1:['jedan'],2:['jedan','izmedju'],3:['izmedju','izvan'],4:['izvan','okomito'],5:['okomito','sila'],6:['sila','naboj']}[lv];const kind=(IS_TEST&&zTestKind&&ZKINDS.mag.some(k=>k[0]===zTestKind))?zTestKind:pk(kinds);
+  const z={type:'mag',cst:true,d:lv,net:{id:'Magnetizam'},kind},F=(lab,v,u,w,desc)=>{const[s,uu]=pfx(v,u);return{lab,val:s,unit:uu,w:w||1,desc}};
+  const Is=[1,2,3,4,5,6,8,10,15,20],rs=[1,2,4,5,10,20],L1='I<tspan font-size="0.72em" dy="4">1</tspan>',L2='I<tspan font-size="0.72em" dy="4">2</tspan>';
+  const Hf=(I,r)=>I/(2*Math.PI*r),hs=(lab,I,r,v)=>`${lab} = <span class="frac"><span>${lab.replace('H','I')}</span><span>2π·${lab.replace('H','r')}</span></span> = <span class="frac"><span>${I}</span><span>2π·${sci(r)}</span></span> = ${sci(v)} A/m`;
+  if(kind==='jedan'){const I=pk(Is),r=pk(rs),H=Hf(I,r/100),B=MU0*H;
+    z.text=`Ravnim vrlo dugim vodičem u zraku teče struja I = ${I} A. Odredite jakost magnetskog polja H i magnetsku indukciju B u točki T udaljenoj r = ${r} cm od vodiča.`;
+    z.svg=magSvg([{t:'w',x:130,y:120,v:1,lab:'I'},{t:'p',x:390,y:120,lab:'T'},{t:'d',x1:130,y1:170,x2:390,y2:170,lab:`r = ${r} cm`,s:-8}]);
+    z.fields=[F('H',H,'A/m'),F('B',B,'T')];
+    z.sol=[`H = <span class="frac"><span>I</span><span>2π·r</span></span> = <span class="frac"><span>${I}</span><span>2π·${sci(r/100)}</span></span> = <b>${sci(H)} A/m</b>`,`B = μ<sub>0</sub>·μ<sub>r</sub>·H = 4π·10<sup>−7</sup>·1·${sci(H)} = <b>${sci(B)} T</b>`,`Smjer silnica: pravilo desne ruke (palac u smjeru struje, prsti pokazuju silnice).`]}
+  if(kind==='izmedju'||kind==='izvan'){const I1=pk(Is),I2=pk(Is),a=pk([1,2,3,4,5]),b=pk([1,2,3,4,5]),s1=Math.random()<0.5?1:-1,s2=Math.random()<0.5?1:-1,out=kind==='izvan';
+    const x2=out?a:a+b,xp=out?a+b:a,r1=xp/100,r2=Math.abs(xp-x2)/100,H1=Hf(I1,r1),H2=Hf(I2,r2);
+    // smjer polja u točki na pravcu (okomito na pravac): za struju iz papira (⊙) desno od vodiča polje gleda gore
+    const up1=s1*Math.sign(xp-0),up2=s2*Math.sign(xp-x2),Hs=up1*H1+up2*H2,H=Math.abs(Hs),B=MU0*H;if(H<0.05*Math.max(H1,H2))return magGen(d);
+    const S=440/(a+b),X=v=>40+v*S;
+    z.text=`Dva paralelna vrlo duga vodiča u zraku vode struje I<sub>1</sub> = ${I1} A i I<sub>2</sub> = ${I2} A smjerova prema slici. Odredite jakost rezultantnog magnetskog polja H i magnetsku indukciju B u točki P.`;
+    z.svg=magSvg([{t:'l',x1:20,y1:120,x2:500,y2:120},{t:'w',x:X(0),y:120,v:s1,lab:L1},{t:'w',x:X(x2),y:120,v:s2,lab:L2},{t:'p',x:X(xp),y:120,lab:'P'},{t:'d',x1:X(0),y1:170,x2:X(a),y2:170,lab:`${a} cm`,s:-8},{t:'d',x1:X(a),y1:170,x2:X(a+b),y2:170,lab:`${b} cm`,s:-8}]);
+    z.fields=[F('H',H,'A/m',2),F('B',B,'T')];
+    z.sol=[hs('H<sub>1</sub>',I1,r1,H1).replace(/H<sub>1<\/sub>/,'H<sub>1</sub>'),hs('H<sub>2</sub>',I2,r2,H2),`Pravilom desne ruke: u točki P polje H<sub>1</sub> gleda ${up1>0?'prema gore':'prema dolje'}, a H<sub>2</sub> ${up2>0?'prema gore':'prema dolje'}.`,
+      `Vektori leže na istom pravcu, pa se ${up1===up2?'zbrajaju':'oduzimaju'}: H = ${up1===up2?'H<sub>1</sub> + H<sub>2</sub>':'|H<sub>1</sub> − H<sub>2</sub>|'} = <b>${sci(H)} A/m</b>`,`B = μ<sub>0</sub>·H = <b>${sci(B)} T</b>`]}
+  if(kind==='okomito'){const I1=pk(Is),I2=pk(Is),r1=pk([1,2,3,4]),r2=pk([1,2,3,4]),H1=Hf(I1,r1/100),H2=Hf(I2,r2/100),H=Math.hypot(H1,H2),B=MU0*H;
+    const px=360,py=70,s=50;
+    z.text=`Dva paralelna vrlo duga vodiča u zraku vode struje I<sub>1</sub> = ${I1} A i I<sub>2</sub> = ${I2} A, raspoređena prema slici. Odredite jakost rezultantnog magnetskog polja H i magnetsku indukciju B u točki P.`;
+    z.svg=magSvg([{t:'l',x1:px-r1*s,y1:py,x2:px,y2:py},{t:'l',x1:px,y1:py,x2:px,y2:py+r2*s},{t:'w',x:px-r1*s,y:py,v:1,lab:L1},{t:'w',x:px,y:py+r2*s,v:-1,lab:''},{t:'p',x:px,y:py,lab:'P'},{t:'d',x1:px-r1*s,y1:py+48,x2:px-6,y2:py+48,lab:`${r1} cm`,s:22},{t:'d',x1:px+40,y1:py,x2:px+40,y2:py+r2*s,lab:`${r2} cm`,s:8}],Math.max(250,py+r2*s+50)).replace('</svg>',`<text x="${px-26}" y="${py+r2*s+6}" text-anchor="end" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="17" fill="var(--ink)">I<tspan font-size="0.72em" dy="4">2</tspan></text></svg>`);
+    z.fields=[F('H',H,'A/m',2),F('B',B,'T')];
+    z.sol=[hs('H<sub>1</sub>',I1,r1/100,H1),hs('H<sub>2</sub>',I2,r2/100,H2),`H<sub>1</sub> je okomit na spojnicu s vodičem 1 (okomito), a H<sub>2</sub> na spojnicu s vodičem 2 (vodoravno): vektori su međusobno okomiti.`,`H = √(H<sub>1</sub>² + H<sub>2</sub>²) = <b>${sci(H)} A/m</b>`,`B = μ<sub>0</sub>·H = <b>${sci(B)} T</b>`]}
+  if(kind==='sila'){const I1=pk(Is),I2=pk(Is),dd=pk([1,2,5,10]),l=pk([1,2,5]),same=Math.random()<0.5,Fo=MU0*I1*I2*l/(2*Math.PI*dd/100);
+    z.text=`Dva paralelna vrlo duga vodiča u zraku razmaknuta su d = ${dd} cm i vode struje I<sub>1</sub> = ${I1} A i I<sub>2</sub> = ${I2} A ${same?'istog':'suprotnog'} smjera. Odredite iznos sile F kojom djeluju jedan na drugi na duljini l = ${l} m.`;
+    z.svg=magSvg([{t:'w',x:170,y:110,v:1,lab:L1},{t:'w',x:350,y:110,v:same?1:-1,lab:L2},{t:'d',x1:170,y1:165,x2:350,y2:165,lab:`d = ${dd} cm`,s:-8}]);
+    z.fields=[F('F',Fo,'N',2)];
+    z.sol=[`B<sub>1</sub> = μ<sub>0</sub>·<span class="frac"><span>I<sub>1</sub></span><span>2π·d</span></span> je indukcija koju vodič 1 stvara na mjestu vodiča 2.`,`F = B<sub>1</sub>·I<sub>2</sub>·l = <span class="frac"><span>μ<sub>0</sub>·I<sub>1</sub>·I<sub>2</sub>·l</span><span>2π·d</span></span> = <span class="frac"><span>4π·10<sup>−7</sup>·${I1}·${I2}·${l}</span><span>2π·${sci(dd/100)}</span></span> = <b>${sci(Fo)} N</b>`,same?'Struje istog smjera: vodiči se privlače.':'Struje suprotnog smjera: vodiči se odbijaju.']}
+  if(kind==='naboj'){const I=pk(Is),r=pk(rs),q=pk([1,2,5,10]),v=pk([1,2,3,5])*Math.pow(10,pk([5,6])),B=MU0*Hf(I,r/100),Fo=q*1e-9*v*B;
+    z.text=`Ravnim vrlo dugim vodičem u zraku teče struja I = ${I} A. Naboj q = ${q} nC giba se brzinom v = ${sci(v)} m/s okomito na silnice, na udaljenosti r = ${r} cm od vodiča. Odredite magnetsku indukciju B na tom mjestu i iznos sile F na naboj.`;
+    z.svg=magSvg([{t:'w',x:130,y:120,v:1,lab:'I'},{t:'q',x:390,y:120,v:1,lab:'q'},{t:'d',x1:130,y1:170,x2:390,y2:170,lab:`r = ${r} cm`,s:-8}]);
+    z.fields=[F('B',B,'T'),F('F',Fo,'N',2)];
+    z.sol=[`B = μ<sub>0</sub>·<span class="frac"><span>I</span><span>2π·r</span></span> = <span class="frac"><span>4π·10<sup>−7</sup>·${I}</span><span>2π·${sci(r/100)}</span></span> = <b>${sci(B)} T</b>`,`F = q·v·B = ${sci(q*1e-9)}·${sci(v)}·${sci(B)} = <b>${sci(Fo)} N</b>`,`Smjer sile određuje se pravilom lijeve ruke.`]}
+  z.ans={v:z.fields.map(()=>''),ok:z.fields.map(()=>null),tries:0,done:false,pts:0};return z}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
