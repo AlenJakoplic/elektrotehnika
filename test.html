@@ -1145,7 +1145,7 @@ function zTree(net,vals,cap){const nd=k=>net.node[k.join(',')];
     const ng={members,name:grpName(members),a,b,v:sum?g1.v+g2.v:g1.v*g2.v/(g1.v+g2.v),type:best.r,kids:[g1,g2]};steps.push(ng);S.groups=G.filter(g=>g!==g1&&g!==g2);S.groups.push(ng)}
   return S.groups.length===1?{root:S.groups[0],steps}:null}
 function zBack(root,E){root.U=E;root.I=E/root.v;const out=[root];const go=g=>{if(!g.kids)return;for(const k of g.kids){if(g.type==='series'){k.I=g.I;k.U=g.I*k.v}else{k.U=g.U;k.I=g.U/k.v}out.push(k);go(k)}};go(root);return out}
-function zGen(type,d){if(type==='kont'||type==='cvor')return zmGen(type,d);const cap=type==='cap',pool=BANK.nets.filter(n=>n.level<=6&&Object.values(n.status).every(v=>v==='ok')&&QS.some(q=>q.topic==='ruk'&&q.net===n.id));
+function zGen(type,d){if(TH_T.includes(type))return zthGen(type,d);if(type==='kont'||type==='cvor')return zmGen(type,d);const cap=type==='cap',pool=BANK.nets.filter(n=>n.level<=6&&Object.values(n.status).every(v=>v==='ok')&&QS.some(q=>q.topic==='ruk'&&q.net===n.id));
   const lv=Math.max(1,Math.min(6,Math.round(d)));let cand=pool.filter(n=>n.level===lv);if(!cand.length)cand=pool;
   for(let t=0;t<3000;t++){const n0=cand[Math.floor(Math.random()*cand.length)],net=cap?NETS[n0.id+'C']:n0;if(!net)continue;
     const vals={};net.segs.forEach(s=>{if(s.k==='r')vals[s.n]=ZV[Math.floor(Math.random()*ZV.length)]});
@@ -1155,12 +1155,12 @@ function zGen(type,d){if(type==='kont'||type==='cvor')return zmGen(type,d);const
       for(const I of Is){const E=I*tr.root.v;if(!nice(E,1)||E>400)continue;const all=zBack(tr.root,E);if(all.every(g=>nice(g.I,100)&&nice(g.U,100))){z.E=E;z.all=all;ok=true;break}}if(!ok)continue}
     return z}return null}
 const zN=x=>fv(x);
-function zText(z){if(z.m)return zmText(z);const els=z.net.segs.filter(s=>s.k==='r').map(s=>s.n).sort((a,b)=>+a.slice(1)-+b.slice(1));
+function zText(z){if(z.th)return zthText(z);if(z.m)return zmText(z);const els=z.net.segs.filter(s=>s.k==='r').map(s=>s.n).sort((a,b)=>+a.slice(1)-+b.slice(1));
   const giv=els.map(n=>`${sub(n)} = ${z.vals[n]} ${z.unit}`).join(', ');
   if(z.type==='ruk')return `Za mrežu otpornika prema slici odredite ukupni otpor R<sub>uk</sub> gledano sa stezaljki A i B.<br><br>Zadano je: ${giv}.`;
   if(z.type==='cap')return `Za mrežu kondenzatora prema slici odredite ukupni kapacitet C<sub>uk</sub> gledano sa stezaljki A i B.<br><br>Zadano je: ${giv}.`;
   return `Za mrežu prema slici odredite ukupni otpor kojim je opterećen izvor, struju izvora te struje kroz sve otpornike i napone na njima.<br><br>Zadano je: ${giv}, U = ${zN(z.E)} V.`}
-function zSol(z){if(z.m)return zmSol(z);const cap=z.type==='cap',u=z.unit,L=[],X=cap?'C':'R';
+function zSol(z){if(z.th)return zthSol(z);if(z.m)return zmSol(z);const cap=z.type==='cap',u=z.unit,L=[],X=cap?'C':'R';
   for(const g of z.tr.steps){const[A,B]=g.kids,N=sub(g.name),a=sub(A.name),b=sub(B.name),sum=(g.type==='series')!==cap;
     L.push([g.members,`${N} = ${g.type==='series'?`${a} + ${b}`:`${a} ∥ ${b}`}${sum?` = ${zN(A.v)} + ${zN(B.v)}`:` = <span class="frac"><span>${zN(A.v)} · ${zN(B.v)}</span><span>${zN(A.v)} + ${zN(B.v)}</span></span>`} = <b>${zN(g.v)} ${u}</b>`])}
   const r=z.tr.root;L.push([r.members,`${X}<sub>uk</sub> = ${sub(r.name)} = <b>${zN(r.v)} ${u}</b>`]);
@@ -1224,7 +1224,7 @@ function zNodeV(net,vals,E){const ids=[...new Set(Object.values(net.node))],ix={
   for(const[n,val]of[[net.node[net.A.join(',')],E],[net.node[net.B.join(',')],0]]){const i=ix[n];G[i]=Array(N+1).fill(0);G[i][i]=1;G[i][N]=val}
   for(let i=0;i<N;i++){let m=i;for(let r=i+1;r<N;r++)if(Math.abs(G[r][i])>Math.abs(G[m][i]))m=r;[G[i],G[m]]=[G[m],G[i]];for(let r=0;r<N;r++){if(r===i)continue;const f=G[r][i]/G[i][i];for(let c=i;c<=N;c++)G[r][c]-=f*G[i][c]}}
   const V={};ids.forEach((n,i)=>V[n]=G[i][N]/G[i][i]);return V}
-function zDraw(z,hl){if(z.m)return zmDraw(z);const vl={};for(const n in z.vals)vl[n]=`${z.vals[n]} ${z.unit}`;const o={values:vl,highlight:hl||[],src:z.type==='ui'?zN(z.E)+' V':false};
+function zDraw(z,hl){if(z.th)return zthDraw(z);if(z.m)return zmDraw(z);const vl={};for(const n in z.vals)vl[n]=`${z.vals[n]} ${z.unit}`;const o={values:vl,highlight:hl||[],src:z.type==='ui'?zN(z.E)+' V':false};
   if(zShow&&z.type==='ui'){const V=zNodeV(z.net,z.vals,z.E),lf={};z.all.filter(g=>g.type==='leaf').forEach(g=>lf[g.name]=g);o.extra={};o.flow={};
     o.S=175;o.pad=100;for(const s of z.net.segs){if(s.k!=='r')continue;const g=lf[s.n];o.extra[s.n]=ULAB(s.n.slice(1),zN(g.U)+' V');o.flowLab=o.flowLab||{};o.flowLab[s.n]=ILAB(s.n.slice(1),zN(g.I)+' '+z.iu);const va=V[z.net.node[s.a.join(',')]],vb=V[z.net.node[s.b.join(',')]];o.flow[s.n]=va>=vb?1:-1}
     o.srcI=`I = ${zN(z.tr.root.I)} ${z.iu}`}
@@ -1234,9 +1234,9 @@ function zNew(){const Z=zProf();if(Z.d[Z.type]==null)Z.d[Z.type]=2;zad=zGen(Z.ty
 function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=zad;
   const vl={};for(const n in z.vals)vl[n]=`${z.vals[n]} ${z.unit}`;
   const sol=zShow?zSol(z):null;
-  main.innerHTML=`<div class="modwrap"><span class="modlabel">Vrsta zadatka:</span><div class="modbar">${[['ruk',Z.type==='cap'?'Ukupni kapacitet':'Ukupni otpor',['ruk','cap']],['ui','Struje i naponi',['ui']],['kont','Metode rješavanja',['kont','cvor']]].map(([k,l,g])=>`<button data-zt="${g.includes(Z.type)?Z.type:k}" aria-current="${g.includes(Z.type)}">${l}</button>`).join('')}</div>${Z.type==='ruk'||Z.type==='cap'?`<div class="modbar"><button data-zt="ruk" aria-current="${Z.type==='ruk'}">Otpornici</button><button data-zt="cap" aria-current="${Z.type==='cap'}">Kondenzatori</button></div>`:''}${Z.type==='kont'||Z.type==='cvor'?`<div class="modbar"><button data-zt="kont" aria-current="${Z.type==='kont'}">Konturne struje</button><button data-zt="cvor" aria-current="${Z.type==='cvor'}">Naponi čvorova</button></div>`:''}<span class="modlvl">Težina mreže: <b>${z.d}</b> od 6</span></div>
-  <div class="board"><div class="sheet"><div class="meta"><span>Mreža ${z.net.id}</span><span>riješi na papiru</span></div><div class="schem" id="zsch">${zDraw(z,null)}</div></div>
-  <div class="sheet side"><p style="margin:0 0 14px">${zText(z)}</p>
+  main.innerHTML=`<div class="modwrap"><span class="modlabel">Vrsta zadatka:</span><div class="modbar">${[['ruk',Z.type==='cap'?'Ukupni kapacitet':'Ukupni otpor',['ruk','cap']],['ui','Struje i naponi',['ui']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi mreža',['thev','nort']],['pril','Prilagođenje po snazi',['pril']]].map(([k,l,g])=>`<button data-zt="${g.includes(Z.type)?Z.type:k}" aria-current="${g.includes(Z.type)}">${l}</button>`).join('')}</div>${Z.type==='ruk'||Z.type==='cap'?`<div class="modbar"><button data-zt="ruk" aria-current="${Z.type==='ruk'}">Otpornici</button><button data-zt="cap" aria-current="${Z.type==='cap'}">Kondenzatori</button></div>`:''}${Z.type==='kont'||Z.type==='cvor'?`<div class="modbar"><button data-zt="kont" aria-current="${Z.type==='kont'}">Konturne struje</button><button data-zt="cvor" aria-current="${Z.type==='cvor'}">Naponi čvorova</button></div>`:''}${Z.type==='thev'||Z.type==='nort'?`<div class="modbar"><button data-zt="thev" aria-current="${Z.type==='thev'}">Theveninov teorem</button><button data-zt="nort" aria-current="${Z.type==='nort'}">Nortonov teorem</button></div>`:''}<span class="modlvl">Težina mreže: <b>${z.d}</b> od 6</span></div>
+  <div class="board"><div class="sheet"><div class="meta"><span>${z.simple?'Realni naponski izvor':'Mreža '+z.net.id}</span><span>riješi na papiru</span></div><div class="schem" id="zsch">${zDraw(z,null)}</div></div>
+  <div class="sheet side"><p style="margin:0 0 14px">${zText(z)}</p>${z.th?`<details style="margin:0 0 14px"><summary style="cursor:pointer;font-weight:600">Kako se rješava?</summary><div style="margin-top:8px;font-size:15px">${TH_HOW[z.type]}</div></details>`:''}
   ${zFieldsHtml(z)}<p class="msg bad" id="zmsg" style="margin:4px 0 0"></p>
   ${zShow?`<h3 style="font-family:var(--f-head);font-size:22px;margin:6px 0">Rješenje</h3><ol class="steps" id="zsteps">${sol.steps.map(s=>`<li data-hl="${s[0].join(',')}" style="cursor:default">${s[1]}</li>`).join('')}</ol>${sol.table||''}
     `
@@ -1384,7 +1384,8 @@ document.addEventListener('pointerdown',e=>{const b=e.target.closest('.pineye');
 /* ---------- Zadaci: upis vrijednosti i bodovanje ---------- */
 const ZTOL=0.05;
 function zFields(z){if(z.fields)return z.fields;const pickR=arr=>arr[Math.floor(Math.random()*arr.length)];let F=[];
-  if(z.type==='ruk'||z.type==='cap')F=[{lab:z.type==='cap'?'C<sub>uk</sub>':'R<sub>uk</sub>',unit:z.unit,val:z.tr.root.v,w:2}];
+  if(z.th)F=zthFields(z);
+  else if(z.type==='ruk'||z.type==='cap')F=[{lab:z.type==='cap'?'C<sub>uk</sub>':'R<sub>uk</sub>',unit:z.unit,val:z.tr.root.v,w:2}];
   else if(z.type==='ui'){const L=z.all.filter(g=>g.type==='leaf').sort((a,b)=>+a.name.slice(1)-+b.name.slice(1)),a=pickR(L),b=pickR(L.filter(x=>x!==a))||a;
     F=[{lab:'R<sub>uk</sub>',unit:z.unit,val:z.tr.root.v,w:1},{lab:'I',unit:z.iu,val:z.tr.root.I,w:1},{lab:`I<sub>${a.name.slice(1)}</sub>`,unit:z.iu,val:a.I,w:1},{lab:`U<sub>${b.name.slice(1)}</sub>`,unit:'V',val:b.U,w:2}]}
   else{const res=z.res,br=z.q.c.br.filter(b=>b.R&&Math.abs(res.br[b.id])>1e-9),b=pickR(br.length?br:z.q.c.br.filter(b=>b.R));
@@ -1586,7 +1587,7 @@ async function renderBoardZad(){const me=prof().nick,head='<h2>Ljestvica: Zadaci
 async function zadStats(){let s=null;try{const {data,error}=await Remote.rpc('stats_zad');if(!error)s=data}catch(e){}
   const box=document.getElementById('zstats');if(!box)return;if(!s){box.innerHTML='<p class="note">Statistika se trenutačno ne može učitati.</p>';return}
   const pc=x=>x==null?'–':Math.round(100*x)+' %',tile=(v,l)=>`<div style="border:1px solid var(--line);border-radius:8px;padding:10px 12px"><div style="font-size:26px;font-weight:700;font-family:var(--f-head)">${v}</div><div style="font-size:13px;color:var(--muted)">${l}</div></div>`;
-  const TN={zruk:'Ukupni otpor',zcap:'Ukupni kapacitet',zui:'Struje i naponi',zkont:'Konturne struje',zcvor:'Naponi čvorova'};
+  const TN={zruk:'Ukupni otpor',zcap:'Ukupni kapacitet',zui:'Struje i naponi',zkont:'Konturne struje',zcvor:'Naponi čvorova',zthev:'Theveninov teorem',znort:'Nortonov teorem',zpril:'Prilagođenje po snazi'};
   const rows=Object.keys(TN).filter(k=>s.types[k]).map(k=>{const t=s.types[k];return `<tr><td>${TN[k]}</td><td class="num">${t.users}</td><td class="num">${t.n}</td><td class="num">${pc(t.avg)}</td><td class="num">${pc(t.n?t.full/t.n:null)}</td></tr>`}).join('');
   box.innerHTML=`<h3 style="margin:28px 0 10px">Statistika Zadataka za sve korisnike</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">${tile(s.users,'korisnika')}${tile(s.n,'riješenih zadataka')}${tile(pc(s.avg),'prosječno bodova')}${tile(pc(s.n?s.full/s.n:null),'s punim bodovima')}</div>
@@ -1594,6 +1595,75 @@ async function zadStats(){let s=null;try{const {data,error}=await Remote.rpc('st
     return `Zadatke ${one?`je rješavao <b>${u}</b> korisnik`:few?`su rješavala <b>${u}</b> korisnika`:`je rješavalo <b>${u}</b> korisnika`}, ukupno <b>${n}</b> ${nz}. Prosječno je osvojeno <b>${pc(s.avg)}</b> mogućih bodova, a <b>${pc(s.n?s.full/s.n:null)}</b> zadataka riješeno je bez greške.`})()}</p>
   ${rows?`<table><tr><th>Vrsta zadatka</th><th>Korisnika</th><th>Zadataka</th><th>Prosječno bodova</th><th>Puni bodovi</th></tr>${rows}</table>`:''}
   <p class="note">Prikazani su samo zbirni podaci. „Prosječno bodova“ je udio osvojenih od mogućih bodova.</p>`}
+
+/* ---------- Teoremi mreža: Thevenin, Norton, prilagođenje po snazi ---------- */
+function mnaSolve(c,val,opt){opt=opt||{};const N=c.G,nd=p=>c.node(p),idx=n=>n<0?-1:n,vs=[];
+  const brs=c.br.filter(b=>b.id!==opt.skip&&b.t!=='W');
+  brs.forEach(b=>{if(b.t==='E')vs.push(b)});if(opt.vsrc)vs.push(opt.vsrc);
+  const M=N+vs.length,A=[...Array(M)].map(()=>Array(M).fill(0)),z=Array(M).fill(0);
+  const st=(a,b2,g)=>{if(a>=0)A[a][a]+=g;if(b2>=0)A[b2][b2]+=g;if(a>=0&&b2>=0){A[a][b2]-=g;A[b2][a]-=g}},inj=(n,i)=>{if(n>=0)z[n]+=i};
+  for(const b of brs){const a=idx(nd(b.p1)),b2=idx(nd(b.p2));
+    if(b.t==='R'||b.t==='ER'){const R=val[b.R];st(a,b2,1/R);if(b.t==='ER'&&!opt.kill){const e=b.pol*val[b.E];inj(a,-e/R);inj(b2,e/R)}}
+    else if(b.t==='I'){if(!opt.kill){const i=b.ip*val[b.I];inj(a,-i);inj(b2,i)}}}
+  if(opt.inj){inj(opt.inj[0],1);inj(opt.inj[1],-1)}
+  vs.forEach((b,k)=>{const r=N+k,a=idx(nd(b.p1)),b2=idx(nd(b.p2));if(a>=0){A[a][r]+=1;A[r][a]+=1}if(b2>=0){A[b2][r]-=1;A[r][b2]-=1}z[r]=b===opt.vsrc?0:(opt.kill?0:-b.pol*val[b.E])});
+  for(let i=0;i<N;i++)A[i][i]+=1e-12;const x=zSolve(A,z);if(!x)return null;return{V:n=>n<0?0:x[n],x}}
+function thCalc(q,val,load){const c=q.c,b=c.br.find(x=>x.id===load),a=c.node(b.p1),bb=c.node(b.p2);if(a===bb)return null;
+  const o=mnaSolve(c,val,{skip:load});if(!o)return null;const ET=o.V(a)-o.V(bb);
+  const k=mnaSolve(c,val,{skip:load,kill:true,inj:[a,bb]});if(!k)return null;const RT=k.V(a)-k.V(bb);
+  if(!(RT>1e-6)||RT>1e5)return null;const RL=val[b.R],IL=ET/(RT+RL);return{ET,RT,IN:ET/RT,RL,IL,UL:IL*RL,PL:IL*IL*RL,Pmax:ET*ET/(4*RT)}}
+const TH_T=['thev','nort','pril'];
+function zthGen(type,d){const lv=Math.max(1,Math.min(6,Math.round(d))),pk=a=>a[Math.floor(Math.random()*a.length)],big=Math.random()<0.4;
+  if(type==='pril'&&lv<=2){for(let t=0;t<500;t++){const E=pk(ZE),Ri=pk(ZR);const P=E*E/(4*Ri),I=E/(2*Ri);if(niceS(P,100)&&niceS(I,100))return{th:true,simple:true,type,d:lv,E,Ri,P,I,unit:big?'kΩ':'Ω',iu:big?'mA':'A',pu:big?'mW':'W',net:{id:'izvor'}}}}
+  const pool=QS.filter(q=>q.topic==='kont').sort((a,b)=>a.diff-b.diff),n=pool.length,L=type==='pril'?Math.max(1,lv-2):lv,lo=Math.floor((L-1)/6*n),hi=Math.max(lo+1,Math.floor(L/6*n)),cand=pool.slice(lo,hi);
+  for(let t=0;t<8000;t++){const q=cand[Math.floor(Math.random()*cand.length)],val={};
+    q.c.br.forEach(b=>{if(b.R)val[b.R]=pk(ZR);if(b.E)val[b.E]=pk(ZE);if(b.I)val[b.I]=pk(ZI)});
+    const loads=q.c.br.filter(b=>b.t==='R');if(!loads.length)continue;const L0=pk(loads),r=thCalc(q,val,L0.id);if(!r)continue;
+    if(Math.abs(r.ET)<1e-9||!niceS(r.ET,10)||!niceS(r.RT,10)||Math.abs(r.ET)>200)continue;
+    if(type==='pril'){if(!niceS(r.Pmax,100))continue}else{if(!niceS(r.IL,100)||!niceS(r.IN,100))continue}
+    return{th:true,type,q,val,load:L0.id,R:L0.R,r,d:lv,unit:big?'kΩ':'Ω',iu:big?'mA':'A',pu:big?'mW':'W',net:{id:q.id}}}
+  return null}
+function zthDraw(z){if(z.simple){const o='var(--ink)',m='var(--muted)';return `<svg viewBox="0 0 460 260" style="width:100%;max-width:540px;display:block;margin:auto" font-family="Barlow Condensed,Arial Narrow,sans-serif">
+   <rect x="20" y="20" width="250" height="210" rx="10" fill="none" stroke="${m}" stroke-dasharray="6 5"/><text x="145" y="250" font-size="15" fill="${m}" text-anchor="middle">realni naponski izvor</text>
+   <path d="M120 60 H370 V100 M370 160 V200 H120 V146 M120 124 V60" fill="none" stroke="${o}" stroke-width="2.5"/>
+   <line x1="100" y1="124" x2="140" y2="124" stroke="${o}" stroke-width="3"/><line x1="110" y1="136" x2="130" y2="136" stroke="${o}" stroke-width="5"/><path d="M120 136 V146" stroke="${o}" stroke-width="2.5"/>
+   <text x="146" y="118" font-size="15" fill="${o}">+</text><text x="90" y="128" font-size="22" font-weight="700" fill="${o}" text-anchor="end">E</text><text x="90" y="150" font-size="15" fill="${m}" text-anchor="end">${zN(z.E)} V</text>
+   <rect x="170" y="50" width="50" height="20" rx="1.5" fill="var(--sheet)" stroke="${o}" stroke-width="2.2"/><text x="195" y="42" font-size="20" font-weight="700" fill="${o}" text-anchor="middle">R<tspan font-size="0.72em" dy="4">i</tspan></text><text x="195" y="92" font-size="15" fill="${m}" text-anchor="middle">${z.Ri} ${z.unit}</text>
+   <rect x="360" y="100" width="20" height="60" rx="1.5" fill="var(--mark)" stroke="${o}" stroke-width="2.2"/><text x="392" y="136" font-size="20" font-weight="700" fill="${o}">R<tspan font-size="0.72em" dy="4">t</tspan></text>
+   <circle cx="300" cy="60" r="5" fill="var(--sheet)" stroke="${o}" stroke-width="2"/><circle cx="300" cy="200" r="5" fill="var(--sheet)" stroke="${o}" stroke-width="2"/><text x="300" y="48" font-size="17" text-anchor="middle" fill="${o}">a</text><text x="300" y="222" font-size="17" text-anchor="middle" fill="${o}">b</text></svg>`}
+  let s=metSvg(z.q,{noMesh:true,hl:new Set([z.R])});const vals=zmVals(z);if(z.type==='pril')vals[z.R]='trošilo';
+  s=s.replace(/<text x="([\d.\-]+)" y="([\d.\-]+)" text-anchor="(\w+)"([^>]*)>([REI])<tspan font-size="0\.72em" dy="4">(\d+)<\/tspan><\/text>/g,(m,x,y,an,rest,L,dg)=>{const v=vals[L+dg];if(!v)return m;let xx=+x,yy=+y,a2=an,fs=16;if(an==='middle'){if(L==='E')yy-=24;else yy+=56}else{const el=+x+(L==='R'?20:L==='E'?30:26);if(Math.abs(el-74)<2){a2='end';yy+=20}else{a2='start';fs=14;xx=el+(L==='I'?24:14);if(L==='E')yy+=36}}
+    return m+`<text x="${xx}" y="${yy}" text-anchor="${a2}" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="${fs}" font-weight="500" fill="var(--muted)">${v}</text>`});return s}
+function zthText(z){const ru=z.unit,giv=z.simple?'':Object.keys(z.val).filter(k=>!(z.type==='pril'&&k===z.R)).sort((a,b)=>a[0]===b[0]?+a.slice(1)-+b.slice(1):'REI'.indexOf(a[0])-'REI'.indexOf(b[0])).map(k=>`${sub(k)} = ${zmVals(z)[k]}`).join(', ');
+  if(z.simple)return `Na realni naponski izvor (E = ${zN(z.E)} V, R<sub>i</sub> = ${z.Ri} ${ru}) priključeno je trošilo R<sub>t</sub>. Koliki mora biti otpor trošila da bi mreža bila prilagođena po snazi? Kolika je tada snaga na trošilu i struja u krugu?`;
+  const R=sub(z.R);
+  if(z.type==='thev')return `Primjenom <b>Theveninova teorema</b> odredite struju kroz otpornik ${R} (označen). Odredite i Theveninove parametre E<sub>T</sub> i R<sub>T</sub> gledano sa stezaljki otpornika ${R}.<br><br>Zadano je: ${giv}.`;
+  if(z.type==='nort')return `Primjenom <b>Nortonova teorema</b> odredite struju kroz otpornik ${R} (označen). Odredite i Nortonove parametre I<sub>N</sub> i R<sub>N</sub> = 1/G<sub>N</sub> gledano sa stezaljki otpornika ${R}.<br><br>Zadano je: ${giv}.`;
+  return `Otpornik ${R} (označen) zamijenimo trošilom R<sub>t</sub>. Koliki mora biti otpor trošila da bi ono bilo prilagođeno po snazi na ostatak mreže i kolika je tada snaga na trošilu?<br><br>Zadano je: ${giv}.`}
+function zthFields(z){const r=z.r,R=z.R?z.R.slice(1):'';
+  if(z.simple)return[{lab:'R<sub>t</sub>',unit:z.unit,val:z.Ri,w:1},{lab:'I',unit:z.iu,val:z.I,w:1},{lab:'P<sub>max</sub>',unit:z.pu,val:z.P,w:2}];
+  if(z.type==='thev')return[{lab:'E<sub>T</sub>',unit:'V',val:Math.abs(r.ET),w:1,desc:'iznos'},{lab:'R<sub>T</sub>',unit:z.unit,val:r.RT,w:1},{lab:`I<sub>${R}</sub>`,unit:z.iu,val:Math.abs(r.IL),w:2,desc:'iznos'}];
+  if(z.type==='nort')return[{lab:'I<sub>N</sub>',unit:z.iu,val:Math.abs(r.IN),w:1,desc:'iznos'},{lab:'R<sub>N</sub>',unit:z.unit,val:r.RT,w:1},{lab:`I<sub>${R}</sub>`,unit:z.iu,val:Math.abs(r.IL),w:2,desc:'iznos'}];
+  return[{lab:'R<sub>T</sub>',unit:z.unit,val:r.RT,w:1},{lab:'E<sub>T</sub>',unit:'V',val:Math.abs(r.ET),w:1,desc:'iznos'},{lab:'P<sub>max</sub>',unit:z.pu,val:r.Pmax,w:2}]}
+function zthSol(z){const L=[],r=z.r,u=z.unit,iu=z.iu,pu=z.pu,f=x=>zN(Math.abs(x));
+  if(z.simple){L.push([[],'Prilagođenje po snazi postiže se kad je otpor trošila jednak unutarnjem otporu izvora: <b>R<sub>t</sub> = R<sub>i</sub> = '+z.Ri+' '+u+'</b>.']);
+    L.push([[],`Struja u krugu: I = E / (R<sub>i</sub> + R<sub>t</sub>) = ${zN(z.E)} / (${z.Ri} + ${z.Ri}) = <b>${zN(z.I)} ${iu}</b>.`]);
+    L.push([[],`Najveća snaga na trošilu: P<sub>max</sub> = I² · R<sub>t</sub> = E² / (4 R<sub>i</sub>) = ${zN(z.E)}² / (4 · ${z.Ri}) = <b>${zN(z.P)} ${pu}</b>.`]);
+    L.push([[],'Iskoristivost je tada 50 %: pola snage troši se na unutarnjem otporu izvora.']);return{steps:L,table:''}}
+  const R=sub(z.R);
+  L.push([[z.R],`<b>1. Ukloni ${R}</b> i promatraj stezaljke na kojima je bio (a i b).`]);
+  L.push([[],`<b>2. Napon praznog hoda:</b> riješi preostalu mrežu (npr. konturnim strujama ili naponima čvorova) i odredi napon između stezaljki: E<sub>T</sub> = U<sub>ab</sub> = <b>${f(r.ET)} V</b>.`]);
+  L.push([[],`<b>3. Ugasi izvore:</b> naponske izvore zamijeni kratkim spojem, a strujne odspoji. Otpor gledan sa stezaljki: R<sub>T</sub> = <b>${zN(r.RT)} ${u}</b>.`]);
+  if(z.type==='nort')L.push([[],`<b>Nortonov izvor:</b> I<sub>N</sub> = E<sub>T</sub> / R<sub>T</sub> = ${f(r.ET)} / ${zN(r.RT)} = <b>${f(r.IN)} ${iu}</b>, a R<sub>N</sub> = R<sub>T</sub> = ${zN(r.RT)} ${u} (G<sub>N</sub> = 1/R<sub>N</sub>). I<sub>N</sub> je struja kroz kratko spojene stezaljke a i b.`]);
+  if(z.type==='pril'){L.push([[],`<b>4. Prilagođenje po snazi:</b> R<sub>t</sub> = R<sub>T</sub> = <b>${zN(r.RT)} ${u}</b>.`]);L.push([[],`P<sub>max</sub> = E<sub>T</sub>² / (4 R<sub>T</sub>) = ${f(r.ET)}² / (4 · ${zN(r.RT)}) = <b>${zN(r.Pmax)} ${pu}</b>.`])}
+  else if(z.type==='thev')L.push([[z.R],`<b>4. Vrati ${R}:</b> I = E<sub>T</sub> / (R<sub>T</sub> + ${R}) = ${f(r.ET)} / (${zN(r.RT)} + ${z.val[z.R]}) = <b>${f(r.IL)} ${iu}</b>.`]);
+  else L.push([[z.R],`<b>4. Vrati ${R}</b> paralelno Nortonovu izvoru (djelilo struje): I = I<sub>N</sub> · R<sub>N</sub> / (R<sub>N</sub> + ${R}) = ${f(r.IN)} · ${zN(r.RT)} / (${zN(r.RT)} + ${z.val[z.R]}) = <b>${f(r.IL)} ${iu}</b>.`]);
+  if(z.type!=='pril')L.push([[],`<span class="note">Isti rezultat dobije se i drugim teoremom ili metodom: E<sub>T</sub> = I<sub>N</sub> · R<sub>T</sub>. Napon na ${R}: ${zN(Math.abs(r.UL))} V, snaga: ${zN(r.PL)} ${pu}.</span>`]);
+  return{steps:L,table:''}}
+
+const TH_HOW={thev:`<b>Theveninov teorem:</b> mreža gledana sa stezaljki a–b ponaša se kao jedan naponski izvor E<sub>T</sub> u seriji s otporom R<sub>T</sub>.<ol style="margin:6px 0 0 18px;padding:0"><li>Ukloni otpornik kroz koji tražiš struju.</li><li><b>E<sub>T</sub></b> = napon između otvorenih stezaljki (bilo kojom metodom).</li><li><b>R<sub>T</sub></b> = otpor sa stezaljki kad ugasiš izvore: naponske kratko spoji, strujne odspoji.</li><li>Vrati otpornik: I = E<sub>T</sub> / (R<sub>T</sub> + R).</li></ol>`,
+ nort:`<b>Nortonov teorem:</b> mreža gledana sa stezaljki a–b ponaša se kao strujni izvor I<sub>N</sub> paralelno s vodljivošću G<sub>N</sub> = 1/R<sub>N</sub>.<ol style="margin:6px 0 0 18px;padding:0"><li>Ukloni otpornik kroz koji tražiš struju.</li><li><b>I<sub>N</sub></b> = struja kroz kratko spojene stezaljke a–b.</li><li><b>R<sub>N</sub></b> = R<sub>T</sub>: otpor sa stezaljki uz ugašene izvore.</li><li>Vrati otpornik: I = I<sub>N</sub> · R<sub>N</sub> / (R<sub>N</sub> + R).</li></ol>Vrijedi I<sub>N</sub> = E<sub>T</sub> / R<sub>T</sub>, pa se jedan teorem lako prebaci u drugi.`,
+ pril:`<b>Prilagođenje po snazi:</b> trošilo dobiva najveću snagu kad je njegov otpor jednak otporu izvora, odnosno Theveninovu otporu mreže: R<sub>t</sub> = R<sub>T</sub>. Tada je P<sub>max</sub> = E<sub>T</sub>² / (4 R<sub>T</sub>), a iskoristivost 50 %.`};
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
