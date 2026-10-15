@@ -1045,9 +1045,9 @@ function metRender(){
   if(s&&pr.click&&!mt.wait)$('#msch').querySelectorAll('[data-el^="R"]').forEach(el=>el.onclick=()=>{const n=el.dataset.el;mt.sel.has(n)?mt.sel.delete(n):mt.sel.add(n);mt.msg='';metRender()});
   if($('#mclr'))$('#mclr').onclick=()=>{mt.sel.clear();metRender()};
   if($('#mok'))$('#mok').onclick=()=>{const want=new Set(s.ans),miss=s.ans.filter(r=>!mt.sel.has(r)),extra=[...mt.sel].filter(r=>!want.has(r));
-    if(!miss.length&&!extra.length){mt.ok=true;mt.msg='';metAdvance()}else{mt.mistakes++;mt.tries++;mt.ok=false;
+    if(!miss.length&&!extra.length){mt.ok=true;mt.msg='';setTimeout(()=>fxPlay(true),30);metAdvance()}else{mt.mistakes++;mt.tries++;mt.ok=false;
       if(mt.tries>=2){if(ex){mt.msg='';return metAdvance()}mt.msg='Nije točno. '+metWhy(s,q);mt.wait={pick:null};metRender()}else{mt.msg=`Nije točno.${ex?'':(miss.length?' Fali još nešto.':'')+(extra.length?' Odabrano je i nešto što ne pripada.':'')} Pokušaj ponovno.`;metRender()}}};
-  main.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{const ok=String(b.dataset.mo)===String(metAns(s));if(ok){mt.ok=true;mt.msg=''}else{mt.mistakes++;mt.ok=false;if(s.t==='count'&&mt.tries<1){mt.tries++;mt.msg=`Nije točno. ${ex?'':(K?'Prebroji petlje; petlja sa strujnim izvorom u vanjskoj grani ne daje jednadžbu.':'Prebroji čvorove; uzemljeni čvor i čvor uz naponski izvor ne daju jednadžbu.')} Pokušaj ponovno.`;return metRender()}if(ex){mt.msg='';return metAdvance()}mt.msg='Nije točno. '+(s.t==='count'?`Točan odgovor: ${s.ans}. `:'')+metWhy(s,q);mt.wait={pick:b.dataset.mo};return metRender()}metAdvance()});
+  main.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{const ok=String(b.dataset.mo)===String(metAns(s));if(ok){mt.ok=true;mt.msg='';setTimeout(()=>fxPlay(true),30);}else{mt.mistakes++;mt.ok=false;if(s.t==='count'&&mt.tries<1){mt.tries++;mt.msg=`Nije točno. ${ex?'':(K?'Prebroji petlje; petlja sa strujnim izvorom u vanjskoj grani ne daje jednadžbu.':'Prebroji čvorove; uzemljeni čvor i čvor uz naponski izvor ne daju jednadžbu.')} Pokušaj ponovno.`;return metRender()}if(ex){mt.msg='';return metAdvance()}mt.msg='Nije točno. '+(s.t==='count'?`Točan odgovor: ${s.ans}. `:'')+metWhy(s,q);mt.wait={pick:b.dataset.mo};return metRender()}metAdvance()});
   if($('#mwait'))$('#mwait').onclick=()=>{mt.wait=null;mt.msg='';mt.ok=true;metAdvance()};
   if($('#mnext'))$('#mnext').onclick=()=>{if(ex){exam.res.push({mistakes:mt.mistakes});exam.i++;mt=null;if(exam.i>=exam.qs.length){exam.running=false;exam.t1=Date.now()}header();return renderExam()}mt=null;metRender()};
 }
@@ -1325,7 +1325,7 @@ function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0
   ${bar(overall(p))}
   <div style="border:2px solid var(--ok);border-radius:8px;padding:14px 16px;margin:16px 0 22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
     <div style="flex:1;min-width:220px"><div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Preporuka za danas</div>
-    <div style="font-size:18px;font-weight:700;margin-top:2px">${tot===0?'Lekcija':'10 zadataka'}: ${rec.l}</div><div style="color:var(--muted);font-size:14px">${why}</div></div>
+    <div style="font-size:18px;font-weight:700;margin-top:2px">${tot===0?'Lekcija':'Vježbaj'}: ${rec.l}</div><div style="color:var(--muted);font-size:14px">${why}</div></div>
     <button class="primary" style="margin:0" data-go="${rec.k}" data-v="${tot===0?'lesson':'practice'}">Kreni</button></div>
   <h3 style="margin:0 0 10px">Gradiva</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px">${ms.map(m=>`<div style="border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column">
@@ -1789,8 +1789,8 @@ function thRender(){const p=prof(),ex=!!(exam&&exam.running);if(!ex){if(tryQ&&(!
   if($('#tclr'))$('#tclr').onclick=()=>{ths.sel.clear();thRender()};
   const fail=()=>{ths.mistakes++;ths.ok=false;ths.wrongTags[s.tag]=1};
   if($('#tok'))$('#tok').onclick=()=>{const want=new Set(s.ans),miss=s.ans.filter(r=>!ths.sel.has(r)),extra=[...ths.sel].filter(r=>!want.has(r));
-    if(!miss.length&&!extra.length){ths.ok=true;ths.msg='';thAdv()}else{fail();ths.tries++;if(ths.tries>=2){if(ex){ths.msg='';return thAdv()}ths.msg='Nije točno. '+s.why;ths.wait={pick:null};thRender()}else{ths.msg=`Nije točno.${ex?'':(miss.length?' Fali još nešto.':'')+(extra.length?' Odabrano je i nešto što ne pripada.':'')} Pokušaj ponovno.`;thRender()}}};
-  main.querySelectorAll('[data-to]').forEach(b=>b.onclick=()=>{if(ths.wait)return;if(b.dataset.to===s.ans){ths.ok=true;ths.msg=''}else{fail();if(ex){ths.msg='';return thAdv()}ths.msg='Nije točno. '+s.why;ths.wait={pick:b.dataset.to};return thRender()}thAdv()});
+    if(!miss.length&&!extra.length){ths.ok=true;ths.msg='';setTimeout(()=>fxPlay(true),30);thAdv()}else{fail();ths.tries++;if(ths.tries>=2){if(ex){ths.msg='';return thAdv()}ths.msg='Nije točno. '+s.why;ths.wait={pick:null};thRender()}else{ths.msg=`Nije točno.${ex?'':(miss.length?' Fali još nešto.':'')+(extra.length?' Odabrano je i nešto što ne pripada.':'')} Pokušaj ponovno.`;thRender()}}};
+  main.querySelectorAll('[data-to]').forEach(b=>b.onclick=()=>{if(ths.wait)return;if(b.dataset.to===s.ans){ths.ok=true;ths.msg='';setTimeout(()=>fxPlay(true),30);}else{fail();if(ex){ths.msg='';return thAdv()}ths.msg='Nije točno. '+s.why;ths.wait={pick:b.dataset.to};return thRender()}thAdv()});
   if($('#twait'))$('#twait').onclick=()=>{ths.wait=null;ths.msg='';ths.ok=true;thAdv()};
   if($('#tnext2'))$('#tnext2').onclick=()=>{if(ex){exam.res.push({mistakes:ths.mistakes});exam.i++;ths=null;if(exam.i>=exam.qs.length){exam.running=false;exam.t1=Date.now()}header();return renderExam()}ths=null;thRender()};
   try{tryNote()}catch(e){}try{addSkip()}catch(e){}}
@@ -1852,7 +1852,7 @@ function fxPlay(ok){const side=main.querySelector('.side')||main.querySelector('
   else if(fxMode==='banner'){const d=document.createElement('div');d.textContent=ok?'✓ Točno!':'✗ Nije točno';d.style.cssText=`position:fixed;left:50%;top:0;padding:12px 28px;border-radius:0 0 12px 12px;background:${col};color:#fff;font-weight:800;font-size:20px;z-index:9997;pointer-events:none;animation:fxBan 1.3s ease-out forwards`;document.body.appendChild(d);setTimeout(()=>d.remove(),1350)}}
 let fxLast='';new MutationObserver(()=>{if(view!=='practice'&&view!=='exam'&&view!=='lesson')return;const m=main.querySelector('.msg.ok,.msg.bad,.fb.ok,.fb.bad');let sig='';
   const msgs=[...main.querySelectorAll('.msg.ok,.msg.bad,.fb.ok h3,.fb.bad h3')].map(e=>e.textContent.trim()).filter(Boolean);sig=msgs.join('|')+'#'+(main.querySelector('.meta span')||{}).textContent+'#'+(typeof ths!=='undefined'&&ths?ths.i:'')+'#'+(typeof mt!=='undefined'&&mt?mt.i:'')+'#'+(typeof rk!=='undefined'&&rk&&rk.steps?rk.steps.length:'');
-  if(!msgs.length){fxLast='';return}if(sig===fxLast)return;fxLast=sig;const mm=[...main.querySelectorAll('.msg.ok,.msg.bad')].map(e=>e.textContent.trim()).filter(Boolean),t=mm.length?mm[mm.length-1]:msgs[msgs.length-1];if(/^Točno|^Točan/.test(t))fxPlay(true);else if(/^Nije točno|^Netočno|Pogrešno/.test(t))fxPlay(false)}).observe(main,{childList:true,subtree:true,characterData:true});
+  if(!msgs.length){fxLast='';return}if(sig===fxLast)return;fxLast=sig;const mm=[...main.querySelectorAll('.msg.ok,.msg.bad')].map(e=>e.textContent.trim()).filter(Boolean),t=mm.length?mm[mm.length-1]:msgs[msgs.length-1];if(/^Točno|^Točan|^Dobro/.test(t))fxPlay(true);else if(/^Nije točno|^Netočno|Pogrešno/.test(t))fxPlay(false)}).observe(main,{childList:true,subtree:true,characterData:true});
 
 /* ---------- Serija ili paralela: nove vrste pitanja ---------- */
 function spSolve(net,vals){const ids=[...new Set(Object.values(net.node))],ix={};ids.forEach((n,i)=>ix[n]=i);
