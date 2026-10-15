@@ -1773,7 +1773,7 @@ function thSteps(q){const S=[],R=thLbl(q),sh=a=>a.map(x=>[Math.random(),x]).sort
   S.push({t:'pic',tag:q.topic==='thev'?'t_thev':'t_nort',p:`Kojom ${q.topic==='thev'?'Theveninovom':'Nortonovom'} nadomjesnom shemom zamjenjujemo mrežu gledanu sa stezaljki a–b? (${R} je priključen na a–b)`,opts:sh(ks.map(([k,v])=>[k,eqSvg({k:v,RL:q.R},200)])),ans:'a',why:q.topic==='thev'?`Thevenin: naponski izvor E<sub>T</sub> u <b>seriji</b> s R<sub>T</sub>, a ${R} na stezaljkama a–b. Struja: I = E<sub>T</sub> / (R<sub>T</sub> + ${R}).`:`Norton: strujni izvor I<sub>N</sub> <b>paralelno</b> s vodljivošću G<sub>N</sub> (R<sub>N</sub> = 1/G<sub>N</sub>), a ${R} na stezaljkama a–b. Struja: I = I<sub>N</sub> · R<sub>N</sub> / (R<sub>N</sub> + ${R}).`});
   return S}
 let ths=null;
-function thStart(q,ex){ths={q,steps:thSteps(q),i:0,sel:new Set(),mistakes:0,tries:0,msg:'',ok:true,exam:!!ex,done:false,wrongTags:{}}}
+function thStart(q,ex){ths={q,steps:q.type?thTyped(q):thSteps(q),i:0,sel:new Set(),mistakes:0,tries:0,msg:'',ok:true,exam:!!ex,done:false,wrongTags:{}}}
 function thDrawQ(q,o={}){const bq=q.bq||thQ(q.base)||q;return withAB(metSvg(Object.assign({},bq,{topic:'kont'}),Object.assign({noMesh:true},o)),q.c,q.load)}
 function thRender(){const p=prof(),ex=!!(exam&&exam.running);if(!ex){if(tryQ&&(!ths||ths.q.id!==tryQ)){const tq=thQ(tryQ);if(tq&&tq.topic===p.module)thStart(tq)}if(!ths||ths.exam||ths.q.topic!==p.module)thStart(pickQuestion(p.module))}
   const q=ths.q,s=ths.steps[ths.i],R=thLbl(q),T=q.topic==='thev';
@@ -1782,7 +1782,7 @@ function thRender(){const p=prof(),ex=!!(exam&&exam.running);if(!ex){if(tryQ&&(!
   else ctrl=`<p class="q" style="font-size:17px;margin-top:14px">${s.p}</p>`+(s.t==='click'?`<div class="mbtns"><button class="primary" id="tok" style="margin:0">Potvrdi odabir</button><button class="ghost" id="tclr">Poništi</button></div>`:(s.t==='pic'?`<div style="display:grid;grid-template-columns:1fr;gap:8px">${s.opts.map(([k,h],i)=>`<button class="opt" data-to="${k}" style="padding:6px;display:flex;align-items:center;gap:8px"><kbd>${'abc'[i]})</kbd><span style="flex:1;max-width:280px">${h}</span></button>`).join('')}</div>`:`<div class="mbtns" style="flex-direction:column;align-items:stretch">${s.opts.map(([k,h])=>`<button class="opt" data-to="${k}" style="text-align:left">${h}</button>`).join('')}</div>`));
   if(s&&ths.wait){ctrl=ctrl.replace(/<div class="mbtns"><button class="primary" id="tok"[\s\S]*?<\/div>/,'').replace(/<button class="opt" data-to="([^"]*)"/g,(m,k)=>`<button disabled class="opt ${k===s.ans?'right':(k===ths.wait.pick?'wrong':'')}" data-to="${k}"`)+`<div class="mbtns"><button class="primary" id="twait" style="margin:0">Dalje</button></div>`}
   const done=ths.steps.slice(0,ths.i).map((x,k)=>`<div class="meq" style="font-size:14px;color:var(--muted)">✓ ${x.t==='click'?`Na ${T?'R<sub>T</sub>':'R<sub>N</sub>'} utječu: ${x.ans.length?x.ans.map(sub).join(', '):'nijedan otpornik'}`:x.t==='pic'?`Nadomjesna shema: ${T?'E<sub>T</sub> u seriji s R<sub>T</sub>':'I<sub>N</sub> paralelno s G<sub>N</sub>'}`:x.opts.find(o=>o[0]===x.ans)[1]}</div>`).join('');
-  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>${ex?`Zadatak ${exam.i+1} od ${exam.qs.length}`:'Mreža '+q.id}</span><span ${ex?'class="timer" id="tm"':''}>${ex?'':'težina zadatka '+fmt(qRating(q))}</span></div><div class="schem" id="tsch">${s&&s.img==='killed'?thDrawM(q,true):thDrawQ(q,{sel:ths.sel})}</div></div>
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>${ex?`Zadatak ${exam.i+1} od ${exam.qs.length}`:'Mreža '+q.id}</span><span ${ex?'class="timer" id="tm"':''}>${ex?'':'težina zadatka '+fmt(qRating(q))}</span></div><div class="schem" id="tsch">${s&&s.img==='killed'?thDrawM(q,true):thDrawQ(q,{sel:ths.sel,hl:s&&s.hl?new Set(s.hl):new Set()})}</div></div>
   <div class="sheet side"><p class="q" style="margin-bottom:6px">${T?'Theveninov':'Nortonov'} teorem: struja kroz ${R} (stezaljke a–b).</p>${done}${ctrl}<div class="msg ${ths.ok?'ok':'bad'}">${ths.msg}</div></div></div>`;
   modbar();if(ex)examTick();
   if(s&&s.t==='click'&&!ths.wait)$('#tsch').querySelectorAll('[data-el^="R"]').forEach(el=>{if(el.dataset.el===q.R)return;el.onclick=()=>{const n=el.dataset.el;ths.sel.has(n)?ths.sel.delete(n):ths.sel.add(n);ths.msg='';thRender()}});
@@ -2031,7 +2031,33 @@ let testType='';
 function testBar(){if(!IS_TEST||view!=='practice'||main.querySelector('#testbar'))return;const side=main.querySelector('.side');if(!side)return;const topic=curQ()?curQ().topic:prof().module;
   const ts=[...new Set(QS.filter(q=>q.topic===topic&&TYPENAME[q.type]).map(q=>q.type))];if(!ts.length)return;
   side.insertAdjacentHTML('afterbegin',`<div id="testbar" class="note" style="margin-bottom:10px;padding:6px 8px;border:1px dashed var(--line);border-radius:6px">TEST – vrsta pitanja: <select id="ttype" class="ghost"><option value="">sve</option><option value="-" ${testType==='-'?'selected':''}>klasična</option>${ts.map(t=>`<option value="${t}" ${testType===t?'selected':''}>${TYPENAME[t]}</option>`).join('')}</select></div>`);
-  $('#ttype').onchange=e=>{testType=e.target.value;const m=prof().module;if(m==='serpar'){answered=null;cur=null}else if(m==='ruk'){rk=null}else if(m==='estat'){eq=null}else if(m==='kont'||m==='cvor'){mt=null}renderPractice()}}
+  $('#ttype').onchange=e=>{testType=e.target.value;const m=prof().module;if(m==='serpar'){answered=null;cur=null}else if(m==='ruk'){rk=null}else if(m==='estat'){eq=null}else if(m==='kont'||m==='cvor'){mt=null}else if(m==='thev'||m==='nort'){ths=null}renderPractice()}}
+/* ---------- Teoremi: nove vrste pitanja ---------- */
+const THX={};
+(function(){const rnd=seeded('teoremi-tipovi'),add=[],cnt={};let n=0;
+  for(const q of QS.filter(x=>(x.topic==='thev'||x.topic==='nort')&&!x.type)){n=cnt[q.topic]=(cnt[q.topic]||0)+1;const low=q.diff<=4.7,mk=(t,o)=>add.push(Object.assign({},q,{id:q.id+'-'+t,type:t,tags:o.tags},o));
+    if(low&&n%3===0)mk('TK',{tags:['t_izvori']});
+    if(low&&n%2===1&&thRtOpts(q))mk('TR',{tags:['t_rt']});
+    if(n%5===0)mk('TF',{v:Math.floor(n/5)%4,tags:['t_formula']});
+    if(n%5===2)mk('TP',{tags:['t_pril']});
+    const Rs=q.c.br.filter(b=>b.R&&b.R!==q.R).map(b=>b.R),na=Rs.filter(r=>!q.aff.includes(r));
+    if(na.length)mk('TU',{x:na[Math.floor(rnd()*na.length)],yes:false,tags:['t_utjece']});else if(n%4===1&&q.aff.length)mk('TU',{x:q.aff[Math.floor(rnd()*q.aff.length)],yes:true,tags:['t_utjece']})}
+  for(const q of add){QS.push(q);THX[q.id]=q}})();
+Object.assign(TAGNAMES,{t_formula:'Veza Thevenina i Nortona',t_pril:'Prilagođenje',t_utjece:'Utječe li otpornik na R_T'});
+Object.assign(TYPENAME,{TK:'Gašenje izvora',TR:'Prepoznaj R_T',TF:'Formula T↔N',TP:'Prilagođenje',TU:'Utječe li na R_T'});
+function thTyped(q){const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]),T=q.topic==='thev',RT=T?'R<sub>T</sub>':'R<sub>N</sub>',base=thSteps(q);
+  if(q.type==='TK')return base.filter(s=>s.tag==='t_izvori');
+  if(q.type==='TR')return base.filter(s=>s.img==='killed');
+  if(q.type==='TF'){const V=[
+    ['Kako iz E<sub>T</sub> i R<sub>T</sub> izračunaš Nortonovu struju I<sub>N</sub>?',['I<sub>N</sub> = E<sub>T</sub> / R<sub>T</sub>','I<sub>N</sub> = E<sub>T</sub> · R<sub>T</sub>','I<sub>N</sub> = R<sub>T</sub> / E<sub>T</sub>'],'I<sub>N</sub> je struja kratkog spoja stezaljki a–b. U Theveninovoj shemi kratko spojenoj na a–b teče E<sub>T</sub> / R<sub>T</sub>.'],
+    ['Kako iz I<sub>N</sub> i G<sub>N</sub> izračunaš Theveninov napon E<sub>T</sub>?',['E<sub>T</sub> = I<sub>N</sub> / G<sub>N</sub>','E<sub>T</sub> = I<sub>N</sub> · G<sub>N</sub>','E<sub>T</sub> = G<sub>N</sub> / I<sub>N</sub>'],'E<sub>T</sub> je napon otvorenih stezaljki: sva struja I<sub>N</sub> teče kroz G<sub>N</sub>, pa je E<sub>T</sub> = I<sub>N</sub> / G<sub>N</sub> = I<sub>N</sub> · R<sub>N</sub>.'],
+    ['Kakva je veza vodljivosti G<sub>N</sub> i otpora R<sub>T</sub>?',['G<sub>N</sub> = 1 / R<sub>T</sub>','G<sub>N</sub> = R<sub>T</sub>','G<sub>N</sub> = E<sub>T</sub> / R<sub>T</sub>'],'Obje sheme gledane sa stezaljki a–b moraju imati isti otpor kad se izvori ugase: R<sub>N</sub> = R<sub>T</sub>, a G<sub>N</sub> = 1 / R<sub>T</sub>.'],
+    ['Kako iz I<sub>N</sub> i R<sub>T</sub> izračunaš E<sub>T</sub>?',['E<sub>T</sub> = I<sub>N</sub> · R<sub>T</sub>','E<sub>T</sub> = I<sub>N</sub> / R<sub>T</sub>','E<sub>T</sub> = I<sub>N</sub> + R<sub>T</sub>'],'Iz I<sub>N</sub> = E<sub>T</sub> / R<sub>T</sub> slijedi E<sub>T</sub> = I<sub>N</sub> · R<sub>T</sub>.']][q.v];
+    return[{t:'mc',tag:'t_formula',p:V[0],opts:sh(V[1].map((h,i)=>[i?'b'+i:'a',h])),ans:'a',why:V[2]}]}
+  if(q.type==='TP')return[{t:'mc',tag:'t_pril',p:`Za koji otpor trošila R<sub>t</sub> priključenog na a–b je <b>snaga na trošilu najveća</b>?`,opts:sh(T?[['a','R<sub>t</sub> = R<sub>T</sub>'],['b','R<sub>t</sub> = 0 (kratki spoj)'],['c','R<sub>t</sub> → ∞ (prazni hod)'],['d','R<sub>t</sub> = 2 R<sub>T</sub>']]:[['a','R<sub>t</sub> = 1 / G<sub>N</sub>'],['b','R<sub>t</sub> = G<sub>N</sub>'],['c','R<sub>t</sub> = 0 (kratki spoj)'],['d','R<sub>t</sub> → ∞ (prazni hod)']]),ans:'a',why:`Prilagođenje: snaga na trošilu je najveća kad je otpor trošila jednak unutarnjem otporu nadomjesne sheme, R<sub>t</sub> = ${T?'R<sub>T</sub>':'R<sub>N</sub> = 1 / G<sub>N</sub>'}. Za R<sub>t</sub> = 0 nema napona, a za R<sub>t</sub> → ∞ nema struje, pa je snaga u oba slučaja nula.`}];
+  if(q.type==='TU'){const x=sub(q.x),hasI=q.hasI;return[{t:'mc',tag:'t_utjece',hl:[q.x],p:`Utječe li otpornik <b>${x}</b> na ${RT} gledano sa stezaljki a–b (${thLbl(q)} je uklonjen)?`,opts:[['da','Da, utječe'],['ne','Ne utječe']],ans:q.yes?'da':'ne',
+    why:q.yes?`Nakon gašenja izvora kroz ${x} može teći struja između stezaljki a i b, pa ulazi u ${RT}.`:`Nakon gašenja izvora ${x} ne ulazi u ${RT}: ${hasI?'ili je u seriji sa strujnim izvorom (ugašen strujni izvor je prekid), ili ga kratko spaja ugašeni naponski izvor':'kratko ga spaja ugašeni naponski izvor (ugašen naponski izvor je kratki spoj)'}.`,img:'killedq'}]}
+  return base}
 {const _as=addSkip;addSkip=function(){try{testBar()}catch(e){}return _as.apply(this,arguments)}}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
