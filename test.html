@@ -741,7 +741,7 @@ function renderLesson(){
 
 /* ---------- Elektrostatika ---------- */
 TOPICS.estat='Elektrostatika';MODNAME.estat='Elektrostatika';MODS.unshift(['estat','Elektrostatika']);
-Object.assign(TAGNAMES,{smjer_sile:'Smjer sile na naboj',smjer_polja:'Smjer polja u točki',zbroj_vektora:'Zbrajanje vektora',homogeno:'Homogeno i nehomogeno polje',rad:'Rad ili energija',omjer:'Kako se mijenja sila'});
+Object.assign(TAGNAMES,{usporedba_polja:'Usporedba jakosti polja',nula_polja:'Gdje je polje jednako nuli',smjer_sile:'Smjer sile na naboj',smjer_polja:'Smjer polja u točki',zbroj_vektora:'Zbrajanje vektora',homogeno:'Homogeno i nehomogeno polje',rad:'Rad ili energija',omjer:'Kako se mijenja sila'});
 for(const k in state.profiles){const p=state.profiles[k];if(!p.ratings.estat)p.ratings.estat={r:2.0,n:0,c:0}}
 const DIRS={N:[0,-1,'↑','gore'],NE:[1,-1,'↗','gore desno'],E:[1,0,'→','desno'],SE:[1,1,'↘','dolje desno'],S:[0,1,'↓','dolje'],SW:[-1,1,'↙','dolje lijevo'],W:[-1,0,'←','lijevo'],NW:[-1,-1,'↖','gore lijevo'],Z:[0,0,'•','ostaje na mjestu']};
 function dirOf(x,y){const e=1e-9;if(Math.abs(x)<e&&Math.abs(y)<e)return 'Z';for(const k in DIRS){if(k==='Z')continue;const[a,b]=DIRS[k];if(Math.abs(x*b-y*a)<e&&x*a+y*b>0&&(a===0||b===0||Math.abs(Math.abs(x)-Math.abs(y))<e))return k}return null}
@@ -762,6 +762,8 @@ const EQ=[];(function(){
   [['plates',1,3,'eq'],['tocka',1,2,'less'],['tocka',3,1,'more']].forEach(([f,a,b,ans])=>EQ.push({type:'polje2',form:f,a,b,ans,tags:['homogeno'],diff:f==='plates'?2.8:1.8}));
   for(const Qs of[1,-1])for(const ps of[1,-1])for(const mv of['bliže','dalje']){if(EQ.filter(e=>e.type==='rad').length>=6)break;const rep=Qs*ps>0;const ans=(mv==='bliže')===rep?'rad':'energija';EQ.push({type:'rad',Qs,ps,mv,ans,tags:['rad'],diff:2.2+(ps<0?0.6:0)+(Qs<0?0.4:0)})}
   [[2,1],[1,2],[4,2],[3,1],[1,3]].forEach(([a,b])=>{const v=a/(b*b);EQ.push({type:'omjer',a,b,ans:String(v),tags:['omjer'],diff:1.6+(b>1?1:0)+(a>1&&b>1?0.6:0)})});
+  [[1,1,4,2],[2,1,4,2],[1,1,2,2],[1,2,1,1],[3,1,4,2],[2,2,1,1],[4,2,2,1],[4,2,1,1]].forEach(([qa,ra,qb,rb],i)=>{const ea=qa/(ra*ra),eb=qb/(rb*rb);EQ.push({type:'jace',qa,ra,qb,rb,sa:i%3?1:-1,sb:i%2?-1:1,ans:Math.abs(ea-eb)<1e-9?'eq':ea>eb?'A':'B',tags:['usporedba_polja'],diff:1.8+(Math.abs(ea-eb)<1e-9?0.8:0)+(ra>1&&rb>1?0.4:0)})});
+  [[1,1,'izmedju'],[1,4,'izmedju'],[1,-1,'nigdje'],[1,-4,'lijevo'],[-4,1,'desno'],[-1,-2,'izmedju'],[2,-2,'nigdje'],[4,-1,'desno']].forEach(([a,b,ans])=>EQ.push({type:'nula',a,b,ans,tags:['nula_polja'],diff:a*b>0?2.2:3.2}));
   EQ.forEach((q,i)=>{q.id='E'+String(i+1).padStart(2,'0');q.topic='estat';q.diff=Math.round(q.diff*10)/10;QS.push(q)});
 })();
 function ratioTxt(v){if(Math.abs(v-1)<1e-9)return 'ostaje ista';const f=v>1?v:1/v,s=Number.isInteger(f)?String(f):fv(f);return `${s} puta ${v>1?'veća':'manja'}`}
@@ -769,6 +771,8 @@ function estatOpts(q){
   if(q.type==='sila'||q.type==='polje')return null;
   if(q.type==='vec'){const s=new Set([String(q.a+q.b),String(Math.abs(q.a-q.b)),String(q.a*q.b)]);return[...s].sort((x,y)=>x-y).map(v=>({k:v,h:v.replace('.',',')}))}
   if(q.type==='polje2')return[{k:'more',h:'veće'},{k:'less',h:'manje'},{k:'eq',h:'jednako'}];
+  if(q.type==='jace')return[{k:'A',h:'jače je polje naboja A'},{k:'B',h:'jače je polje naboja B'},{k:'eq',h:'polja su jednako jaka'}];
+  if(q.type==='nula')return[{k:'lijevo',h:'lijevo od oba naboja'},{k:'izmedju',h:'između naboja'},{k:'desno',h:'desno od oba naboja'},{k:'nigdje',h:'nigdje (osim daleko u beskonačnosti)'}];
   if(q.type==='rad')return[{k:'rad',h:'moramo uložiti rad'},{k:'energija',h:'dobivamo energiju'}];
   const c=[q.a/(q.b*q.b),q.a/q.b,q.a*q.b*q.b,q.a*q.b,1],seen=new Set(),o=[];for(const v of c){const t=ratioTxt(v);if(!seen.has(t)){seen.add(t);o.push({k:String(v),h:t})}}return o.slice(0,4).sort((x,y)=>x.k-y.k);
 }
@@ -797,6 +801,15 @@ function estatSvg(q,reveal){
       g+=pt(106+308*q.a/4,140,'A')+pt(106+308*q.b/4,230,'B')}
     else{g+=chargeEl(90,180,1,26);g+=pt(90+q.a*90,140,'A')+pt(90+q.b*90,220,'B')}
     return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`}
+  const nm=(Q,s)=>(s*Q>0?'+':'−')+(Math.abs(Q)===1?'':Math.abs(Q))+'Q';
+  if(q.type==='jace'){const U=70,T0=260,xa=T0-q.ra*U,xb=T0+q.rb*U;g+=`<line x1="40" y1="180" x2="480" y2="180" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+    g+=chargeEl(xa,180,q.sa*q.qa)+chargeEl(xb,180,q.sb*q.qb)+`<text x="${xa}" y="140" text-anchor="middle" ${T} font-size="20" font-weight="700" fill="var(--ink)">A</text><text x="${xb}" y="140" text-anchor="middle" ${T} font-size="20" font-weight="700" fill="var(--ink)">B</text>`;
+    g+=`<circle cx="${T0}" cy="180" r="5" fill="var(--ink)"/><text x="${T0}" y="160" text-anchor="middle" ${T} font-size="20" font-weight="700" fill="var(--ink)">T</text>`;
+    g+=`<path d="M${xa} 225V235H${T0}V225M${T0} 235H${xb}V225" stroke="var(--ink)" stroke-width="1.5" fill="none"/><text x="${(xa+T0)/2}" y="256" text-anchor="middle" ${T} font-size="19" fill="var(--ink)">${q.ra===1?'':q.ra}r</text><text x="${(xb+T0)/2}" y="256" text-anchor="middle" ${T} font-size="19" fill="var(--ink)">${q.rb===1?'':q.rb}r</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`}
+  if(q.type==='nula'){g+=`<line x1="30" y1="180" x2="490" y2="180" stroke="var(--ink)" stroke-width="1.5"/>`+chargeEl(190,180,q.a)+chargeEl(330,180,q.b);
+    g+=`<text x="95" y="230" text-anchor="middle" ${T} font-size="17" fill="var(--muted)">lijevo</text><text x="260" y="230" text-anchor="middle" ${T} font-size="17" fill="var(--muted)">između</text><text x="425" y="230" text-anchor="middle" ${T} font-size="17" fill="var(--muted)">desno</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`}
   if(q.type==='rad'){g+=chargeEl(130,180,q.Qs,30);g+=`<text x="130" y="232" text-anchor="middle" ${T} font-size="14" fill="var(--muted)">fiksan</text>`;
     const x0=300,x1=q.mv==='bliže'?220:420;g+=`<circle cx="${x0}" cy="180" r="14" fill="var(--mark)" stroke="var(--ink)" stroke-width="2"/><text x="${x0}" y="186" text-anchor="middle" ${T} font-size="18" font-weight="700" fill="#1C2B3A">${q.ps>0?'+':'−'}</text><text x="${x0}" y="150" text-anchor="middle" ${T} font-size="17" fill="var(--ink)">${q.ps>0?'proton':'elektron'}</text>`;
     g+=`<line x1="${x0}" y1="215" x2="${x1}" y2="215" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 5"/>`+arrowEl(x0,215,x1,215,'var(--ink)',2.5);
@@ -805,12 +818,14 @@ function estatSvg(q,reveal){
   g+=`<text x="260" y="70" text-anchor="middle" ${T} font-size="22" fill="var(--ink)">naboj ${q.a===1?'isti':q.a+' puta veći'}, udaljenost ${q.b===1?'ista':q.b+' puta veća'}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`;
 }
-function estatText(q){return{sila:`U kojem smjeru djeluje sila na naboj <strong>${q.probe>0?'+q':'−q'}</strong>?`,polje:'Koji je smjer električnog polja u točki <strong>T</strong>?',vec:`Koliko je ${q.a} + ${q.b}, ako su vektori pod kutom ${q.ang}°?`,polje2:q.form==='plates'?'Između dviju nabijenih ploča. Kakvo je polje u točki <strong>B</strong> u odnosu na točku <strong>A</strong>?':'Oko točkastog naboja. Kakvo je polje u točki <strong>B</strong> u odnosu na točku <strong>A</strong>?',rad:`${q.ps>0?'Proton':'Elektron'} pomičemo <strong>${q.mv}</strong> fiksnom naboju ${q.Qs>0?'+Q':'−Q'}. Hoćemo li morati uložiti rad ili ćemo dobiti energiju?`,omjer:'Kako se promijeni sila između dva naboja?'}[q.type]}
+function estatText(q){return{sila:`U kojem smjeru djeluje sila na naboj <strong>${q.probe>0?'+q':'−q'}</strong>?`,polje:'Koji je smjer električnog polja u točki <strong>T</strong>?',vec:`Koliko je ${q.a} + ${q.b}, ako su vektori pod kutom ${q.ang}°?`,polje2:q.form==='plates'?'Između dviju nabijenih ploča. Kakvo je polje u točki <strong>B</strong> u odnosu na točku <strong>A</strong>?':'Oko točkastog naboja. Kakvo je polje u točki <strong>B</strong> u odnosu na točku <strong>A</strong>?',rad:`${q.ps>0?'Proton':'Elektron'} pomičemo <strong>${q.mv}</strong> fiksnom naboju ${q.Qs>0?'+Q':'−Q'}. Hoćemo li morati uložiti rad ili ćemo dobiti energiju?`,omjer:'Kako se promijeni sila između dva naboja?',jace:'Koji naboj stvara <strong>jače</strong> električno polje u točki <strong>T</strong> (po iznosu)?',nula:'Na pravcu kroz oba naboja, gdje je električno polje <strong>jednako nuli</strong>?'}[q.type]}
 function estatExplain(q){
   if(q.type==='sila'||q.type==='polje'){const lines=contribs(q).map(t=>{const nm=(t.c.Q>0?'+':'−')+(Math.abs(t.c.Q)===1?'':Math.abs(t.c.Q))+'Q',k=q.probe,d=dirOf(k*t.x,k*t.y);return `${nm} ${(t.c.Q*k>0)?'odbija':'privlači'} pa gura <b>${DIRS[d][3]}</b>${t.r>1?(Math.abs(t.c.Q)>1?' (dalje je, ali je naboj veći)':' (dalje je, slabije djeluje)'):''}`});
     return `${q.type==='polje'?'Zamisli pozitivan naboj u točki T. ':''}Gledaj naboj po naboj: ${lines.join('; ')}. ${q.ans==='Z'?'Sile se poništavaju.':`Zbroj pokazuje <b>${DIRS[q.ans][3]}</b>.`}`}
   if(q.type==='vec')return q.ang===0?'Isti smjer: iznosi se zbrajaju.':q.ang===180?'Suprotni smjerovi: iznosi se oduzimaju.':`Pod pravim kutom: Pitagora, √(${q.a}² + ${q.b}²) = ${fv(Math.hypot(q.a,q.b))}.`;
   if(q.type==='polje2')return q.form==='plates'?'Polje između dviju ploča je homogeno, jednako u svim točkama. Udaljenost od ploče nije važna.':'Polje točkastog naboja je nehomogeno i slabi s kvadratom udaljenosti. Bliža točka ima jače polje.';
+  if(q.type==='jace'){const ea=q.qa/(q.ra*q.ra),eb=q.qb/(q.rb*q.rb),f=(Q,r)=>`${Q===1?'':Q}Q / ${r===1?'r²':'('+r+'r)²'} = ${Q/(r*r)===1?'':fv(Q/(r*r))}Q/r²`;return `Polje je proporcionalno naboju, a obrnuto proporcionalno kvadratu udaljenosti: E ~ Q/r². A: ${f(q.qa,q.ra)}, B: ${f(q.qb,q.rb)}. ${q.ans==='eq'?'Jednako su jaka.':q.ans==='A'?'Jače je polje naboja A.':'Jače je polje naboja B.'} Predznak naboja ne mijenja iznos polja.`}
+  if(q.type==='nula'){if(q.a*q.b>0)return 'Istoimeni naboji: između njih polja su suprotnog smjera i negdje se poništavaju. Ta je točka bliže manjem naboju.';if(Math.abs(q.a)===Math.abs(q.b))return 'Raznoimeni naboji jednakog iznosa: između njih polja su istog smjera, a izvan njih je jedan uvijek jači. Polje nigdje nije nula.';return 'Raznoimeni naboji: između njih polja su istog smjera i zbrajaju se. Nula je izvan njih, s one strane gdje je <b>manji</b> naboj (bliže slabijem, dalje od jačeg).'}
   if(q.type==='rad'){const rep=q.Qs*q.ps>0;return `${rep?'Istoimeni naboji se odbijaju':'Raznoimeni naboji se privlače'}. Pomičemo ih ${q.mv}, dakle ${q.ans==='rad'?'protiv sile, pa moramo uložiti rad':'u smjeru sile, pa dobivamo energiju'}.`}
   return `Sila je proporcionalna naboju, a obrnuto proporcionalna kvadratu udaljenosti: ${q.a} / ${q.b}² = ${q.a}/${q.b*q.b}. Sila ${ratioTxt(q.a/(q.b*q.b))}.`;
 }
@@ -1081,9 +1096,9 @@ const LI={id:'L',topic:'kont',c:mkCirc({W:2,V:[{t:'E',pol:1},{t:'R'},{t:'R'}],T:
 /* ---------- Preskoči prelagan zadatak ---------- */
 function skipState(){const m=prof().module;if(m==='serpar')return{done:!!answered,reset:()=>{answered=null;cur=null}};if(m==='ruk'||m==='rukC')return{done:!rk||rk.done||rk.steps.length>0||rk.mistakes>0||rk.sel.length>0,reset:()=>{rk=null}};if(m==='estat')return{done:eAns!=null,reset:()=>{eq=null}};if(m==='kont'||m==='cvor')return{done:!mt||mt.i>0||mt.mistakes>0||mt.sel.size>0,reset:()=>{mt=null}};if(m==='thev'||m==='nort')return{done:!ths||ths.i>0||ths.mistakes>0||ths.sel.size>0||ths.exam,reset:()=>{ths=null}};return null}
 function addSkip(){if(view!=='practice'||(exam&&exam.running))return;const st=skipState(),side=main.querySelector('.side');if(!st||st.done||!side)return;
-  side.insertAdjacentHTML('beforeend','<div class="row" id="skipbtn" style="margin-top:14px;gap:8px"><button class="ghost" id="skipe" style="margin:0;flex:1">Preteško, daj lakši</button><button class="ghost" id="skiph" style="margin:0;flex:1">Prelagano, daj teži</button></div><p class="note" style="margin:4px 0 0;font-size:12px">Lakši zadatak donosi manje napretka, a teži više.</p>');
+  side.insertAdjacentHTML('beforeend','<div class="mbtns" id="skipbtn" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line)"><button class="ghost" id="skipe">Lakši</button><button class="ghost" id="skipn">Novi zadatak</button><button class="ghost" id="skiph">Teži</button></div><p class="note" style="margin:4px 0 0;font-size:12px">Lakši zadatak donosi manje napretka, a teži više.</p>');
   const mv=d=>{const p=prof(),t=p.module;p.boost=p.boost||{};p.boost[t]=Math.max(-4,Math.min(4,(p.boost[t]||0)+d));save();st.reset();renderPractice()};
-  $('#skiph').onclick=()=>mv(1);$('#skipe').onclick=()=>mv(-1)}
+  $('#skiph').onclick=()=>mv(1);$('#skipe').onclick=()=>mv(-1);$('#skipn').onclick=()=>mv(0)}
 for(const nm of['renderSerpar','renderRuk','renderEstat','metRender']){const f=window[nm];window[nm]=function(){f.apply(this,arguments);addSkip()}}
 lstep.kont=0;lstep.cvor=0;lstep.pretv=0;
 LESSONS.kont=[
@@ -1811,7 +1826,7 @@ LESSONS.nort=[
 
 /* ---------- Povratna animacija točno / netočno ---------- */
 const FXN={flash:'Bljesak okvira',icon:'Velika kvačica / križić',shake:'Poskok i tresenje',confetti:'Konfeti / crveni puls',banner:'Traka na vrhu'};
-let fxMode=(()=>{try{return localStorage.getItem('cvoriste:fx')||'icon'}catch(e){return 'icon'}})();
+let fxMode='shake';
 document.head.insertAdjacentHTML('beforeend',`<style>
 @keyframes fxFlashOk{0%{box-shadow:0 0 0 0 rgba(30,138,76,.0)}25%{box-shadow:0 0 0 6px rgba(30,138,76,.85)}100%{box-shadow:0 0 0 0 rgba(30,138,76,0)}}
 @keyframes fxFlashBad{0%{box-shadow:0 0 0 0 rgba(192,57,43,0)}25%{box-shadow:0 0 0 6px rgba(192,57,43,.85)}100%{box-shadow:0 0 0 0 rgba(192,57,43,0)}}
@@ -1832,8 +1847,7 @@ function fxPlay(ok){const side=main.querySelector('.side')||main.querySelector('
 let fxLast='';new MutationObserver(()=>{if(view!=='practice'&&view!=='exam'&&view!=='lesson')return;const m=main.querySelector('.msg.ok,.msg.bad,.fb.ok,.fb.bad');let sig='';
   const msgs=[...main.querySelectorAll('.msg.ok,.msg.bad,.fb.ok h3,.fb.bad h3')].map(e=>e.textContent.trim()).filter(Boolean);sig=msgs.join('|')+'#'+(main.querySelector('.meta span')||{}).textContent+'#'+(typeof ths!=='undefined'&&ths?ths.i:'')+'#'+(typeof mt!=='undefined'&&mt?mt.i:'')+'#'+(typeof rk!=='undefined'&&rk&&rk.steps?rk.steps.length:'');
   if(!msgs.length){fxLast='';return}if(sig===fxLast)return;fxLast=sig;const mm=[...main.querySelectorAll('.msg.ok,.msg.bad')].map(e=>e.textContent.trim()).filter(Boolean),t=mm.length?mm[mm.length-1]:msgs[msgs.length-1];if(/^Točno|^Točan/.test(t))fxPlay(true);else if(/^Nije točno|^Netočno|Pogrešno/.test(t))fxPlay(false)}).observe(main,{childList:true,subtree:true,characterData:true});
-if(document.title.includes('(test)')){document.body.insertAdjacentHTML('beforeend',`<div style="position:fixed;left:10px;bottom:10px;z-index:9996;background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.15)">Animacija: <select id="fxsel" style="font:inherit">${Object.entries(FXN).map(([k,v])=>`<option value="${k}" ${k===fxMode?'selected':''}>${v}</option>`).join('')}</select> <button class="ghost" id="fxtry" style="margin:0;padding:2px 8px;font-size:12px">✓</button><button class="ghost" id="fxtry2" style="margin:0 0 0 4px;padding:2px 8px;font-size:12px">✗</button></div>`);
-  $('#fxsel').onchange=e=>{fxMode=e.target.value;try{localStorage.setItem('cvoriste:fx',fxMode)}catch(_){}};$('#fxtry').onclick=()=>fxPlay(true);$('#fxtry2').onclick=()=>fxPlay(false)}
+
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
