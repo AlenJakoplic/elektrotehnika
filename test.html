@@ -1033,7 +1033,7 @@ function metHl(s,o,K){if(!s)return;if(s.k!==undefined&&s.t!=='fixed'){if(K)o.mes
   if(s.t==='nsign'){o.hl.add(s.nb.R);if(K)o.nbm=s.nb.j}if(s.t==='esign'||s.t==='isrc'||s.t==='conv'){o.hl.add(s.sr.E);if(s.sr.R&&s.t!=='isrc')o.hl.add(s.sr.R)}if(s.t==='icur')o.hl.add(s.cr.I);if(s.t==='ifix')o.hl.add(s.f.I);if(s.t==='fixed'){o.hl.add(s.f.E);o.node=s.n}if(s.t==='branch')o.branch=s}
 function metRender(){
   const p=prof(),ex=!!(exam&&exam.running);if(p.module==='pretv')return pretvRender();if(!ex&&(!mt||mt.exam||mt.q.topic!==p.module)){metStart(pickQuestion(p.module))}
-  const q=mt.q,K=q.topic==='kont',s=mt.steps[mt.i],pr=s?metPrompt(s,q):null,o={sel:mt.sel,hl:new Set(),conv:new Set(mt.steps.slice(0,mt.i).filter(x=>x.t==='conv').map(x=>x.sr.b.id))};metHl(s,o,K);
+  if(mt.q.type&&!ex)return metMC();const q=mt.q,K=q.topic==='kont',s=mt.steps[mt.i],pr=s?metPrompt(s,q):null,o={sel:mt.sel,hl:new Set(),conv:new Set(mt.steps.slice(0,mt.i).filter(x=>x.t==='conv').map(x=>x.sr.b.id))};metHl(s,o,K);
   const lines=metLines(q,mt.steps,mt.i).map(l=>`<div class="meq ${s&&s.k===l.k&&s.t!=='fixed'?'cur':''}">${l.html}</div>`).join('');
   let ctrl='';
   if(!s){const d=mt.final?mt.final.d:0;ctrl=`<div class="fb ${mt.mistakes?'bad':'ok'}"><h3>${mt.mistakes?'Gotovo':'Bez greške'}</h3><p style="margin:0">Pogrešnih koraka: ${mt.mistakes}.</p>${ex?'':`<span class="delta">Razina ${d>=0?'+':'−'}${fmt(Math.abs(d))} → ${fmt(p.ratings[q.topic].r)}</span><br>`}<button class="primary" id="mnext">${ex?'Dalje':'Sljedeći zadatak'}</button></div>`}
@@ -1979,6 +1979,60 @@ function renderRukMC(){const p=prof(),q=rk.q,n=NETS[q.net],a=rk.mc,showCol=p.col
   main.querySelectorAll('.opt[data-a]').forEach(b=>b.onclick=()=>{if(rk.mc)return;rk.mc=b.dataset.a;rk.done=true;rk.final={d:applyResult(q,b.dataset.a===q.ans,p.colors)};header();renderRukMC()});
   if($('#next'))$('#next').onclick=()=>{rk=null;renderRuk()};
   try{tryNote()}catch(e){}try{addSkip()}catch(e){}}
+/* ---------- Metode: nove vrste pitanja (točna jednadžba, pronađi grešku, koja metoda) ---------- */
+function mEq(q,k){const c=q.c,K=q.topic==='kont';
+  if(K){const e=meshEq(c,k);return{K,k,own:e.own.slice(),nb:e.nb.map(n=>({sign:n.sign,h:`${IK(n.j)}·${su(n.R)}`,R:n.R})),rhs:e.src.map(s=>({sign:s.sign,h:su(s.E)}))}}
+  const o=c.ci.unk.find(u=>u.n===k);return{K,k,own:o.own.slice(),nb:o.nb.map(n=>({sign:-1,h:`${UN(n.m)}·${inv(n.R)}`,R:n.R})),rhs:[...o.src.map(s=>({sign:s.sign,h:frx(s.E,s.R)})),...o.cur.map(s=>({sign:s.sign,h:su(s.I)}))]}}
+function mTerms(e){const own=e.own.map(e.K?su:inv),t=[(e.K?IK(e.k):UN(e.k))+'·'+(own.length>1?`(${own.join(' + ')})`:own[0])];
+  e.nb.forEach(n=>t.push(`${n.sign>0?'+':'−'} ${n.h}`));const r=e.rhs.length?e.rhs.map((s,i)=>`${s.sign>0?(i?'+ ':''):'− '}${s.h}`):['0'];return{l:t,r}}
+function mHtml(e){const t=mTerms(e);return t.l.join(' ')+' = '+t.r.join(' ')}
+function mMut(e){const out=[],cl=()=>JSON.parse(JSON.stringify(e));
+  e.nb.forEach((n,i)=>{const x=cl();x.nb[i].sign*=-1;out.push({e:x,term:1+i,why:e.K?`Predznak člana ${n.h}: ${n.sign>0?'struje obiju petlji kroz '+su(n.R)+' teku u istom smjeru, pa je +':'struje petlji kroz '+su(n.R)+' teku u suprotnim smjerovima, pa je −'}.`:`Član susjednog čvora uvijek ima predznak −.`})});
+  e.rhs.forEach((s,i)=>{const x=cl();x.rhs[i].sign*=-1;out.push({e:x,term:1+e.nb.length+i,why:e.K?`Predznak izvora ${s.h}: gleda se je li obilaskom u smjeru struje petlje na izvoru porast (+) ili pad (−) napona.`:`Predznak izvora ${s.h}: struja izvora koja ulazi u čvor ide s +, a koja izlazi s −.`})});
+  if(e.own.length>1)e.nb.forEach(n=>{const x=cl();x.own=x.own.filter(r=>r!==n.R);out.push({e:x,term:0,why:`U vlastiti ${e.K?'otpor':'zbroj vodljivosti'} idu ${e.K?'svi otpori kroz koje teče struja petlje':'vodljivosti svih grana spojenih na čvor'}, pa i ${e.K?su(n.R):inv(n.R)}, koji je zajednički sa susjedom.`})});
+  return out}
+const MTX={};
+(function(){const rnd=seeded('metode-tipovi'),shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a},add=[];
+  for(const q of QS.filter(x=>(x.topic==='kont'||x.topic==='cvor')&&!x.type)){const K=q.topic==='kont',c=q.c;
+    const ks=K?c.meshes.map((_,k)=>k).filter(k=>!meshEq(c,k).fix):c.ci.unk.map(u=>u.n);
+    const cand=ks.map(k=>({k,e:mEq(q,k)})).map(x=>({...x,m:mMut(x.e)})).filter(x=>x.m.length>=3).sort((a,b)=>b.m.length-a.m.length);
+    if(cand.length){const x=cand[Math.floor(rnd()*Math.min(2,cand.length))],h0=mHtml(x.e),ds=[];for(const m of shuf(x.m)){const h=mHtml(m.e);if(h!==h0&&!ds.includes(h))ds.push(h);if(ds.length===3)break}
+      if(ds.length===3)add.push({id:q.id+'-J',topic:q.topic,type:'J',c,k:x.k,ans:h0,opts:shuf([h0,...ds]),diff:Math.round((q.diff+0.3)*10)/10,tags:['m_jednadzba']});
+      const y=cand[Math.floor(rnd()*cand.length)],mu=y.m[Math.floor(rnd()*y.m.length)];
+      add.push({id:q.id+'-G',topic:q.topic,type:'G',c,k:y.k,good:mHtml(y.e),bad:mu.e,term:mu.term,why:mu.why,diff:Math.round((q.diff+0.6)*10)/10,tags:['m_greska']})}
+    if(c.ci&&c.ci.unk.length){const nk=c.meshes.filter((_,k)=>!meshEq(c,k).fix).length,nv=c.ci.unk.length;
+      if(nk!==nv)add.push({id:q.id+'-M',topic:q.topic,type:'M',c,nk,nv,ans:nk<nv?'kont':'cvor',opts:['kont','cvor'],diff:Math.round(Math.max(1,q.diff-0.5)*10)/10,tags:['m_metoda']})}}
+  for(const q of add){QS.push(q);MTX[q.id]=q}})();
+Object.assign(TAGNAMES,{m_jednadzba:'Prepoznaj točnu jednadžbu',m_greska:'Pronađi grešku u jednadžbi',m_metoda:'Izbor metode'});
+function metMC(){const p=prof(),q=mt.q,K=q.topic==='kont',a=mt.mc;
+  const o={hl:new Set()};if(q.type!=='M'){if(K)o.mesh=q.k;else o.node=q.k}else o.noMesh=true;
+  const svg=metSvg(q.type==='M'?{...q,topic:'kont'}:q,o);
+  let body='';
+  if(q.type==='J')body=`<p class="q">Koja je jednadžba ${K?`petlje ${IK(q.k)}`:`čvora ${q.k+1}`} točna?</p><div class="opts">${q.opts.map((x,i)=>`<button class="opt ${a!=null?(x===q.ans?'right':(String(i)===a?'wrong':'')):''}" data-mi="${i}" ${a!=null?'disabled':''}><kbd>${'abcd'[i]})</kbd><span class="frm">${x}</span></button>`).join('')}</div>`;
+  if(q.type==='G'){const t=mTerms(q.bad),all=[...t.l,'=',...t.r];let ti=0;
+    body=`<p class="q">U jednadžbi ${K?`petlje ${IK(q.k)}`:`čvora ${q.k+1}`} je <strong>jedna greška</strong>. Klikni pogrešni član.</p><div class="frm" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:18px;margin:10px 0">${all.map(x=>{if(x==='=')return '<span>=</span>';const i=ti++,isAns=i===q.term;return `<button class="opt ${a!=null?(isAns?'right':(String(i)===a?'wrong':'')):''}" data-mi="${i}" ${a!=null?'disabled':''} style="width:auto;padding:6px 10px;margin:0">${x}</button>`}).join('')}</div>`}
+  if(q.type==='M')body=`<p class="q">Koja metoda na ovoj mreži daje <strong>manje jednadžbi</strong>?</p><div class="opts">${[['kont','Konturne struje'],['cvor','Naponi čvorova']].map(([k,t],i)=>`<button class="opt ${a!=null?(k===q.ans?'right':(k===a?'wrong':'')):''}" data-mi="${k}" ${a!=null?'disabled':''}><kbd>${'ab'[i]})</kbd>${t}</button>`).join('')}</div>`;
+  let fb='';if(a!=null){const ok=mt.mcOk;
+    const ex=q.type==='J'?`Točno je: <span class="frm">${q.ans}</span>`:q.type==='G'?`${q.why}<br>Točno: <span class="frm">${q.good}</span>`:`Konturne struje: ${q.nk} ${q.nk===1?'jednadžba':'jednadžbe'}. Naponi čvorova: ${q.nv} ${q.nv===1?'jednadžba':'jednadžbe'}. Na kontrolnoj zadaći metodu biraš sam, pa vrijedi prvo prebrojati.`;
+    fb=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${ex}</p><span class="delta">Razina ${mt.final.d>=0?'+':'−'}${fmt(Math.abs(mt.final.d))} → ${fmt(p.ratings[q.topic].r)}</span><br><button class="primary" id="mnext">Sljedeći zadatak</button></div>`}
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${q.id}</span><span>težina zadatka ${fmt(qRating(q))}</span></div><div class="schem">${svg}</div></div><div class="sheet side">${body}${fb}</div></div>`;
+  modbar();
+  main.querySelectorAll('[data-mi]').forEach(b=>b.onclick=()=>{if(mt.mc!=null)return;const v=b.dataset.mi;mt.mc=v;mt.mcOk=q.type==='J'?q.opts[+v]===q.ans:q.type==='G'?+v===q.term:v===q.ans;mt.done=true;mt.final={d:applyResult(q,mt.mcOk,false)};header();metMC()});
+  if($('#mnext'))$('#mnext').onclick=()=>{mt=null;metRender()};
+  try{tryNote()}catch(e){}try{addSkip()}catch(e){}}
+/* ---------- Probni izbor vrste pitanja (samo na test stranici) ---------- */
+const IS_TEST='cvoriste-test:'.includes('test');
+const TYPENAME={I:'Ista struja',U:'Isti napon',B:'Bez struje',X:'Uljez',P:'Koji par odmah',Z:'Zapis Ruk',V:'Promjena Ruk',D:'Ne utječe na Ruk',J:'Točna jednadžba',G:'Pronađi grešku',M:'Koja metoda',jace:'Jače polje',nula:'Nula polja'};
+let testType='';
+{const _pq=pickQuestion;pickQuestion=function(topic,exclude=new Set()){
+  if(view==='exam'||(exam&&exam.running)){const ex=new Set(exclude);for(const q of QS)if(q.topic===topic&&q.type&&TYPENAME[q.type]&&!/^(jace|nula)$/.test(q.type))ex.add(q.id);return _pq(topic,ex)}
+  if(IS_TEST&&testType){const pool=QS.filter(q=>q.topic===topic&&(testType==='-'?!TYPENAME[q.type]:q.type===testType)&&!exclude.has(q.id));if(pool.length){const r=new Set(prof().recent),f=pool.filter(q=>!r.has(q.id));const a=f.length?f:pool;return a[Math.floor(Math.random()*a.length)]}}
+  return _pq(topic,exclude)}}
+function testBar(){if(!IS_TEST||view!=='practice'||main.querySelector('#testbar'))return;const side=main.querySelector('.side');if(!side)return;const topic=curQ()?curQ().topic:prof().module;
+  const ts=[...new Set(QS.filter(q=>q.topic===topic&&TYPENAME[q.type]).map(q=>q.type))];if(!ts.length)return;
+  side.insertAdjacentHTML('afterbegin',`<div id="testbar" class="note" style="margin-bottom:10px;padding:6px 8px;border:1px dashed var(--line);border-radius:6px">TEST – vrsta pitanja: <select id="ttype" class="ghost"><option value="">sve</option><option value="-" ${testType==='-'?'selected':''}>klasična</option>${ts.map(t=>`<option value="${t}" ${testType===t?'selected':''}>${TYPENAME[t]}</option>`).join('')}</select></div>`);
+  $('#ttype').onchange=e=>{testType=e.target.value;const m=prof().module;if(m==='serpar'){answered=null;cur=null}else if(m==='ruk'){rk=null}else if(m==='estat'){eq=null}else if(m==='kont'||m==='cvor'){mt=null}renderPractice()}}
+{const _as=addSkip;addSkip=function(){try{testBar()}catch(e){}return _as.apply(this,arguments)}}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
