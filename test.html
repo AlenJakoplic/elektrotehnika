@@ -1264,7 +1264,7 @@ function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=z
   const sol=zShow?zSol(z):null;
   main.innerHTML=`<div class="modwrap"><span class="modlabel">Vrsta zadatka:</span><div class="modbar">${[['nab','Naboji',['nab']],['capu','Kondenzatori U, Q, W',['capu']],['mag','Magnetsko polje',['mag']],['ruk',Z.type==='cap'?'Ukupni kapacitet':'Ukupni otpor',['ruk','cap']],['ui','Struje i naponi',['ui']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi mreža',['thev','nort']],['pril','Prilagođenje po snazi',['pril']]].map(([k,l,g])=>`<button data-zt="${g.includes(Z.type)?Z.type:k}" aria-current="${g.includes(Z.type)}">${l}</button>`).join('')}</div>${Z.type==='ruk'||Z.type==='cap'?`<div class="modbar"><button data-zt="ruk" aria-current="${Z.type==='ruk'}">Otpornici</button><button data-zt="cap" aria-current="${Z.type==='cap'}">Kondenzatori</button></div>`:''}${Z.type==='kont'||Z.type==='cvor'?`<div class="modbar"><button data-zt="kont" aria-current="${Z.type==='kont'}">Konturne struje</button><button data-zt="cvor" aria-current="${Z.type==='cvor'}">Naponi čvorova</button></div>`:''}${Z.type==='thev'||Z.type==='nort'?`<div class="modbar"><button data-zt="thev" aria-current="${Z.type==='thev'}">Theveninov teorem</button><button data-zt="nort" aria-current="${Z.type==='nort'}">Nortonov teorem</button></div>`:''}<span class="modlvl">Težina${z.cst?'':' mreže'}: <b>${z.d}</b> od 6</span></div>
   <div class="board"><div class="sheet"><div class="meta"><span>${z.cst?(z.type==='mag'?'Magnetizam':'Elektrostatika'):z.simple?'Realni naponski izvor':'Mreža '+z.net.id}</span><span>riješi na papiru</span></div><div class="schem" id="zsch">${zDraw(z,null)}</div></div>
-  <div class="sheet side">${IS_TEST&&ZKINDS[Z.type]?`<div class="note" style="margin-bottom:10px;padding:6px 8px;border:1px dashed var(--line);border-radius:6px">TEST – vrsta zadatka: <select id="ztk" class="ghost"><option value="">sve (po težini)</option>${ZKINDS[Z.type].map(([k,t])=>`<option value="${k}" ${zTestKind===k?'selected':''}>${t}</option>`).join('')}</select></div>`:''}<p style="margin:0 0 14px">${zText(z)}</p>${z.th?`<details id="zhow" ${zAB?'open':''} style="margin:0 0 14px"><summary style="cursor:pointer;font-weight:600">Kako se rješava?</summary><div style="margin-top:8px;font-size:15px">${TH_HOW[z.type]}</div></details>`:''}
+  <div class="sheet side">${ZKINDS[Z.type]?`<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:600">Vrsta zadatka:</span><select id="ztk" class="ghost"><option value="">sve (prema težini)</option>${ZKINDS[Z.type].map(([k,t])=>`<option value="${k}" ${zTestKind===k?'selected':''}>${t}</option>`).join('')}</select></div>`:''}<p style="margin:0 0 14px">${zText(z)}</p>${z.th?`<details id="zhow" ${zAB?'open':''} style="margin:0 0 14px"><summary style="cursor:pointer;font-weight:600">Kako se rješava?</summary><div style="margin-top:8px;font-size:15px">${TH_HOW[z.type]}</div></details>`:''}
   ${zFieldsHtml(z)}<p class="msg bad" id="zmsg" style="margin:4px 0 0"></p>
   ${zShow?`<h3 style="font-family:var(--f-head);font-size:22px;margin:6px 0">Rješenje</h3><ol class="steps" id="zsteps">${sol.steps.map(s=>`<li data-hl="${s[0].join(',')}" style="cursor:default">${s[1]}</li>`).join('')}</ol>${sol.table||''}
     `
@@ -1321,6 +1321,8 @@ function rstAsk(m){const box=$('#rstbox');box.innerHTML=`<div class="sheet" styl
   $('#rsta').onclick=()=>{rstAll(prof());save();header();renderProgress()}}
 
 /* ---------- Početna ---------- */
+function homeZadHtml(p){const Z=p.zad||{};const gs=ZGROUPS.slice(1).map(g=>({g,s:zGroupStat(Z,g[2])}));
+  return `<h3 style="margin:26px 0 10px">Zadaci po gradivima</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px">${gs.map(({g,s})=>`<div style="border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column"><div style="font-weight:700;font-size:16px">${g[1]}</div><div style="margin-top:6px"><b style="font-size:24px">${s.n}</b> <span style="color:var(--muted);font-size:13px">riješeno · ${zN(s.pts)} bod.</span></div><div class="row" style="gap:6px;margin-top:10px"><button class="primary" style="margin:0;padding:5px 10px" data-hz="${g[2][0]}">Riješi zadatak</button></div></div>`).join('')}</div>`}
 function homeMods(p){return MODS.map(([k,l])=>{const ts=k==='kont'?['kont','cvor']:k==='thev'?['thev','nort']:k==='ruk'?['ruk','rukC']:[k];let n=0,c=0,w=0,t=0;ts.forEach(x=>{const r=p.ratings[x];if(!r)return;n+=r.n;c+=r.c;const ww=Math.max(1,r.n);w+=ww;t+=r.r*ww});return{k,l,r:w?t/w:2,n,c}})}
 function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0);
   const fresh=ms.find(m=>m.n<5),weak=ms.slice().sort((a,b)=>a.r-b.r)[0],rec=tot===0?ms.find(m=>m.k===p.module)||ms[0]:fresh||weak;
@@ -1343,6 +1345,8 @@ function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0
   <h3 style="margin:24px 0 8px">Kako učiti</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;font-size:14px">
     <div><b>Lekcija</b><br>${TABHELP.lesson}</div><div><b>Vježba</b><br>${TABHELP.practice}</div><div><b>Zadaci</b><br>${TABHELP.zad}</div></div></div>`;
+  {const pan=main.querySelector('.panel');if(pan)pan.insertAdjacentHTML('beforeend',homeZadHtml(p))}
+  main.querySelectorAll('[data-hz]').forEach(b=>b.onclick=()=>{const Z=zProf();Z.type=b.dataset.hz;save();zNew();view='zad';render();window.scrollTo(0,0)});
   main.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{p.module=b.dataset.go;save();answered=null;rk=null;bankSel=null;view=b.dataset.v;render();window.scrollTo(0,0)})}
 {const r=document.getElementById('hdrRating');r.style.cursor='pointer';r.title='Prikaži napredak';r.onclick=(ev)=>{if(!prof())return;if(exam&&exam.running&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}exam=null;view='progress';render();window.scrollTo(0,0)}}document.querySelector('.brand').style.cursor='pointer';document.querySelector('.brand').title='Početna';
 document.querySelector('.brand').onclick=(ev)=>{if(!prof())return;if(exam&&exam.running&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}exam=null;view='home';render();window.scrollTo(0,0)};
@@ -1436,7 +1440,7 @@ function zFieldsHtml(z){const F=zFields(z),A=z.ans,max=F.reduce((s,f)=>s+f.w,0);
    ${A.done?`<p style="margin:10px 0 0;font-size:18px">Bodovi: <b>${zN(A.pts)}</b> od ${max}${A.pts>=max?' 🎉':''}</p>`
      :`<div class="row" style="margin-top:10px"><button class="primary" id="zcheck" style="margin:0">${A.tries?'Provjeri ponovno':'Provjeri'}</button>${A.tries?'<span class="note">Ispravi crvena polja. Drugi pokušaj nosi pola boda.</span>':''}</div>`}</div>`}
 function zFinish(z,shown){const F=zFields(z),A=z.ans,Z=zProf(),max=F.reduce((s,f)=>s+f.w,0);if(A.done)return;A.done=true;if(shown)A.pts=0;
-  Z.n=(Z.n||0)+1;Z.pts=(Z.pts||0)+A.pts;Z.max=(Z.max||0)+max;const full=A.pts>=max;if(full){Z.ok=(Z.ok||0)+1;Z.full=Z.full||{};Z.full[z.type]=(Z.full[z.type]||0)+1}
+  Z.n=(Z.n||0)+1;Z.pts=(Z.pts||0)+A.pts;Z.max=(Z.max||0)+max;const full=A.pts>=max;if(full){Z.ok=(Z.ok||0)+1;Z.full=Z.full||{};Z.full[z.type]=(Z.full[z.type]||0)+1}Z.t=Z.t||{};{const T=Z.t[z.type]||(Z.t[z.type]={n:0,pts:0});T.n++;T.pts+=A.pts}
   const fr=A.pts/max;Z.d[z.type]=Math.max(1,Math.min(6,(Z.d[z.type]||2)+(fr>=0.8?0.5:fr<0.5?-0.5:0)));
   if(!shown)dayTick(full,A.pts);save();
   try{if(Remote&&session)Remote.rpc('record_answer',{p_token:session.token,p_qid:'Z-'+z.type,p_topic:'z'+z.type,p_score:fr,p_help:true,p_mode:'zadaci',p_qbase:0,p_qdelta:0}).then(()=>{},()=>{});gcSend&&gcSend('zadatak/z'+z.type+'/'+(full?'tocno':'netocno'))}catch(e){}}
@@ -1605,7 +1609,18 @@ async function eggList(){document.getElementById('eggov')?.remove();let rows=[],
   document.getElementById('eggov').onclick=()=>document.getElementById('eggov').remove()}
 let eggN2=0,eggT2=0;document.addEventListener('click',e=>{if(!e.target.closest('.eggli'))return;const t=Date.now();eggN2=t-eggT2<1500?eggN2+1:1;eggT2=t;if(eggN2>=5){eggN2=0;eggList()}});
 
-async function renderBoardZad(){const me=prof().nick,head='<h2>Ljestvica: Zadaci</h2>';let rows=[],err='';
+const ZGROUPS=[['sve','Ukupno',null],['nab','Naboji',['nab']],['capu','Kondenzatori U, Q, W',['capu']],['mag','Magnetsko polje',['mag']],['ruk','Ukupni otpor i kapacitet',['ruk','cap']],['ui','Struje i naponi',['ui']],['met','Metode rješavanja',['kont','cvor']],['th','Teoremi i prilagođenje',['thev','nort','pril']]];let zbGroup='sve';
+function zGroupStat(Z,types){let n=0,pts=0,full=0;for(const t of types){const x=(Z.t||{})[t];if(x){n+=x.n;pts+=x.pts}full+=((Z.full||{})[t]||0)}return{n,pts,full}}
+async function renderBoardZad(){const me=prof().nick,G=ZGROUPS.find(g=>g[0]===zbGroup)||ZGROUPS[0],head=`<h2>Ljestvica: Zadaci</h2><div class="modbar" style="margin:0 0 14px;flex-wrap:wrap">${ZGROUPS.map(g=>`<button data-zg="${g[0]}" aria-current="${g[0]===G[0]}">${g[1]}</button>`).join('')}</div>`;let rows=[],err='';
+  const bindZg=()=>main.querySelectorAll('[data-zg]').forEach(b=>b.onclick=()=>{zbGroup=b.dataset.zg;renderBoardZad()});
+  if(G[2]){if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();bindZg();
+      try{const {data,error}=await Remote.rpc('leaderboard_zad_g',{p_types:G[2]});if(error)err='Ljestvica po gradivima još nije uključena u bazi.';else rows=data}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='zad')return}
+    else rows=Object.values(state.profiles).filter(p=>p.zad).map(p=>{const s=zGroupStat(p.zad,G[2]);return{nick:p.nick,pts:s.pts,n:s.n,full_n:s.full}}).filter(r=>r.n>0).sort((a,b)=>b.pts-a.pts||b.full_n-a.full_n);
+    main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}<table><tr><th></th><th>Nadimak</th><th>Riješeno</th><th>Bodovi</th></tr>
+    ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.n}</td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="4">Još nitko nije riješio zadatak iz ovog gradiva.</td></tr>'}</table>
+    <p class="note">Bodovi i broj riješenih zadataka iz gradiva ${G[1]}. Broje se zadaci riješeni od uvođenja ljestvice po gradivima.</p></div>`;modbar();bindZg();return}
+  return renderBoardZadAll(head,bindZg)}
+async function renderBoardZadAll(head,bindZg){const me=prof().nick;let rows=[],err='';
   if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
     try{const {data,error}=await Remote.rpc('leaderboard_zad');if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
     if(view!=='board'||boardAll!=='zad')return}
@@ -1615,11 +1630,11 @@ async function renderBoardZad(){const me=prof().nick,head='<h2>Ljestvica: Zadaci
   ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Još nitko nije riješio zadatak.</td></tr>'}</table>
   <p class="note">Bodovi su zbroj bodova iz kartice Zadaci.</p>
   ${Remote?'<div id="zstats"><p class="note">Učitavam statistiku…</p></div>':''}</div>`;
-  modbar();if(Remote)zadStats()}
+  modbar();bindZg();if(Remote)zadStats()}
 async function zadStats(){let s=null;try{const {data,error}=await Remote.rpc('stats_zad');if(!error)s=data}catch(e){}
   const box=document.getElementById('zstats');if(!box)return;if(!s){box.innerHTML='<p class="note">Statistika se trenutačno ne može učitati.</p>';return}
   const pc=x=>x==null?'–':Math.round(100*x)+' %',tile=(v,l)=>`<div style="border:1px solid var(--line);border-radius:8px;padding:10px 12px"><div style="font-size:26px;font-weight:700;font-family:var(--f-head)">${v}</div><div style="font-size:13px;color:var(--muted)">${l}</div></div>`;
-  const TN={zruk:'Ukupni otpor',zcap:'Ukupni kapacitet',zui:'Struje i naponi',zkont:'Konturne struje',zcvor:'Naponi čvorova',zthev:'Theveninov teorem',znort:'Nortonov teorem',zpril:'Prilagođenje po snazi'};
+  const TN={znab:'Naboji',zcapu:'Kondenzatori U, Q, W',zmag:'Magnetsko polje',zruk:'Ukupni otpor',zcap:'Ukupni kapacitet',zui:'Struje i naponi',zkont:'Konturne struje',zcvor:'Naponi čvorova',zthev:'Theveninov teorem',znort:'Nortonov teorem',zpril:'Prilagođenje po snazi'};
   const rows=Object.keys(TN).filter(k=>s.types[k]).map(k=>{const t=s.types[k];return `<tr><td>${TN[k]}</td><td class="num">${t.users}</td><td class="num">${t.n}</td><td class="num">${pc(t.avg)}</td><td class="num">${pc(t.n?t.full/t.n:null)}</td></tr>`}).join('');
   box.innerHTML=`<h3 style="margin:28px 0 10px">Statistika Zadataka za sve korisnike</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">${tile(s.users,'korisnika')}${tile(s.n,'riješenih zadataka')}${tile(pc(s.avg),'prosječno bodova')}${tile(pc(s.n?s.full/s.n:null),'s punim bodovima')}</div>
@@ -2089,7 +2104,7 @@ function nabSvg(o){const W=520,H=o.H||230,T='font-family="Barlow Condensed,Arial
     if(e.t==='pl')g+=`<rect x="${e.x-5}" y="${e.y1}" width="10" height="${e.y2-e.y1}" fill="${e.c}" stroke="var(--ink)" stroke-width="1.5"/><text x="${e.x}" y="${e.y1-8}" text-anchor="middle" ${T} font-size="20" font-weight="700" fill="var(--ink)">${e.lab}</text>`}
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%"><defs><pattern id="ng" width="13" height="13" patternUnits="userSpaceOnUse"><path d="M13 0H0V13" fill="none" stroke="var(--grid)"/></pattern><marker id="na" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1L9 5L0 9z" fill="var(--muted)"/></marker></defs>${g}</svg>`}
 function nabGen(d){const pk=a=>a[Math.floor(Math.random()*a.length)],sg=()=>Math.random()<0.5?1:-1,lv=Math.max(1,Math.min(6,Math.round(d)));
-  let kind0=null;if(IS_TEST&&zTestKind&&ZKINDS.nab.some(k=>k[0]===zTestKind))kind0=zTestKind;const kinds={1:['jedan','ploce'],2:['jedan','pravac2'],3:['pravac2','pravac3'],4:['kut','pravac3'],5:['kvadrat','kut'],6:['rad','kvadrat']}[lv],kind=kind0||pk(kinds);
+  let kind0=null;if(zTestKind&&ZKINDS.nab.some(k=>k[0]===zTestKind))kind0=zTestKind;const kinds={1:['jedan','ploce'],2:['jedan','pravac2'],3:['pravac2','pravac3'],4:['kut','pravac3'],5:['kvadrat','kut'],6:['rad','kvadrat']}[lv],kind=kind0||pk(kinds);
   const Qs=[1,2,3,4,5,6,8,10],qs=[1,2,5,10],z={type:'nab',cst:true,d:lv,net:{id:'Naboji'}};const F=(lab,v,u,w,desc)=>{const[s,uu]=pfx(v,u);return{lab,val:s,unit:uu,w:w||1,desc}};
   const kt='k = <span class="frac"><span>1</span><span>4π·ε<sub>0</sub>·ε<sub>r</sub></span></span> = 8,99·10<sup>9</sup> N·m²/C²';
   if(kind==='jedan'){const Q=pk(Qs)*sg(),r=pk([1,2,3,5,10]),q=pk(qs)*sg(),Qc=Q*1e-9,rm=r/100,qc=q*1e-12,E=KE*Math.abs(Qc)/rm/rm,ph=KE*Qc/rm,Fo=Math.abs(qc)*E;
@@ -2140,7 +2155,7 @@ function magSvg(els,H){const T='font-family="Barlow Condensed,Arial Narrow,sans-
   const w=els.filter(e=>e.t==='w');for(const e of w)extra+=`<circle cx="${e.x}" cy="${e.y}" r="17" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2.2"/>${e.v>0?`<circle cx="${e.x}" cy="${e.y}" r="4" fill="var(--ink)"/>`:`<path d="M${e.x-9} ${e.y-9}L${e.x+9} ${e.y+9}M${e.x+9} ${e.y-9}L${e.x-9} ${e.y+9}" stroke="var(--ink)" stroke-width="2.4"/>`}<text x="${e.x}" y="${e.y-26}" text-anchor="middle" ${T} font-size="17" fill="var(--ink)">${e.lab}</text>`;
   return nabSvg({els:els.filter(e=>e.t!=='w'),H:H||230}).replace('</svg>',extra+`<text x="510" y="${(H||230)-10}" text-anchor="end" ${T} font-size="14" fill="var(--muted)">⊙ struja iz papira, ⊗ struja u papir</text></svg>`)}
 function magGen(d){const pk=a=>a[Math.floor(Math.random()*a.length)],lv=Math.max(1,Math.min(6,Math.round(d)));
-  const kinds={1:['jedan'],2:['jedan','izmedju'],3:['izmedju','izvan'],4:['izvan','okomito'],5:['okomito','sila'],6:['sila','naboj']}[lv];const kind=(IS_TEST&&zTestKind&&ZKINDS.mag.some(k=>k[0]===zTestKind))?zTestKind:pk(kinds);
+  const kinds={1:['jedan'],2:['jedan','izmedju'],3:['izmedju','izvan'],4:['izvan','okomito'],5:['okomito','sila'],6:['sila','naboj']}[lv];const kind=(zTestKind&&ZKINDS.mag.some(k=>k[0]===zTestKind))?zTestKind:pk(kinds);
   const z={type:'mag',cst:true,d:lv,net:{id:'Magnetizam'},kind},F=(lab,v,u,w,desc)=>{const[s,uu]=pfx(v,u);return{lab,val:s,unit:uu,w:w||1,desc}};
   const Is=[1,2,3,4,5,6,8,10,15,20],rs=[1,2,4,5,10,20],L1='I<tspan font-size="0.72em" dy="4">1</tspan>',L2='I<tspan font-size="0.72em" dy="4">2</tspan>';
   const Hf=(I,r)=>I/(2*Math.PI*r),hs=(lab,I,r,v)=>`${lab} = <span class="frac"><span>${lab.replace('H','I')}</span><span>2π·${lab.replace('H','r')}</span></span> = <span class="frac"><span>${I}</span><span>2π·${sci(r)}</span></span> = ${sci(v)} A/m`;
