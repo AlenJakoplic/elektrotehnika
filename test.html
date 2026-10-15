@@ -332,15 +332,16 @@ function renderWelcomeRemote(msg=''){
 function questionHTML(q){if(q.type)return `<p class="q">${SPQ[q.type](q)}</p>`;return `<p class="q">Kako su spojeni ${q.topic==='serparC'?'kondenzatori':'otpornici'} <strong>${sub(q.r1)}</strong> i <strong>${sub(q.r2)}</strong> gledano sa stezaljki A i B?</p>`}
 function optsHTML(q){if(q&&q.type)return `<div class="opts">${q.opts.map((r,i)=>`<button class="opt" data-a="${r}"><kbd>${'abcd'[i]})</kbd>${sub(r)}</button>`).join('')}</div>`;return `<div class="opts">${[['series','a','u seriju'],['parallel','b','u paralelu'],['none','c','ništa od navedenog']].map(([k,l,t])=>`<button class="opt" data-a="${k}"><kbd>${l})</kbd>${t}</button>`).join('')}</div>`}
 
+let colKey=null;function colFor(k){if(colKey!==k){const p=prof();if(p)p.colors=false;colKey=k}}
 function renderSerpar(){
   const p=prof();
-  const TP=p.module;if(!cur||cur.topic!==TP||answered===null){cur=pickQuestion(TP);answered=false}
+  const TP=p.module;if(!cur||cur.topic!==TP||answered===null){cur=pickQuestion(TP);answered=false;colKey=null}colFor(cur);
   const n=NETS[cur.net];
   const showCol=p.colors||answered;
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(cur))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:cur.type?(cur.x?[cur.x]:[]):[cur.r1,cur.r2]})}</div></div>
   <div class="sheet side">${questionHTML(cur)}${optsHTML(cur)}<div id="fb"></div>
-  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka.</small></span></label></div></div>`;
-  $('#col').onchange=e=>{p.colors=e.target.checked;save();renderSerpar()};
+  ${cur.type?`<p class="note" style="margin-top:10px">Probno – animacija kad prijeđeš mišem preko odgovora: ${[['blic','Bljesak'],['sjaj','Sjaj'],['puls','Pulsiranje'],['okvir','Okvir']].map(([k,t])=>`<button class="ghost" data-hv="${k}" style="padding:2px 8px;margin:2px;${hvMode===k?'font-weight:800;outline:2px solid var(--mark)':''}">${t}</button>`).join('')}</p>`:''}<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
+  $('#col').onchange=e=>{p.colors=e.target.checked;save();renderSerpar()};main.querySelectorAll('[data-hv]').forEach(b=>b.onclick=()=>{hvMode=b.dataset.hv;try{localStorage.setItem('hvMode',hvMode)}catch(e){}renderSerpar()});
   main.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerPractice(b.dataset.a));modbar();
 }
 function answerPractice(a){
@@ -559,13 +560,13 @@ function formulaOptions(q){
 }
 function renderFormula(){
   const p=prof();
-  if(!fq||fAns===null){fq=pickQuestion('formula');fAns=false}
+  if(!fq||fAns===null){fq=pickQuestion('formula');fAns=false;colKey=null}colFor(fq);
   const q=fq,n=NETS[q.net],opts=formulaOptions(q);
   const showCol=p.colors||fAns;
   const text=`Kojom formulom računaš zamjenski otpor otpornika <strong>${sub(q.r1)}</strong> i <strong>${sub(q.r2)}</strong>?`;
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(q))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:[q.r1,q.r2]})}</div></div>
   <div class="sheet side"><p class="q">${text}</p><div class="opts">${opts.map((o,i)=>`<button class="opt" data-a="${o.k}"><kbd>${'abcd'[i]})</kbd><span class="frm">${o.h}</span></button>`).join('')}</div><div id="fb"></div>
-  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${fAns?'disabled':''}><span>Bojice potencijala<small>Pomažu vidjeti jesu li u seriji ili paraleli. Točan odgovor s bojicama donosi manje napretka.</small></span></label></div></div>`;
+  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${fAns?'disabled':''}><span>Bojice potencijala<small>Pomažu vidjeti jesu li u seriji ili paraleli. Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
   modbar();
   $('#col').onchange=e=>{p.colors=e.target.checked;save();renderFormula()};
   main.querySelectorAll('.opt').forEach((b,i)=>{b.dataset.a=opts[i].k;b.onclick=()=>answerFormula(b.dataset.a)});
@@ -627,7 +628,7 @@ function rkFinishedS(S){if(S.groups.length!==1)return false;const g=S.groups[0];
 function rkFinished(){return rkFinishedS(rkState())}
 function renderRuk(){
   const p=prof();
-  if(!rk||(rk.q.topic!==p.module&&!rk.exam))startRuk();
+  if(!rk||(rk.q.topic!==p.module&&!rk.exam))startRuk();colFor(rk);
   const {n,q}=rk,ex=!!rk.exam,S=rkState(),finished=rkFinishedS(S);
   const view={...n,segs:rk.segs,node:S.node};
   const groupsMap={};rk.segs.forEach((s,i)=>{/* zamjenski otpornici izgledaju kao ostali */});
@@ -651,7 +652,7 @@ function renderRuk(){
   <div class="sheet side"><p class="q" style="margin-bottom:4px">Svedi mrežu na jedan ${rk.n.cap?'kondenzator C':'otpor R'}<sub>uk</sub> gledano sa stezaljki A i B.</p>
   ${action}<div class="msg ${rk.msgOk?'ok':'bad'}">${rk.msg}</div>
   ${steps?`<ol class="steps">${steps}</ol>`:''}
-  ${ex?'':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${rk.done?'disabled':''}><span>Bojice potencijala<small>Zadatak riješen uz bojice donosi manje napretka.</small></span></label>`}</div></div>`;
+  ${ex?'':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${rk.done?'disabled':''}><span>Bojice potencijala<small>Zadatak riješen uz bojice donosi manje napretka. Uključuju se samo za ovaj zadatak. Uključuju se samo za ovaj zadatak.</small></span></label>`}</div></div>`;
   modbar();
   if(ex)examTick();else{$('#col').onchange=e=>{p.colors=e.target.checked;if(p.colors)rk.usedHelp=true;save();renderRuk()};if(p.colors&&!rk.done)rk.usedHelp=true}
   if(!rk.done)$('#rsch').querySelectorAll('[data-r]').forEach(el=>el.onclick=()=>{
@@ -1901,6 +1902,22 @@ function spExplain(q){const n=NETS[q.net],st=n.status;
   if(q.type==='B')return st[q.ans]==='short'?`${q.ans} je kratko spojen: oba kraja su na istom potencijalu, pa kroz njega ne teče struja.`:`${q.ans} je u slijepoj grani: struja nema kamo nastaviti, pa kroz njega ne teče.`;
   if(q.type==='X')return `${q.grp.join(', ')} su u seriji i kroz njih teče ista struja. ${q.ans} nije u toj seriji${st[q.ans]!=='ok'?' (kroz njega uopće ne teče struja)':''}.`}
 function spShort(q){return q.type==='I'?`ista struja kao ${q.x}`:q.type==='U'?`isti napon kao ${q.x}`:q.type==='B'?'bez struje':`uljez među ${q.opts.join(', ')}`}
+
+/* ---------- Isticanje otpornika pri prelasku mišem preko ponuđenog odgovora (probne animacije) ---------- */
+let hvMode=(()=>{try{return localStorage.getItem('hvMode')||'blic'}catch(e){return 'blic'}})();
+document.head.insertAdjacentHTML('beforeend',`<style>
+@keyframes hvBlic{0%,100%{fill:transparent}20%,60%{fill:#FFD43B}40%{fill:transparent}}
+@keyframes hvPuls{0%,100%{fill:#FFD43B;opacity:1}50%{fill:#FFD43B;opacity:.35}}
+@keyframes hvMarch{to{stroke-dashoffset:-24}}
+g.hv-blic rect:last-of-type{animation:hvBlic .7s ease-out}
+g.hv-sjaj rect:last-of-type{fill:#FFD43B;filter:drop-shadow(0 0 6px #FFC107) drop-shadow(0 0 12px #FFC107)}
+g.hv-puls rect:last-of-type{animation:hvPuls .8s ease-in-out infinite}
+g.hv-okvir rect:first-of-type{stroke:#E0A800;stroke-width:3;stroke-dasharray:8 4;animation:hvMarch .6s linear infinite}
+g.hv-okvir rect:last-of-type{fill:#FFF3BF}
+</style>`);
+function hvSet(name,on){const g=main.querySelector(`.schem g[data-r="${name}"]`);if(!g)return;[...g.classList].filter(c=>c.startsWith('hv-')).forEach(c=>g.classList.remove(c));if(on){void g.getBBox();g.classList.add('hv-'+hvMode)}}
+main.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!cur||!cur.type||view!=='practice')return;if(!e.relatedTarget||!b.contains(e.relatedTarget))hvSet(b.dataset.a,true)});
+main.addEventListener('mouseout',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!cur||!cur.type)return;if(!e.relatedTarget||!b.contains(e.relatedTarget))hvSet(b.dataset.a,false)});
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
