@@ -2296,7 +2296,7 @@ function fbAfterRender(){const p=prof();if(!p)return;
     if(q){side.insertAdjacentHTML('beforeend',`<p style="margin:10px 0 0;text-align:right;display:flex;gap:14px;justify-content:flex-end;flex-wrap:wrap"><a href="#" id="fbask" class="note" style="color:var(--ok);font-weight:600">Pitaj nastavnika</a><a href="#" id="fbq" class="note" style="color:var(--muted)">Prijavi grešku u ovom ${view==='zad'?'zadatku':'pitanju'}</a></p>`);$('#fbq').onclick=e=>{e.preventDefault();fbOpen({qid:q})};$('#fbask').onclick=e=>{e.preventDefault();askOpen(q)}}}
   if(!Remote||!session||document.getElementById('fbm'))return;const fs=p.fbs||{};
   if(!fs['100']&&fbTotal(p)>=(fs.next100||100)&&view!=='kz'&&!(exam&&exam.running)){setTimeout(()=>fbSurvey('100'),600);fs['100']='shown';p.fbs=fs;save();return}
-  if(!fs.kz&&p.kz&&(p.kz.sims||[]).length&&view==='kz'&&!kzSim){setTimeout(()=>fbSurvey('kz'),400);fs.kz='shown';p.fbs=fs;save()}}
+  if(!fs.kz&&p.kz&&(p.kz.sims||[]).some(s=>(s.min||0)>=10)&&view==='kz'&&!kzSim){setTimeout(()=>fbSurvey('kz'),400);fs.kz='shown';p.fbs=fs;save()}}
 async function renderFb(){main.innerHTML='<div class="sheet panel" style="max-width:none"><h2>Povratne informacije</h2><p class="note">Učitavam…</p></div>';let rows=[],err='';
   try{const {data,error}=await Remote.rpc('feedback_list',{p_token:session.token});if(error)err='Nema pristupa ili baza nije spremna.';else rows=data}catch(e){err='Nema veze s bazom.'}
   if(view!=='fb')return;{const p=prof();p.fbSeen=Date.now();save();if(fbNew){fbNew=0;header()}}const KN={pitanje:'Pitanje nastavniku',greska:'Greška',nejasno:'Nejasno',prijedlog:'Prijedlog',pohvala:'Pohvala',ostalo:'Ostalo',anketa:'Anketa'},esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
@@ -2467,6 +2467,13 @@ for(const nm of['renderSerpar','renderRuk','renderRukMC','renderEstat','metRende
 
 view=(kzActive()?'kz':'home');
 boot();
+
+function kzLive(){return typeof kzSim!=='undefined'&&kzSim&&!kzSim.done}
+function kzLeaveAsk(go){const m=fbModal(`<h3 style="margin:0 0 8px">Simulacija je u tijeku</h3><p>Ako sada izađeš, simulacija se prekida i <b>neće se računati</b>. Želiš li stvarno izaći?</p><div class="row" style="gap:8px;justify-content:flex-end"><button class="primary" id="kzst" style="margin:0">Nastavi simulaciju</button><button class="ghost" id="kzlv" style="margin:0">Izađi i prekini</button></div>`);
+  m.querySelector('#kzst').onclick=()=>m.remove();m.querySelector('#kzlv').onclick=()=>{m.remove();clearTimeout(kzSim&&kzSim.tt);kzSim=null;go()}}
+document.addEventListener('click',e=>{if(!kzLive())return;const t=e.target.closest&&e.target.closest('#nav button,.brand,#fbfoot');if(!t)return;if(t.matches('#nav button')&&t.dataset.v==='kz')return;
+  e.preventDefault();e.stopImmediatePropagation();kzLeaveAsk(()=>{t.click()})},true);
+addEventListener('beforeunload',e=>{if(kzLive()){e.preventDefault();e.returnValue=''}});
 </script>
 </body>
 </html>
