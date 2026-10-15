@@ -286,8 +286,8 @@ const TABHELP={home:'Pregled tvojih gradiva i razina te preporuka što dalje vje
 function header(){
   const p=prof();
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
-  const tabs=[['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['exam','Ispit'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);
-  $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
+  const tabs=[['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);
+  $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k||(k==='zad'&&view==='exam')}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
   $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}if(b.dataset.v==='board'&&view!=='board')try{boardAll=true}catch(e){}},true));
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&b.dataset.v!=='exam'&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}if(b.dataset.v!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=b.dataset.v;render()});
 }
@@ -455,7 +455,7 @@ function renderHelp(){
   <p>Digitalna radionica pomaže ti uvježbati gradivo osnova elektrotehnike: od elektrostatike, preko spojeva otpornika i ukupnog otpora, do metoda rješavanja mreža. Rezultati se ne ocjenjuju.</p>
   <button class="primary" id="tourbtn" style="margin:4px 0 8px">▶ Pokreni kratki vodič</button>
   <h3>Kako učiti</h3>
-  <p><b>Lekcija</b> – nauči. <b>Vježba</b> – uvježbaj prepoznavanje i postupak. <b>Zadaci</b> – riješi cijeli zadatak s brojevima kao na kontrolnoj. <b>Ispit</b> – provjeri koliko znaš.</p>
+  <p><b>Lekcija</b> – nauči. <b>Vježba</b> – uvježbaj prepoznavanje i postupak. <b>Zadaci</b> – riješi cijeli zadatak s brojevima kao na kontrolnoj. <b>Testiraj se</b> (u Zadacima) – provjeri koliko znaš.</p>
   <h3>Gradiva</h3>
   <p><b>Elektrostatika.</b> Kratka pitanja koja se izmjenjuju: smjer sile na naboj i smjer polja u točki, zbrajanje vektora na istom pravcu, homogeno i nehomogeno polje, rad ili energija pri pomicanju naboja te kako se mijenja sila s nabojem i udaljenošću. Nakon odgovora na slici se vide doprinosi pojedinih naboja i njihov zbroj.</p>
   <p><b>Serija ili paralela.</b> Za dva označena otpornika odlučiš jesu li spojeni serijski, paralelno ili ništa od toga. Zapamti: elementi su u <b>seriji</b> ako kroz njih teče <b>ista struja</b>, a u <b>paraleli</b> ako su na <b>istom naponu</b>, odnosno između ista dva potencijala.</p>
@@ -474,8 +474,8 @@ function renderHelp(){
   <p>Zadaci s brojevima koje rješavaš na papiru: elektrostatika (naboji i kondenzatori), magnetsko polje, ukupni otpor i kapacitet, struje i naponi, metode rješavanja, teoremi i prilagođenje. Kod naboja i magnetskog polja možeš odabrati vrstu zadatka. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti. Na Ljestvici i Početnoj vidiš bodove i ukupno i po gradivima.</p>
   <h3>Baza zadataka</h3>
   <p>Svi zadaci s rješenjima. Svaki možeš isprobati gumbom „Isprobaj”, bez utjecaja na razinu, a uz „Prikaži moje rezultate” vidiš koji su ti zadaci točni (zeleno), koji netočni (crveno), a koji još nisu rješavani (sivo).</p>
-  <h3>Ispit</h3>
-  <p>Niz zadataka bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena.</p>
+  <h3>Testiraj se</h3>
+  <p>U kartici Zadaci odaberi <b>Testiraj se</b>: niz zadataka iz odabranog gradiva bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena.</p>
   <h3>Gdje se sprema napredak</h3>
   <p>Napredak se sprema uz tvoj nadimak i PIN, pa ga imaš na svakom uređaju. Na ljestvici se vidi samo nadimak. Točnost i ime su skriveni dok ih sam ne uključiš na Napretku.</p>
   <h3>Niz dana, značke i tjedna liga</h3>
@@ -1295,7 +1295,7 @@ const TOUR=[
  {v:'practice',sel:'nav [data-v="practice"]',t:'Vježba',h:'Rješavaš zadatke u aplikaciji i odmah vidiš je li točno. Zadaci se prilagođavaju tvojoj razini.'},
  {v:'practice',m:'serpar',sel:'.side',t:'Pomoć i preskakanje',h:'<b>Bojice potencijala</b> pomažu kad zapneš (uz njih napreduješ sporije). Ako je zadatak prelagan, klikni <b>Prelagano</b> i dobit ćeš teži.'},
  {v:'zad',sel:'nav [data-v="zad"]',t:'Zadaci',h:'Zadaci s brojevima koje rješavaš na papiru. Upišeš rezultate, a aplikacija provjeri jesu li točni i dodijeli bodove. Postupak rješavanja možeš pogledati nakon predaje.'},
- {v:'zad',sel:'nav [data-v="exam"]',t:'Ispit',h:'Niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena.'},
+ {v:'zad',sel:'#zsub [data-zs="exam"]',t:'Testiraj se',h:'U Zadacima je i <b>Testiraj se</b>: niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena.'},
  {v:'zad',sel:'nav [data-v="progress"],nav [data-v="bank"]',t:'Napredak i Baza zadataka',h:'U <b>Napretku</b> vidiš gdje najčešće griješiš. U <b>Bazi zadataka</b> su svi zadaci s rješenjima i tvoji rezultati.'},
  {v:'zad',sel:'#hdrRating',t:'Ukupna razina',h:'Ovdje je tvoja ukupna razina. Klikom na nju otvaraš Napredak. Sretno!'}];
 let tourI=-1;
@@ -1337,7 +1337,7 @@ function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0
   const why=tot===0?'Kreni od lekcije, a zatim vježbaj.':rec.n<5?'Ovo gradivo još nije dovoljno isprobano.':'Ovdje ti je razina trenutno najniža.';
   const bar=r=>`<div style="height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 10px"><div style="height:100%;width:${Math.max(4,Math.min(100,(r-1)/9*100))}%;background:var(--ok)"></div></div>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:980px">
-  <h2 style="margin-bottom:4px">Bok, ${p.nick}!</h2>
+  ${kzBanner()}<h2 style="margin-bottom:4px">Bok, ${p.nick}!</h2>
   <p style="margin:0 0 4px">Ukupna razina: <b style="font-size:22px">${fmt(overall(p))}</b> <span style="color:var(--muted)">(od 1,0 do 10,0) · riješeno zadataka: ${tot}</span></p>
   ${bar(overall(p))}
   <div style="border:2px solid var(--ok);border-radius:8px;padding:14px 16px;margin:16px 0 22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
@@ -2168,6 +2168,16 @@ function renderMag(){const p=prof();if(!mgq||mgq.topic!=='mag'){mgq=pickQuestion
   main.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const q=exam.qs[+b.dataset.r];$('#rev').innerHTML=`<div class="schem">${mgDraw(q,true)}</div><p>${mgText(q)}</p><p>${mgExplain(q)}</p>`});$('#again').onclick=()=>{exam=null;renderExam()}}}
 {const _rb=renderBank;renderBank=function(){if(prof().module!=='mag')return _rb.apply(this,arguments);
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Baza zadataka: ${MODNAME.mag}</h2><p class="note">${MGQ.length} pitanja. Uz svako je točan odgovor.</p><table><tr><th>Pitanje</th><th>Vrsta</th><th>Tekst</th><th>Točno</th><th>Težina</th></tr>${MGQ.map(q=>`<tr><td>${q.id}</td><td>${TYPENAME[q.type]}</td><td>${mgText(q)}</td><td>${(q.opts.find(o=>o[0]===q.ans)||['',''])[1]}</td><td>${fmt(q.diff)}</td></tr>`).join('')}</table></div>`;modbar()}}
+
+/* ---------- Zadaci / Testiraj se i obavijest o KZ ---------- */
+const KZ1=new Date('2026-10-28T08:00:00+01:00');
+function kzBanner(){const now=new Date();if(now>new Date(KZ1.getTime()+60*60000))return '';const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),d1=new Date(KZ1.getFullYear(),KZ1.getMonth(),KZ1.getDate()),dn=Math.round((d1-d0)/864e5);
+  const when=dn<=0?'<b>danas</b>':dn===1?'<b>sutra</b>':`za <b>${dn} ${dn%10>=2&&dn%10<=4&&(dn%100<12||dn%100>14)?'dana':'dana'}</b>`;
+  return `<div style="border:2px solid var(--bad);border-radius:10px;padding:14px 16px;margin:0 0 18px"><div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Kontrolna zadaća 1</div><div style="font-size:19px;font-weight:700;margin:2px 0 6px">Srijeda, 28. 10. 2026. u 8:00 (60 min) · ${when}</div><div style="font-size:14px">Gradivo: elektrostatika i kondenzatori, metode rješavanja mreža, Theveninov i Nortonov teorem s prilagođenjem te magnetsko polje ravnih vodiča.</div><div class="note" style="margin-top:6px">Aplikacija je dodatak, a ne zamjena za predavanja, auditorne vježbe i samostalno rješavanje zadataka s kalkulatorom.</div></div>`}
+function zSubBar(){if(view!=='zad'&&view!=='exam')return;if(main.querySelector('#zsub'))return;const ex=view==='exam';
+  main.insertAdjacentHTML('afterbegin',`<div class="modwrap" id="zsub" style="margin-bottom:8px"><div class="modbar"><button data-zs="zad" aria-current="${!ex}">Zadaci s brojevima</button><button data-zs="exam" aria-current="${ex}">Testiraj se</button></div></div>`);
+  main.querySelectorAll('[data-zs]').forEach(b=>b.onclick=()=>{const t=b.dataset.zs;if(t===view)return;const go=()=>{if(t!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=t;render();window.scrollTo(0,0)};if(exam&&exam.running&&t!=='exam'){exAsk(()=>go());return}go()})}
+
 {const _as=addSkip;addSkip=function(){try{progBar()}catch(e){}try{testBar()}catch(e){}return _as.apply(this,arguments)}}
 /* ---------- Zadaci: naboji s brojevima ---------- */
 const KE=1/(4*Math.PI*8.854e-12);
@@ -2307,6 +2317,9 @@ async function boot(){
 }
 view='home';
 boot();
+
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{zSubBar()}catch(e){}return r}}
+for(const nm of['renderExam','renderZad']){const f=window[nm];window[nm]=function(){const r=f.apply(this,arguments);try{zSubBar()}catch(e){}return r}}
 </script>
 </body>
 </html>
