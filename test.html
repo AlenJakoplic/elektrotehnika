@@ -2059,7 +2059,13 @@ function thTyped(q){const sh=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0
   if(q.type==='TU'){const x=sub(q.x),hasI=q.hasI;return[{t:'mc',tag:'t_utjece',hl:[q.x],p:`Utječe li otpornik <b>${x}</b> na ${RT} gledano sa stezaljki a–b (${thLbl(q)} je uklonjen)?`,opts:[['da','Da, utječe'],['ne','Ne utječe']],ans:q.yes?'da':'ne',
     why:q.yes?`Nakon gašenja izvora kroz ${x} može teći struja između stezaljki a i b, pa ulazi u ${RT}.`:`Nakon gašenja izvora ${x} ne ulazi u ${RT}: ${hasI?'ili je u seriji sa strujnim izvorom (ugašen strujni izvor je prekid), ili ga kratko spaja ugašeni naponski izvor':'kratko ga spaja ugašeni naponski izvor (ugašen naponski izvor je kratki spoj)'}.`,img:'killedq'}]}
   return base}
-{const _as=addSkip;addSkip=function(){try{testBar()}catch(e){}return _as.apply(this,arguments)}}
+function progBar(){if(main.querySelector('#progbar'))return;const side=main.querySelector('.side');if(!side)return;const m=prof().module;let i=null,n=0,lab='';
+  if((m==='kont'||m==='cvor')&&mt&&!mt.q.type){n=mt.steps.length;i=Math.min(mt.i,n)}
+  else if((m==='thev'||m==='nort')&&ths){n=ths.steps.length;i=Math.min(ths.i,n)}
+  else if((m==='ruk'||m==='rukC')&&rk&&!rk.q.type){n=rk.n.segs.filter(s=>s.k==='r'&&(!rk.n.status||rk.n.status[s.n]==='ok')).length-1;i=Math.min(rk.steps.length,n);lab=`spojeno ${i}/${n}`}
+  if(i===null||n<2)return;const pc=Math.round(i/n*100);
+  side.insertAdjacentHTML('afterbegin',`<div id="progbar" style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pc}%;background:var(--ok);transition:width .3s"></div></div><span style="font-size:13px;color:var(--muted);white-space:nowrap">${lab||`${i}/${n}`}</span></div>`)}
+{const _as=addSkip;addSkip=function(){try{progBar()}catch(e){}try{testBar()}catch(e){}return _as.apply(this,arguments)}}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
