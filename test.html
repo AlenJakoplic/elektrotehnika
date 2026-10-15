@@ -137,7 +137,7 @@ const BANK=JSON.parse(document.getElementById('bank').textContent);
 const NETS=Object.fromEntries(BANK.nets.map(n=>[n.id,n]));
 const QS=BANK.questions;
 const TOPICS={serpar:'Serija i paralela',ruk:'Ukupni otpor'};
-const TAGNAMES={dijagonala:'Otpornik u dijagonali',kratki_spoj:'Kratko spojeni otpornik',bez_struje:'Otpornik bez struje (slijepa grana)',skrivena_paralela:'Paralela koja ne izgleda kao paralela',udaljena_serija:'Serija kad otpornici nisu jedan do drugog',serija_iza_ugla:'Serija iza ugla',zajednicki_cvor:'Zajednički čvor, ali struja se grana',izgleda_paralelno:'Izgleda paralelno, a nije',formula_serija:'Formula za seriju',formula_paralela:'Formula za paralelu',formula_nista:'Kad nijedna formula ne vrijedi',redukcija:'Svođenje mreže na Ruk',ista_struja:'Ista struja (serija)',isti_napon:'Isti napon (paralela)',uljez:'Pronađi uljeza'};
+const TAGNAMES={dijagonala:'Otpornik u dijagonali',kratki_spoj:'Kratko spojeni otpornik',bez_struje:'Otpornik bez struje (slijepa grana)',skrivena_paralela:'Paralela koja ne izgleda kao paralela',udaljena_serija:'Serija kad otpornici nisu jedan do drugog',serija_iza_ugla:'Serija iza ugla',zajednicki_cvor:'Zajednički čvor, ali struja se grana',izgleda_paralelno:'Izgleda paralelno, a nije',formula_serija:'Formula za seriju',formula_paralela:'Formula za paralelu',formula_nista:'Kad nijedna formula ne vrijedi',redukcija:'Svođenje mreže na Ruk',prvi_korak:'Prvi korak svođenja',iznos_ruk:'Iznos ukupnog otpora',ista_struja:'Ista struja (serija)',isti_napon:'Isti napon (paralela)',uljez:'Pronađi uljeza'};
 const ANS={series:'serijski',parallel:'paralelno',none:'ni serijski ni paralelno'};
 
 /* ---------- Spremište: lokalno sada, zajednička baza kasnije (ista sučelja) ---------- */
@@ -340,8 +340,8 @@ function renderSerpar(){
   const showCol=p.colors||answered;
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(cur))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:cur.type?(cur.x?[cur.x]:[]):[cur.r1,cur.r2]})}</div></div>
   <div class="sheet side">${questionHTML(cur)}${optsHTML(cur)}<div id="fb"></div>
-  ${cur.type?`<p class="note" style="margin-top:10px">Probno – animacija kad prijeđeš mišem preko odgovora: ${[['blic','Bljesak'],['sjaj','Sjaj'],['puls','Pulsiranje'],['okvir','Okvir']].map(([k,t])=>`<button class="ghost" data-hv="${k}" style="padding:2px 8px;margin:2px;${hvMode===k?'font-weight:800;outline:2px solid var(--mark)':''}">${t}</button>`).join('')}</p>`:''}<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
-  $('#col').onchange=e=>{p.colors=e.target.checked;save();renderSerpar()};main.querySelectorAll('[data-hv]').forEach(b=>b.onclick=()=>{hvMode=b.dataset.hv;try{localStorage.setItem('hvMode',hvMode)}catch(e){}renderSerpar()});
+  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
+  $('#col').onchange=e=>{p.colors=e.target.checked;save();renderSerpar()};
   main.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerPractice(b.dataset.a));modbar();
 }
 function answerPractice(a){
@@ -374,7 +374,7 @@ function renderExam(){if(/^(kont|cvor|pretv)$/.test(prof().module))return metExa
     const desc={estat:'Osam kratkih pitanja iz elektrostatike: smjer sile i polja, zbrajanje vektora, rad i energija.',serpar:'Deset pitanja o tome jesu li otpornici u seriji, paraleli ili ništa od toga.',formula:'Deset pitanja: za označeni par odaberi točnu formulu.',rukC:'Tri mreže s kondenzatorima koje svodiš na C<sub>uk</sub>. Pazi: formule su obrnute nego kod otpornika.',serparC:'Deset pitanja o spoju kondenzatora.',ruk:'Tri mreže koje svodiš na R<sub>uk</sub>, bez bojica.'}[mod];
     main.innerHTML=`<div class="sheet panel"><h2>Ispit: ${MODNAME[mod]}</h2><p>${desc} Zadaci su prilagođeni tvojoj razini, bez pomoći i bez objašnjenja dok ne završiš. Mjeri se vrijeme, a rezultati se računaju u razinu kao i u vježbi.</p><button class="primary" id="start">Započni ispit</button></div>`;
     modbar();exam=null;
-    $('#start').onclick=()=>{exam={mod,qs:[],ans:[],res:[],i:0,t0:Date.now(),running:true};const ex=new Set(mod==='serpar'?Object.keys(SPX):[]);for(let i=0;i<N;i++){const q=pickQuestion(mod,ex);ex.add(q.id);exam.qs.push(q)}rk=null;renderExam()};return}
+    $('#start').onclick=()=>{exam={mod,qs:[],ans:[],res:[],i:0,t0:Date.now(),running:true};const ex=new Set(mod==='serpar'?Object.keys(SPX):mod==='ruk'?Object.keys(RKX):[]);for(let i=0;i<N;i++){const q=pickQuestion(mod,ex);ex.add(q.id);exam.qs.push(q)}rk=null;renderExam()};return}
   if(mod==='estat'&&exam.running)return estatExamRun();
   if(exam.running){
     const q=exam.qs[exam.i];
@@ -628,7 +628,7 @@ function rkFinishedS(S){if(S.groups.length!==1)return false;const g=S.groups[0];
 function rkFinished(){return rkFinishedS(rkState())}
 function renderRuk(){
   const p=prof();
-  if(!rk||(rk.q.topic!==p.module&&!rk.exam))startRuk();colFor(rk);
+  if(!rk||(rk.q.topic!==p.module&&!rk.exam))startRuk();colFor(rk);if(rk.q.type&&!rk.exam)return renderRukMC();
   const {n,q}=rk,ex=!!rk.exam,S=rkState(),finished=rkFinishedS(S);
   const view={...n,segs:rk.segs,node:S.node};
   const groupsMap={};rk.segs.forEach((s,i)=>{/* zamjenski otpornici izgledaju kao ostali */});
@@ -652,7 +652,7 @@ function renderRuk(){
   <div class="sheet side"><p class="q" style="margin-bottom:4px">Svedi mrežu na jedan ${rk.n.cap?'kondenzator C':'otpor R'}<sub>uk</sub> gledano sa stezaljki A i B.</p>
   ${action}<div class="msg ${rk.msgOk?'ok':'bad'}">${rk.msg}</div>
   ${steps?`<ol class="steps">${steps}</ol>`:''}
-  ${ex?'':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${rk.done?'disabled':''}><span>Bojice potencijala<small>Zadatak riješen uz bojice donosi manje napretka. Uključuju se samo za ovaj zadatak. Uključuju se samo za ovaj zadatak.</small></span></label>`}</div></div>`;
+  ${ex?'':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${rk.done?'disabled':''}><span>Bojice potencijala<small>Zadatak riješen uz bojice donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label>`}</div></div>`;
   modbar();
   if(ex)examTick();else{$('#col').onchange=e=>{p.colors=e.target.checked;if(p.colors)rk.usedHelp=true;save();renderRuk()};if(p.colors&&!rk.done)rk.usedHelp=true}
   if(!rk.done)$('#rsch').querySelectorAll('[data-r]').forEach(el=>el.onclick=()=>{
@@ -1099,7 +1099,7 @@ const LI={id:'L',topic:'kont',c:mkCirc({W:2,V:[{t:'E',pol:1},{t:'R'},{t:'R'}],T:
 
 /* ---------- Preskoči prelagan zadatak ---------- */
 function skipState(){const m=prof().module;if(m==='serpar')return{done:!!answered,reset:()=>{answered=null;cur=null}};if(m==='ruk'||m==='rukC')return{done:!rk||rk.done||rk.steps.length>0||rk.mistakes>0||rk.sel.length>0,reset:()=>{rk=null}};if(m==='estat')return{done:eAns!=null,reset:()=>{eq=null}};if(m==='kont'||m==='cvor')return{done:!mt||mt.i>0||mt.mistakes>0||mt.sel.size>0,reset:()=>{mt=null}};if(m==='thev'||m==='nort')return{done:!ths||ths.i>0||ths.mistakes>0||ths.sel.size>0||ths.exam,reset:()=>{ths=null}};return null}
-function addSkip(){if(view!=='practice'||(exam&&exam.running))return;const st=skipState(),side=main.querySelector('.side');if(!st||st.done||!side)return;
+function addSkip(){if(view!=='practice'||(exam&&exam.running))return;if(main.querySelector('#skipbtn'))return;const st=skipState(),side=main.querySelector('.side');if(!st||st.done||!side)return;
   side.insertAdjacentHTML('beforeend','<div class="mbtns" id="skipbtn" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line)"><button class="ghost" id="skipe">Lakši</button><button class="ghost" id="skipn">Novi zadatak</button><button class="ghost" id="skiph">Teži</button></div><p class="note" style="margin:4px 0 0;font-size:12px">Lakši zadatak donosi manje napretka, a teži više.</p>');
   const mv=d=>{const p=prof(),t=p.module;p.boost=p.boost||{};p.boost[t]=Math.max(-4,Math.min(4,(p.boost[t]||0)+d));save();st.reset();renderPractice()};
   $('#skiph').onclick=()=>mv(1);$('#skipe').onclick=()=>mv(-1);$('#skipn').onclick=()=>mv(0)}
@@ -1904,7 +1904,7 @@ function spExplain(q){const n=NETS[q.net],st=n.status;
 function spShort(q){return q.type==='I'?`ista struja kao ${q.x}`:q.type==='U'?`isti napon kao ${q.x}`:q.type==='B'?'bez struje':`uljez među ${q.opts.join(', ')}`}
 
 /* ---------- Isticanje otpornika pri prelasku mišem preko ponuđenog odgovora (probne animacije) ---------- */
-let hvMode=(()=>{try{return localStorage.getItem('hvMode')||'blic'}catch(e){return 'blic'}})();
+const hvMode='blic';
 document.head.insertAdjacentHTML('beforeend',`<style>
 @keyframes hvBlic{0%,100%{fill:transparent}20%,60%{fill:#FFD43B}40%{fill:transparent}}
 @keyframes hvPuls{0%,100%{fill:#FFD43B;opacity:1}50%{fill:#FFD43B;opacity:.35}}
@@ -1916,8 +1916,46 @@ g.hv-okvir rect:first-of-type{stroke:#E0A800;stroke-width:3;stroke-dasharray:8 4
 g.hv-okvir rect:last-of-type{fill:#FFF3BF}
 </style>`);
 function hvSet(name,on){const g=main.querySelector(`.schem g[data-r="${name}"]`);if(!g)return;[...g.classList].filter(c=>c.startsWith('hv-')).forEach(c=>g.classList.remove(c));if(on){void g.getBBox();g.classList.add('hv-'+hvMode)}}
-main.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!cur||!cur.type||view!=='practice')return;if(!e.relatedTarget||!b.contains(e.relatedTarget))hvSet(b.dataset.a,true)});
-main.addEventListener('mouseout',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!cur||!cur.type)return;if(!e.relatedTarget||!b.contains(e.relatedTarget))hvSet(b.dataset.a,false)});
+function hvOn(){if(view!=='practice'||!prof())return false;const m=prof().module;return (m==='serpar'&&cur&&cur.type)||(m==='ruk'&&rk&&rk.q.type==='P')}
+main.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!hvOn())return;if(!e.relatedTarget||!b.contains(e.relatedTarget))b.dataset.a.split(',').forEach(r=>hvSet(r,true))});
+main.addEventListener('mouseout',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!hvOn())return;if(!e.relatedTarget||!b.contains(e.relatedTarget))b.dataset.a.split(',').forEach(r=>hvSet(r,false))});
+
+
+/* ---------- Ukupni otpor: nove vrste pitanja ---------- */
+const RKX={};
+(function(){let sd=23;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647},shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+  const rukOf=(n,vals)=>{const t=spSolve(n,vals),A=n.node[n.A.join(',')];let I=0;for(const s of n.segs){if(s.k!=='r')continue;const a=n.node[s.a.join(',')],b=n.node[s.b.join(',')];if((a===A)!==(b===A))I+=t.I[s.n]}return 1/I};
+  const add=[];
+  for(const q0 of QS.filter(q=>q.topic==='ruk'&&!q.type)){const n=NETS[q0.net],rel=spRel(n),{R,live,dead,ser,par}=rel;if(!n.vals)continue;
+    // P: koji par možeš odmah zamijeniti
+    if(!dead.length){const pairs=[];for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++)pairs.push([R[i],R[j]]);
+      const good=pairs.filter(([a,b])=>ser(a,b)||par(a,b)),bad=pairs.filter(([a,b])=>!ser(a,b)&&!par(a,b));
+      if(good.length&&bad.length>=3){const g=good[Math.floor(rnd()*good.length)],E=spSolve(n,n.vals).E,adj=([a,b])=>E[a].some(x=>E[b].includes(x));
+        const ds=[...shuf(bad.filter(adj)),...shuf(bad.filter(x=>!adj(x)))].slice(0,3),opts=shuf([g,...ds]).map(x=>x.join(','));
+        add.push({id:q0.id+'-P',net:n.id,topic:'ruk',type:'P',ans:g.join(','),rel:ser(g[0],g[1])?'series':'parallel',opts,diff:Math.round(Math.max(1,q0.diff-0.3)*10)/10,tags:['prvi_korak']})}}
+    // N: iznos
+    const ruk=q0.ruk,sum=live.reduce((s,r)=>s+n.vals[r],0),parv=1/live.reduce((s,r)=>s+1/n.vals[r],0);
+    const big=live.slice().sort((a,b)=>n.vals[a]-n.vals[b])[0],v2={...n.vals,[big]:1e9},open1=rukOf(n,v2);
+    const withDead=dead.length?sum:null;
+    let cands=[sum,parv,open1,withDead,ruk*2,ruk/2].filter(x=>x&&isFinite(x)&&x<1e6),ds=[];
+    for(const c of cands){if([ruk,...ds].every(y=>Math.abs(c-y)/Math.max(c,y)>0.08))ds.push(c);if(ds.length===3)break}
+    if(ds.length===3)add.push({id:q0.id+'-N',net:n.id,topic:'ruk',type:'N',ans:String(+ruk.toFixed(2)),opts:shuf([ruk,...ds]).map(x=>String(+x.toFixed(2))),diff:Math.round(Math.min(9,q0.diff+0.5)*10)/10,tags:['iznos_ruk']});
+  }
+  for(const q of add){QS.push(q);RKX[q.id]=q}})();
+function renderRukMC(){const p=prof(),q=rk.q,n=NETS[q.net],a=rk.mc,showCol=p.colors||!!a;
+  const lab=x=>q.type==='P'?x.split(',').map(sub).join(' i '):`${x.replace('.',',')} Ω`;
+  const text=q.type==='P'?'Koji par otpornika možeš <strong>odmah</strong> zamijeniti jednim otporom (serija ili paralela)?':'Koliki je <strong>ukupni otpor</strong> R<sub>uk</sub> gledano sa stezaljki A i B?';
+  let fb='';if(a){const ok=a===q.ans,[x,y]=q.type==='P'?q.ans.split(','):[];
+    fb=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${q.type==='P'?`${sub(x)} i ${sub(y)} ${q.rel==='series'?'spojeni su serijski: između njih je čvor na koji ništa drugo nije spojeno.':'spojeni su paralelno: spajaju ista dva potencijala.'} Ostali ponuđeni parovi nisu ni u seriji ni u paraleli.`:`R<sub>uk</sub> = ${lab(q.ans)}. Svedi mrežu korak po korak (kao u zadacima Ukupni otpor) i provjeri na kalkulatoru.`}</p>
+    <span class="delta">Razina ${rk.final.d>=0?'+':'−'}${fmt(Math.abs(rk.final.d))} → ${fmt(p.ratings[q.topic].r)}</span><br><button class="primary" id="next">Sljedeći zadatak</button></div>`}
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina zadatka ${fmt(qRating(q))}</span></div><div class="schem" id="rsch">${drawNet(n,{colors:showCol,values:q.type==='N'?n.vals:null})}</div></div>
+  <div class="sheet side"><p class="q">${text}</p><div class="opts">${q.opts.map((x,i)=>`<button class="opt ${a?(x===q.ans?'right':(x===a?'wrong':'')):''}" data-a="${x}" ${a?'disabled':''}><kbd>${'abcd'[i]})</kbd>${lab(x)}</button>`).join('')}</div>${fb}
+  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${a?'disabled':''}><span>Bojice potencijala<small>Točan odgovor s bojicama donosi manje napretka. Uključuju se samo za ovaj zadatak.</small></span></label></div></div>`;
+  modbar();
+  $('#col').onchange=e=>{p.colors=e.target.checked;save();renderRukMC()};
+  main.querySelectorAll('.opt[data-a]').forEach(b=>b.onclick=()=>{if(rk.mc)return;rk.mc=b.dataset.a;rk.done=true;rk.final={d:applyResult(q,b.dataset.a===q.ans,p.colors)};header();renderRukMC()});
+  if($('#next'))$('#next').onclick=()=>{rk=null;renderRuk()};
+  try{tryNote()}catch(e){}try{addSkip()}catch(e){}}
 const th=Store.get('theme',null);if(th)document.documentElement.dataset.theme=th;
 async function boot(){
   if(Remote){
