@@ -508,14 +508,14 @@ async function renderBoardRemote(mod){
 /* ---------- Baza zadataka (provjera) ---------- */
 function renderBank(){if(/^(kont|cvor|pretv)$/.test(prof().module))return metBank();if(prof().module==='estat')return estatBank();
   const mod=prof().module;
-  const qsMod=QS.filter(q=>q.topic===mod),netIds=new Set(qsMod.map(q=>q.net));
+  const qsMod=QS.filter(q=>q.topic===mod),netIds=new Set(qsMod.filter(q=>!(mod==='ruk'&&q.type)).map(q=>q.net));
   const nets=BANK.nets.filter(n=>netIds.has(n.id)&&(!bankLevel||n.level===bankLevel));
   const levels=[...new Set(BANK.nets.filter(n=>netIds.has(n.id)).map(n=>n.level))];
   if(!nets.length){bankLevel=0;return renderBank()}
   if(!bankSel||!nets.find(n=>n.id===bankSel))bankSel=nets[0].id;
   const n=NETS[bankSel],qs=qsMod.filter(q=>q.net===n.id);
   let right;
-  if((mod==='ruk'||mod==='rukC')){const t=qs[0];right=`<p><b>${n.id}</b>, razina ${n.level}</p><p class="note">Jedan mogući redoslijed svođenja:</p><ol class="steps">${solveSteps(n).map(x=>`<li>${x}</li>`).join('')}</ol><p class="note">Težina zadatka ${fmt(t.diff)}${state.qstats[t.id]?` → ${fmt(state.qstats[t.id].r)}`:''}</p>`}
+  if((mod==='ruk'||mod==='rukC')){const t=qs[0];right=`<p><b>${n.id}</b>, razina ${n.level}</p><p class="note">Jedan mogući redoslijed svođenja:</p><ol class="steps">${solveSteps(n).map(x=>`<li>${x}</li>`).join('')}</ol><p class="note">Težina zadatka ${fmt(t.diff)}${state.qstats[t.id]?` → ${fmt(state.qstats[t.id].r)}`:''}</p>`;const xq=QS.filter(x=>x.type&&x.topic===mod&&x.net===n.id);if(xq.length)right+=`<p class="note" style="margin-top:12px"><b>Dodatna pitanja na ovoj mreži:</b></p><ul class="note">${xq.map(x=>`<li>${x.id}: ${x.type==='P'?'koji par odmah: '+x.ans.replace(',',' i '):x.type==='Z'?'zapis: R<sub>uk</sub> = '+x.ans:x.type==='V'?`${x.x} se ${x.up?'poveća':'smanji'} → R<sub>uk</sub> se ${x.up?'poveća':'smanji'}`:''}</li>`).join('')}</ul>`}
   else{const lbl=q=>mod==='formula'?FANS[{series:'ser',parallel:'par',none:'none'}[q.ans]]:ANS[q.ans];
     right=`<p><b>${n.id}</b>, razina ${n.level}</p><table><tr><th>Par</th><th>${mod==='formula'?'Točna formula':'Odgovor'}</th><th>Težina</th><th>Zamke</th></tr>
     ${qs.map(q=>{const s=state.qstats[q.id];return `<tr><td>${q.type?spShort(q):`${q.r1}, ${q.r2}`}</td><td>${q.type?q.ans:lbl(q)}</td><td>${fmt(q.diff)}${s?` → ${fmt(s.r)} (${s.c}/${s.n})`:''}</td><td class="note">${q.tags.map(t=>TAGNAMES[t]).join('; ')||'–'}</td></tr>`}).join('')}</table>
