@@ -2480,6 +2480,23 @@ document.addEventListener('click',e=>{if(!kzLive())return;const t=e.target.close
 addEventListener('beforeunload',e=>{if(kzLive()){e.preventDefault();e.returnValue=''}});
 
 {const _rpc=renderProgress;renderProgress=function(){const r=_rpc.apply(this,arguments);try{const p=prof(),pan=main.querySelector('.panel')||main.querySelector('.sheet');if(pan&&!document.getElementById('crsrow')){pan.insertAdjacentHTML('beforeend',`<p id="crsrow" style="margin:18px 0 0">Kolegij: <b>${(COURSES.find(c=>c[0]===p.course)||['','nije odabran'])[1]}</b> <button class="ghost" id="crsch" style="margin:0 0 0 8px;padding:4px 10px">Promijeni</button></p>`);$('#crsch').onclick=()=>courseAsk(true)}}catch(e){}return r}}
+
+async function courseStats(){if(!Remote)return;let rows=null;try{const {data,error}=await Remote.rpc('stats_course');if(!error)rows=data}catch(e){}
+  if(view!=='board'||boardAll!==true)return;const pan=main.querySelector('.panel')||main.querySelector('.sheet');if(!pan||document.getElementById('crsst'))return;
+  if(!rows){pan.insertAdjacentHTML('beforeend','<div id="crsst"><p class="note" style="margin-top:20px">Usporedba kolegija još nije uključena u bazi.</p></div>');return}
+  const CN={etr:'Elektrotehnika R',drugi:'Drugi kolegij',nepoznato:'Kolegij nije odabran'},TOP=[['estat','Elektrostatika'],['serpar','Serija ili paralela'],['ruk','Ukupni otpor'],['kont','Konturne struje'],['cvor','Naponi čvorova'],['thev','Thevenin'],['nort','Norton'],['mag','Magnetsko polje']],R=rows.filter(r=>r.users>0&&r.course!=='nepoznato');if(!R.length)return;
+  const cell=v=>v==null?'–':fmt(v);
+  pan.insertAdjacentHTML('beforeend',`<div id="crsst" style="margin-top:26px;padding-top:16px;border-top:1px solid var(--line)"><h3 style="margin:0 0 8px">Usporedba kolegija</h3>
+  <table><tr><th></th>${R.map(r=>`<th>${CN[r.course]||r.course}</th>`).join('')}</tr>
+  <tr><td>Korisnika</td>${R.map(r=>`<td class="num">${r.users}</td>`).join('')}</tr>
+  <tr><td>Odgovora u Vježbi</td>${R.map(r=>`<td class="num">${r.answered}</td>`).join('')}</tr>
+  <tr><td>Prosječna razina</td>${R.map(r=>`<td class="num">${cell(r.avg_level)}</td>`).join('')}</tr>
+  ${TOP.map(([k,l])=>`<tr><td style="padding-left:18px">${l}</td>${R.map(r=>{const t=(r.topics||{})[k];return `<td class="num">${t?fmt(t.lvl)+` <span class="note">(${t.users})</span>`:'–'}</td>`}).join('')}</tr>`).join('')}
+  <tr><td>Riješenih zadataka</td>${R.map(r=>`<td class="num">${r.zad_n}</td>`).join('')}</tr>
+  <tr><td>Simulacija KZ1</td>${R.map(r=>`<td class="num">${r.kz_sims}</td>`).join('')}</tr>
+  <tr><td>Prosj. najbolja simulacija</td>${R.map(r=>`<td class="num">${r.kz_best==null?'–':zN(r.kz_best)+' / 20'}</td>`).join('')}</tr></table>
+  <p class="note">Uspoređuju se samo korisnici koji su odabrali kolegij. Statistika iznad i dalje obuhvaća sve. Razina po gradivu je prosjek korisnika koji su vježbali to gradivo (u zagradi broj korisnika).</p></div>`)}
+{const _rba=renderBoardAll;renderBoardAll=async function(){const r=await _rba.apply(this,arguments);try{courseStats()}catch(e){}return r}}
 </script>
 </body>
 </html>
