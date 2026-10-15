@@ -133,7 +133,7 @@ td{overflow-wrap:normal;word-break:normal}
 </header>
 <p id="net" class="msg bad hidden" style="max-width:1180px;margin:8px auto 0;padding:0 20px"></p>
 <main id="main"></main>
-<footer>Tehnički fakultet u Rijeci, Zavod za elektroenergetiku<br>Pomoć u učenju gradiva iz područja osnova elektrotehnike</footer>
+<footer>Tehnički fakultet u Rijeci, Zavod za elektroenergetiku<br>Pomoć u učenju gradiva iz područja osnova elektrotehnike<br><a href="#" id="fbfoot" style="color:inherit;font-weight:600">Pošalji povratnu informaciju</a></footer>
 
 <script>
 /* ===== POSTAVKE BAZE =====
@@ -297,7 +297,7 @@ const TABHELP={home:'Pregled tvojih gradiva i razina te preporuka što dalje vje
 function header(){
   const p=prof();
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
-  const tabs=[...(typeof kzActive==='function'&&kzActive()?[['kz','KZ1']]:[]),['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);
+  const tabs=[...(typeof kzActive==='function'&&kzActive()?[['kz','KZ1']]:[]),['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);if(typeof isAdmin!=='undefined'&&isAdmin)tabs.push(['fb','Povratne']);
   $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k||(k==='zad'&&view==='exam')}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
   $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}if(b.dataset.v==='board'&&view!=='board')try{boardAll=true}catch(e){}},true));
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&b.dataset.v!=='exam'&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}if(b.dataset.v!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=b.dataset.v;render()});
@@ -335,7 +335,7 @@ function renderWelcomeRemote(msg=''){
     try{
       const {data,error}=await Remote.rpc(mode,{p_nick:nick,p_pin:pin});
       if(error){const m=error.message||'';err.textContent=m.includes('nick_taken')?'Taj nadimak je zauzet. Ako je tvoj, odaberi Prijavi se.':m.includes('bad_login')?'Nadimak ili PIN nisu točni.':m.includes('bad_nick')?'Nadimak mora imati 2 do 24 znaka.':'Baza trenutačno ne odgovara. Pokušaj ponovno za minutu.';return}
-      const row=data[0];session={token:row.token,nick:row.nick};Store.set('session',session);adopt(row.nick,row.state);if(mode==='register')save();view=(kzActive()?'kz':'home');render();
+      const row=data[0];session={token:row.token,nick:row.nick};Store.set('session',session);adopt(row.nick,row.state);if(mode==='register')save();fbCheckAdmin();view=(kzActive()?'kz':'home');render();
     }catch(e){err.textContent='Nema veze s bazom. Provjeri internet i pokušaj ponovno.'}
   };
   $('#reg').onclick=()=>go('register');$('#log').onclick=()=>go('login');
@@ -1638,7 +1638,7 @@ async function renderBoardZad(){const me=prof().nick,G=ZGROUPS.find(g=>g[0]===zb
       try{const {data,error}=await Remote.rpc('leaderboard_zad_g',{p_types:G[2]});if(error)err='Ljestvica po gradivima još nije uključena u bazi.';else rows=data}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='zad')return}
     else rows=Object.values(state.profiles).filter(p=>p.zad).map(p=>{const s=zGroupStat(p.zad,G[2]);return{nick:p.nick,pts:s.pts,n:s.n,full_n:s.full}}).filter(r=>r.n>0).sort((a,b)=>b.pts-a.pts||b.full_n-a.full_n);
     main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}<table><tr><th></th><th>Nadimak</th><th>Riješeno</th><th>Bodovi</th></tr>
-    ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.n}</td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="4">Još nitko nije riješio zadatak iz ovog gradiva.</td></tr>'}</table>
+    ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.n}</td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="4">Još nema riješenih zadataka iz ovog gradiva.</td></tr>'}</table>
     <p class="note">Bodovi i broj riješenih zadataka iz gradiva ${G[1]}. Broje se zadaci riješeni od uvođenja ljestvice po gradivima.</p></div>`;modbar();bindZg();return}
   return renderBoardZadAll(head,bindZg)}
 async function renderBoardZadAll(head,bindZg){const me=prof().nick;let rows=[],err='';
@@ -1648,7 +1648,7 @@ async function renderBoardZadAll(head,bindZg){const me=prof().nick;let rows=[],e
   else rows=Object.values(state.profiles).filter(p=>p.zad&&p.zad.n>0).map(p=>({nick:p.nick,pts:p.zad.pts||0,n:p.zad.n,full_n:Object.values(p.zad.full||{}).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.pts-a.pts||b.full_n-a.full_n);
   main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
   <table><tr><th></th><th>Nadimak</th><th>Bodovi</th></tr>
-  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Još nitko nije riješio zadatak.</td></tr>'}</table>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Još nema riješenih zadataka.</td></tr>'}</table>
   <p class="note">Bodovi su zbroj bodova iz kartice Zadaci.</p>
   ${Remote?'<div id="zstats"><p class="note">Učitavam statistiku…</p></div>':''}</div>`;
   modbar();bindZg();if(Remote)zadStats()}
@@ -2250,7 +2250,7 @@ function renderKZ(){if(kzSim)return renderKZSim();const p=prof(),S=kzState(p);{c
   const b2=`<p class="note" style="margin:6px 0">Iz svake skupine riješi barem ${KZR.n2} zadatka s barem pola bodova, a ukupno barem ${KZR.tot2} zadataka (sada ${S.tot}).</p><table>${S.s2.map(x=>rowL(x,`${x.g} od ${KZR.n2}`,`<button class="ghost" style="padding:4px 10px;margin:0" data-kzt="${x.ts[0]}">Riješi zadatak</button>`,S.s2,KZDEP2)).join('')}</table>`;
   const sims=S.K.sims||[];const b3=`<p class="note" style="margin:6px 0">Simulacija kao na KZ1: 4 zadatka (6 + 6 + 6 + 2 boda), 60 + 5 minuta. Rezultati se provjeravaju tek nakon predaje. Prolaz je 6 bodova, a 12 i više bodova daje pravo na oslobođenje završnog ispita.</p><p class="note" style="margin:6px 0"><b>Napomena:</b> bodovanje simulacije nije isto kao stvarno bodovanje na kontrolnoj zadaći. Ovdje se gledaju samo konačni rezultati, a na KZ-u se ponekad boduje i postupak.</p>${sims.length?`<p style="margin:6px 0">Najbolji rezultat: <b>${zN(S.K.best||0)} / 20</b> · simulacija: ${sims.length}</p>`:''}<button class="primary" id="kzgo" style="margin:6px 0 0" ${S.ok2||IS_TEST?'':'disabled'}>Pokreni simulaciju</button>${IS_TEST&&!S.ok2?'<span class="note" style="margin-left:8px">TEST: simulacija otključana za isprobavanje</span>':''}`;
   main.innerHTML=`<div class="sheet panel" style="max-width:980px">${kzBanner()}
-  <h2 style="margin:0 0 6px">Priprema za KZ1</h2><div style="display:flex;align-items:center;gap:12px;margin:0 0 4px"><div style="flex:1">${bar(S.ready/100)}</div><b style="font-size:20px">${S.ready} %</b></div><p class="note" style="margin:0 0 8px">Spremnost: koliko si prošao pripremu. Stadiji se otključavaju redom, a računa se i sve što si već riješio.</p>
+  <h2 style="margin:0 0 6px">Priprema za KZ1</h2><div style="display:flex;align-items:center;gap:12px;margin:0 0 4px"><div style="flex:1">${bar(S.ready/100)}</div><b style="font-size:20px">${S.ready} %</b></div><p class="note" style="margin:0 0 8px">Spremnost: koliko je priprema gotova. Stadiji se otključavaju redom, a računa se i sve što je već riješeno.</p>
   ${stage(1,'Vježba po gradivima',true,S.ok1,b1)}${stage(2,'Zadaci s brojevima',S.ok1,S.ok2,b2)}${stage(3,'Simulacija KZ1',S.ok2,(S.K.best||0)>=12,b3)}
   <p style="margin:14px 0 0"><button class="ghost" id="kzrules" style="margin:0">Pravila kolegija</button></p>${kzShowRules?`<div style="margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px">${KZRULES}</div>`:''}</div>`;
   main.querySelectorAll('[data-kgo]').forEach(b=>b.onclick=()=>{p.module=b.dataset.kgo;save();view='practice';render();window.scrollTo(0,0)});
@@ -2261,6 +2261,47 @@ async function renderBoardKZ(){const me=prof().nick,head='<h2>Ljestvica: simulac
   if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();try{const {data,error}=await Remote.rpc('leaderboard_kz');if(error)err='Ljestvica KZ još nije uključena u bazi.';else rows=data}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='kz')return}
   else rows=Object.values(state.profiles).filter(p=>p.kz).map(p=>({nick:p.nick,best:p.kz.best||0,n:(p.kz.sims||[]).length,stage:p.kz.stage||1})).sort((a,b)=>b.best-a.best||b.stage-a.stage);
   main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}<table><tr><th></th><th>Nadimak</th><th>Stadij pripreme</th><th>Najbolja simulacija</th><th>Simulacija</th></tr>${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.stage||1} od 3</td><td class="num">${p.n?zN(p.best)+' / 20':'–'}</td><td class="num">${p.n}</td></tr>`).join('')||'<tr><td colspan="5">Još nitko nije započeo pripremu.</td></tr>'}</table><p class="note">Stadij pripreme u koji je korisnik stigao i najbolji rezultat iz simulacije KZ1 (4 zadatka, 20 bodova).</p></div>`;modbar()}
+/* ---------- Povratne informacije ---------- */
+let isAdmin=false;
+async function fbCheckAdmin(){isAdmin=false;if(!Remote||!session)return;try{const {data}=await Remote.rpc('is_admin',{p_token:session.token});isAdmin=!!data;if(isAdmin&&prof())header()}catch(e){}}
+async function fbSend(o){if(!Remote||!session)throw new Error('offline');const {error}=await Remote.rpc('feedback_send',{p_token:session.token,p_anon:!!o.anon,p_kind:o.kind,p_qid:o.qid||null,p_page:view,p_msg:o.msg||'',p_rating:o.rating||null,p_extra:o.extra||{}});if(error)throw error}
+function fbModal(inner){document.getElementById('fbm')?.remove();document.body.insertAdjacentHTML('beforeend',`<div id="fbm" style="position:fixed;inset:0;z-index:9998;background:rgba(10,18,26,.55);display:flex;align-items:center;justify-content:center;padding:12px"><div style="background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:18px 18px 16px">${inner}</div></div>`);return document.getElementById('fbm')}
+function fbOpen(o={}){const m=fbModal(`<h3 style="margin:0 0 8px">${o.qid?'Prijavi grešku u pitanju':'Povratna informacija'}</h3>${o.qid?`<p class="note" style="margin:0 0 8px">Pitanje ili zadatak: <b>${o.qid}</b></p>`:''}
+  <label style="display:block;margin:6px 0">Vrsta: <select id="fbk" class="ghost">${[['greska','Greška u pitanju ili zadatku'],['nejasno','Nešto nije jasno'],['prijedlog','Prijedlog'],['pohvala','Pohvala'],['ostalo','Ostalo']].map(([k,t])=>`<option value="${k}" ${o.qid&&k==='greska'?'selected':''}>${t}</option>`).join('')}</select></label>
+  <textarea id="fbt" rows="5" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--paper,transparent);color:inherit;font:inherit" placeholder="${o.qid?'Što nije u redu? Npr. točan odgovor bi trebao biti…':'Napiši što misliš o aplikaciji, što ne radi ili što bi dodao…'}"></textarea>
+  <label class="toggle" style="margin:8px 0"><input type="checkbox" id="fba"><span>Pošalji anonimno<small>Nadimak se neće spremiti uz poruku.</small></span></label>
+  <p class="msg bad" id="fbe" style="margin:4px 0"></p><div class="row" style="gap:8px;justify-content:flex-end"><button class="ghost" id="fbc" style="margin:0">Odustani</button><button class="primary" id="fbs" style="margin:0">Pošalji</button></div>`);
+  m.querySelector('#fbc').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()};
+  m.querySelector('#fbs').onclick=async()=>{const msg=m.querySelector('#fbt').value.trim();if(!msg){m.querySelector('#fbe').textContent='Napiši poruku.';return}m.querySelector('#fbs').disabled=true;
+    try{await fbSend({kind:m.querySelector('#fbk').value,qid:o.qid,msg,anon:m.querySelector('#fba').checked});m.querySelector('div').innerHTML='<h3 style="margin:0 0 8px">Hvala!</h3><p>Poruka je poslana.</p><div class="row" style="justify-content:flex-end"><button class="primary" id="fbc2" style="margin:0">Zatvori</button></div>';m.querySelector('#fbc2').onclick=()=>m.remove()}
+    catch(e){m.querySelector('#fbs').disabled=false;m.querySelector('#fbe').textContent=String(e&&e.message||'').includes('too_many')?'Danas je poslano previše poruka. Pokušaj sutra.':'Poruka se trenutačno ne može poslati. Provjeri vezu.'}}}
+function fbSurvey(which){const p=prof(),feats=[['lekcija','Lekcije'],['vjezba','Vježba'],['zadaci','Zadaci s brojevima'],['kz','Priprema i simulacija KZ'],['ljestvica','Ljestvica, niz dana i značke']];let rating=0;
+  const m=fbModal(`<h3 style="margin:0 0 4px">Kratka anketa</h3><p class="note" style="margin:0 0 10px">${which==='kz'?'Prva simulacija KZ1 je gotova.':'Već imaš više od 100 riješenih zadataka.'} Pomozi nam poboljšati aplikaciju, traje pola minute.</p>
+  <p style="margin:6px 0 4px;font-weight:600">Koliko ti je aplikacija korisna?</p><div class="row" style="gap:6px">${[1,2,3,4,5].map(n=>`<button class="ghost" data-sr="${n}" style="margin:0;min-width:42px">${n}</button>`).join('')}</div><p class="note" style="margin:2px 0 0">1 = nimalo, 5 = jako</p>
+  <p style="margin:12px 0 4px;font-weight:600">Što ti najviše pomaže?</p>${feats.map(([k,t])=>`<label style="display:block;margin:2px 0"><input type="checkbox" data-sf="${k}"> ${t}</label>`).join('')}
+  <p style="margin:12px 0 4px;font-weight:600">Što nedostaje ili ne radi dobro?</p><textarea id="sv1" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit"></textarea>
+  <p style="margin:10px 0 4px;font-weight:600">Komentar (nije obavezno)</p><textarea id="sv2" rows="2" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit"></textarea>
+  <label class="toggle" style="margin:8px 0"><input type="checkbox" id="sva" checked><span>Pošalji anonimno<small>Nadimak se neće spremiti uz odgovore.</small></span></label>
+  <p class="msg bad" id="sve" style="margin:4px 0"></p><div class="row" style="gap:8px;justify-content:flex-end"><button class="ghost" id="svl" style="margin:0">Ne sada</button><button class="primary" id="svs" style="margin:0">Pošalji</button></div>`);
+  m.querySelectorAll('[data-sr]').forEach(b=>b.onclick=()=>{rating=+b.dataset.sr;m.querySelectorAll('[data-sr]').forEach(x=>{x.className=+x.dataset.sr===rating?'primary':'ghost'})});
+  const done=v=>{p.fbs=p.fbs||{};p.fbs[which]=v;save()};
+  m.querySelector('#svl').onclick=()=>{if(which==='100'){p.fbs=p.fbs||{};p.fbs.next100=fbTotal(p)+50}else done('skip');save();m.remove()};
+  m.querySelector('#svs').onclick=async()=>{if(!rating){m.querySelector('#sve').textContent='Odaberi ocjenu od 1 do 5.';return}m.querySelector('#svs').disabled=true;
+    try{await fbSend({kind:'anketa',msg:[m.querySelector('#sv1').value.trim(),m.querySelector('#sv2').value.trim()].filter(Boolean).join('\n---\n'),rating,anon:m.querySelector('#sva').checked,extra:{anketa:which,najkorisnije:[...m.querySelectorAll('[data-sf]:checked')].map(x=>x.dataset.sf),nedostaje:m.querySelector('#sv1').value.trim(),komentar:m.querySelector('#sv2').value.trim()}});done('sent');m.querySelector('div').innerHTML='<h3 style="margin:0 0 8px">Hvala!</h3><p>Odgovori su poslani.</p><div class="row" style="justify-content:flex-end"><button class="primary" id="fbc2" style="margin:0">Zatvori</button></div>';m.querySelector('#fbc2').onclick=()=>m.remove()}
+    catch(e){m.querySelector('#svs').disabled=false;m.querySelector('#sve').textContent='Odgovori se trenutačno ne mogu poslati. Provjeri vezu.'}}}
+function fbTotal(p){let n=0;for(const k in p.ratings)n+=p.ratings[k].n||0;return n+((p.zad&&p.zad.n)||0)}
+function fbAfterRender(){const p=prof();if(!p)return;
+  const side=main.querySelector('.side');if(side&&(view==='practice'||view==='zad')&&!main.querySelector('#fbq')){const q=view==='zad'?(zad?`Z-${zad.type}${zad.kind?'-'+zad.kind:''}${zad.net&&zad.net.id&&!zad.cst?'-'+zad.net.id:''}`:null):(curQ()?curQ().id:null);
+    if(q){side.insertAdjacentHTML('beforeend',`<p style="margin:10px 0 0;text-align:right"><a href="#" id="fbq" class="note" style="color:var(--muted)">Prijavi grešku u ovom ${view==='zad'?'zadatku':'pitanju'}</a></p>`);$('#fbq').onclick=e=>{e.preventDefault();fbOpen({qid:q})}}}
+  if(!Remote||!session||document.getElementById('fbm'))return;const fs=p.fbs||{};
+  if(!fs['100']&&fbTotal(p)>=(fs.next100||100)&&view!=='kz'&&!(exam&&exam.running)){setTimeout(()=>fbSurvey('100'),600);fs['100']='shown';p.fbs=fs;save();return}
+  if(!fs.kz&&p.kz&&(p.kz.sims||[]).length&&view==='kz'&&!kzSim){setTimeout(()=>fbSurvey('kz'),400);fs.kz='shown';p.fbs=fs;save()}}
+async function renderFb(){main.innerHTML='<div class="sheet panel" style="max-width:none"><h2>Povratne informacije</h2><p class="note">Učitavam…</p></div>';let rows=[],err='';
+  try{const {data,error}=await Remote.rpc('feedback_list',{p_token:session.token});if(error)err='Nema pristupa ili baza nije spremna.';else rows=data}catch(e){err='Nema veze s bazom.'}
+  if(view!=='fb')return;const KN={greska:'Greška',nejasno:'Nejasno',prijedlog:'Prijedlog',pohvala:'Pohvala',ostalo:'Ostalo',anketa:'Anketa'},esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  const ank=rows.filter(r=>r.kind==='anketa'&&r.rating),avg=ank.length?ank.reduce((a,r)=>a+r.rating,0)/ank.length:null;
+  main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Povratne informacije</h2>${err?`<p class="msg bad">${err}</p>`:''}<p class="note">Poruka: ${rows.length}${avg!=null?` · prosječna ocjena ankete ${fmt(avg)} (${ank.length})`:''}. Vidljivo samo administratoru.</p>
+  <table><tr><th>Vrijeme</th><th>Tko</th><th>Vrsta</th><th>Pitanje</th><th>Ocjena</th><th>Poruka</th></tr>${rows.map(r=>`<tr><td style="white-space:nowrap">${new Date(r.created_at).toLocaleString('hr-HR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</td><td>${r.nick?esc(r.nick):'<i>anonimno</i>'}</td><td>${KN[r.kind]||esc(r.kind)}${r.extra&&r.extra.anketa?` (${r.extra.anketa==='kz'?'nakon KZ':'100 zadataka'})`:''}</td><td>${esc(r.qid||'')}</td><td class="num">${r.rating||''}</td><td style="white-space:pre-wrap;min-width:220px">${esc(r.msg)}${r.extra&&r.extra.najkorisnije&&r.extra.najkorisnije.length?`<br><span class="note">Najkorisnije: ${r.extra.najkorisnije.join(', ')}</span>`:''}</td></tr>`).join('')||'<tr><td colspan="6">Još nema poruka.</td></tr>'}</table></div>`}
 {const _as=addSkip;addSkip=function(){try{progBar()}catch(e){}const r=_as.apply(this,arguments);try{testBar()}catch(e){}return r}}
 /* ---------- Zadaci: naboji s brojevima ---------- */
 const KE=1/(4*Math.PI*8.854e-12);
@@ -2394,14 +2435,16 @@ async function boot(){
     if(!session){state.profiles={};state.active=null}
     main.innerHTML='<div class="sheet panel"><p class="note">Spajam se na bazu…</p></div>';
     try{const {data}=await Remote.rpc('get_qstats');if(data){state.qstats={};for(const r of data)state.qstats[r.qid]={r:r.r,n:r.n,c:r.c}}}catch(e){}
-    if(session){try{const {data,error}=await Remote.rpc('resume',{p_token:session.token});if(!error&&data&&data.length)adopt(data[0].nick,data[0].state);else{session=null;Store.set('session',null);state.profiles={};state.active=null}}catch(e){netWarn='Nema veze s bazom, radim s lokalnom kopijom.'}}
+    if(session){try{const {data,error}=await Remote.rpc('resume',{p_token:session.token});if(!error&&data&&data.length){adopt(data[0].nick,data[0].state);fbCheckAdmin()}else{session=null;Store.set('session',null);state.profiles={};state.active=null}}catch(e){netWarn='Nema veze s bazom, radim s lokalnom kopijom.'}}
   }
   render();showNet();
 }
 
 {const _r=render;render=function(){const r=_r.apply(this,arguments);try{zSubBar()}catch(e){}return r}}
 for(const nm of['renderExam','renderZad']){const f=window[nm];window[nm]=function(){const r=f.apply(this,arguments);try{zSubBar()}catch(e){}return r}}
-{const _r2=render;render=function(){if(view==='kz'&&prof()){header();renderKZ();return}return _r2.apply(this,arguments)}}
+{const _r2=render;render=function(){if(view==='kz'&&prof()){header();renderKZ();try{fbAfterRender()}catch(e){}return}if(view==='fb'&&prof()){header();renderFb();return}const r=_r2.apply(this,arguments);try{fbAfterRender()}catch(e){}return r}}
+{const f=document.getElementById('fbfoot');if(f)f.onclick=e=>{e.preventDefault();if(!prof())return;fbOpen({})}}
+for(const nm of['renderSerpar','renderRuk','renderRukMC','renderEstat','metRender','thRender','renderMag','renderZad','renderKZ']){const f=window[nm];if(typeof f!=='function')continue;window[nm]=function(){const r=f.apply(this,arguments);try{fbAfterRender()}catch(e){}return r}}
 
 view=(kzActive()?'kz':'home');
 boot();
