@@ -288,6 +288,7 @@ function header(){
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
   const tabs=[['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['exam','Ispit'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);
   $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
+  $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}},true));
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&b.dataset.v!=='exam'&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}if(b.dataset.v!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=b.dataset.v;render()});
 }
 function render(){header();if(!prof())return renderWelcome();({home:renderHome,lesson:renderLesson,help:renderHelp,zad:renderZad,practice:renderPractice,exam:renderExam,progress:renderProgress,board:renderBoard,bank:renderBank})[view]()}
@@ -541,6 +542,7 @@ function modbar(){
   main.querySelectorAll('.modbar button[data-mt]').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}exam=null;p.module=b.dataset.mt;save();mt=null;pq=null;bankSel=null;render()});
   if(view==='lesson'){const mb=main.querySelector('.modbar[role=tablist]');if(mb){mb.insertAdjacentHTML('beforeend',`<button data-lx="mag" aria-current="${lessonX==='mag'}">Magnetsko polje</button>`);mb.querySelector('[data-lx]').onclick=()=>{lessonX='mag';lq=null;render()}}}
   main.querySelectorAll('.modbar button[data-m]').forEach(b=>b.addEventListener('click',()=>{lessonX=null},true));
+  main.querySelectorAll('.modbar button').forEach(b=>b.addEventListener('click',()=>{if(typeof testType!=='undefined')testType=''},true));
   main.querySelectorAll('.modbar button[data-m]').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}exam=null;p.module=b.dataset.m;save();answered=null;fq=null;rk=null;bankSel=null;render()});
 }
 const sub=n=>{const m=String(n).match(/^([RC])(.+)$/);return m?`${m[1]}<sub>${m[2]}</sub>`:n};
@@ -2055,11 +2057,11 @@ const TYPENAME={I:'Ista struja',U:'Isti napon',B:'Bez struje',X:'Uljez',P:'Koji 
 let testType='';
 {const _pq=pickQuestion;pickQuestion=function(topic,exclude=new Set()){
   if(view==='exam'||(exam&&exam.running)){const ex=new Set(exclude);for(const q of QS)if(q.topic===topic&&q.type&&TYPENAME[q.type]&&!/^(jace|nula)$/.test(q.type))ex.add(q.id);return _pq(topic,ex)}
-  if(IS_TEST&&testType){const pool=QS.filter(q=>q.topic===topic&&(testType==='-'?!TYPENAME[q.type]:q.type===testType)&&!exclude.has(q.id));if(pool.length){const r=new Set(prof().recent),f=pool.filter(q=>!r.has(q.id));const a=f.length?f:pool;return a[Math.floor(Math.random()*a.length)]}}
+  if(testType){const pool=QS.filter(q=>q.topic===topic&&(testType==='-'?!TYPENAME[q.type]:q.type===testType)&&!exclude.has(q.id));if(pool.length){const r=new Set(prof().recent),f=pool.filter(q=>!r.has(q.id));const a=f.length?f:pool;return a[Math.floor(Math.random()*a.length)]}}
   return _pq(topic,exclude)}}
-function testBar(){if(!IS_TEST||view!=='practice'||main.querySelector('#testbar'))return;const side=main.querySelector('.side');if(!side)return;const topic=curQ()?curQ().topic:prof().module;
+function testBar(){if(view!=='practice'||main.querySelector('#testbar'))return;const side=main.querySelector('.side');if(!side)return;const topic=curQ()?curQ().topic:prof().module;
   const ts=[...new Set(QS.filter(q=>q.topic===topic&&TYPENAME[q.type]).map(q=>q.type))];if(!ts.length)return;
-  side.insertAdjacentHTML('afterbegin',`<div id="testbar" class="note" style="margin-bottom:10px;padding:6px 8px;border:1px dashed var(--line);border-radius:6px">TEST – vrsta pitanja: <select id="ttype" class="ghost"><option value="">sve</option><option value="-" ${testType==='-'?'selected':''}>klasična</option>${ts.map(t=>`<option value="${t}" ${testType===t?'selected':''}>${TYPENAME[t]}</option>`).join('')}</select></div>`);
+  side.insertAdjacentHTML('afterbegin',`<div id="testbar" style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:600">Vrsta pitanja:</span><select id="ttype" class="ghost"><option value="">sve</option><option value="-" ${testType==='-'?'selected':''}>osnovna</option>${ts.map(t=>`<option value="${t}" ${testType===t?'selected':''}>${TYPENAME[t]}</option>`).join('')}</select></div>`);
   $('#ttype').onchange=e=>{testType=e.target.value;const m=prof().module;if(m==='serpar'){answered=null;cur=null}else if(m==='ruk'){rk=null}else if(m==='estat'){eq=null}else if(m==='kont'||m==='cvor'){mt=null}else if(m==='thev'||m==='nort'){ths=null}renderPractice()}}
 /* ---------- Teoremi: nove vrste pitanja ---------- */
 const THX={};
