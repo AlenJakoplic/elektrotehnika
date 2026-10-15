@@ -1248,7 +1248,7 @@ function zmSol(z){const q=z.q,c=q.c,res=z.res,st=res.st,K=z.type==='kont',L=[],u
   const rows=c.br.filter(b=>b.R).sort((a,b)=>+a.R.slice(1)-+b.R.slice(1)).map(b=>{const i=res.br[b.id],vert=b.p1[0]===b.p2[0],ar=Math.abs(i)<1e-9?'':vert?(i>0?'↑':'↓'):(i>0?'→':'←');
     return `<tr><td>${su(b.R)}</td><td>${zN(Math.abs(i))} ${iu} ${ar}</td><td>${zN(Math.abs(i)*z.val[b.R])} V</td></tr>`}).join('');
   return{steps:L,table:`<table style="margin-top:10px"><tr><th>Otpornik</th><th>Struja (smjer)</th><th>Napon</th></tr>${rows}</table>`}}
-let zad=null,zShow=false,zAB=false,zTestKind='';
+let zad=null,zShow=false,zAB=false,zTestKind='';const ZLES={mag:'mag',nab:'estat',capu:'rukC',cap:'rukC',ruk:'ruk',ui:'ruk',kont:'kont',cvor:'cvor',thev:'thev',nort:'nort',pril:'thev'};
 function zNodeV(net,vals,E){const ids=[...new Set(Object.values(net.node))],ix={};ids.forEach((n,i)=>ix[n]=i);const N=ids.length,G=ids.map(()=>Array(N+1).fill(0));
   for(const s of net.segs){if(s.k!=='r')continue;const u=ix[net.node[s.a.join(',')]],v=ix[net.node[s.b.join(',')]];if(u===v)continue;const g=1/vals[s.n];G[u][u]+=g;G[v][v]+=g;G[u][v]-=g;G[v][u]-=g}
   for(let i=0;i<N;i++){G[i][i]+=1e-9}
@@ -1273,9 +1273,9 @@ function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=z
     `
   :(zad.ans&&zad.ans.done?`<button class="ghost" id="zsol" style="margin:14px 0 0">Prikaži postupak</button>`:'')}
   <div class="mbtns" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line)"><button class="ghost" id="zeasy">Lakši</button><button class="ghost" id="znew">Novi zadatak</button><button class="ghost" id="zhard">Teži</button></div>
-  <p class="note" style="margin-top:10px">Zadatak riješi na papiru i upiši rezultate. Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Bodovi se računaju u niz dana, tjednu ligu i značke.</p>${Z.type==='mag'?'<p style="margin:12px 0 0"><button class="ghost" id="zles" style="margin:0">Lekcija: magnetsko polje</button></p>':''}</div></div>`;
+  <p class="note" style="margin-top:10px">Zadatak riješi na papiru i upiši rezultate. Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Bodovi se računaju u niz dana, tjednu ligu i značke.</p></div></div>`;
   main.querySelectorAll('#zsteps li').forEach(li=>{li.onmouseenter=()=>{$('#zsch').innerHTML=zDraw(z,li.dataset.hl.split(','));li.style.background='color-mix(in srgb,var(--mark) 22%,transparent)'};li.onmouseleave=()=>{$('#zsch').innerHTML=zDraw(z,null);li.style.background=''}});
-  if($('#zles'))$('#zles').onclick=()=>{lessonX='mag';lq=null;view='lesson';render();window.scrollTo(0,0)};
+  if($('#zles'))$('#zles').onclick=e=>{e.preventDefault();const L=ZLES[z.type];if(L==='mag')lessonX='mag';else{lessonX=null;prof().module=L;save()}lq=null;view='lesson';render();window.scrollTo(0,0)};
   if($('#ztk'))$('#ztk').onchange=e=>{zTestKind=e.target.value;zNew();renderZad()};
   main.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{zTestKind='';Z.type=b.dataset.zt;save();zNew();renderZad()});
   const mv=dd=>{Z.d[Z.type]=Math.max(1,Math.min(6,Z.d[Z.type]+dd));save();zNew();renderZad();window.scrollTo(0,0)};
@@ -1442,8 +1442,8 @@ function zFieldsHtml(z){const F=zFields(z),A=z.ans,max=F.reduce((s,f)=>s+f.w,0);
     return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:44px;text-align:right;font-weight:600">${f.lab} =</span><input type="text" inputmode="decimal" data-zf="${i}" value="${String(A.v[i]).replace(/"/g,'')}" ${lock?'disabled':''} style="max-width:120px;padding:6px 10px;border-color:${col}"><span>${f.unit}</span>${f.desc?`<span class="note" style="margin:0;white-space:nowrap">(${f.desc})</span>`:''}${ok===true?'<span style="color:var(--ok);font-weight:700">✓</span>':ok===false?`<span style="color:var(--bad);font-weight:700">✗${A.done?` <span style="font-weight:500">točno: ${zN(f.val).replace(/^-/,'−')}</span>`:''}</span>`:''}</div>`};
   return `<div id="zform"><p style="margin:0 0 4px;font-weight:600">Upiši rezultate:</p>${F.map(row).join('')}
    ${z.type==='kont'||z.type==='cvor'?'<p class="note" style="margin:4px 0">Konturne struje i napone čvorova upiši s predznakom.</p>':''}
-   ${A.done?`<p style="margin:10px 0 0;font-size:18px">Bodovi: <b>${zN(A.pts)}</b> od ${max}${A.pts>=max?' 🎉':''}</p>`
-     :`<div class="row" style="margin-top:10px"><button class="primary" id="zcheck" style="margin:0">${A.tries?'Provjeri ponovno':'Provjeri'}</button><button class="ghost" id="zsol" style="margin:0">Prikaži rješenje</button></div>${A.tries?'<p class="note" style="margin:6px 0 0">Ispravi crvena polja. Drugi pokušaj nosi pola boda.</p>':''}<p class="note" style="margin:6px 0 0">Priznaje se odstupanje do 5 %. Decimalni zarez ili točka. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova.</p>`}</div>`}
+   ${A.done?`<p style="margin:10px 0 0;font-size:18px">Bodovi: <b>${zN(A.pts)}</b> od ${max}${A.pts>=max?' 🎉':''}</p>${A.pts<max&&ZLES[z.type]?'<p class="note" style="margin:4px 0 0">Treba ti pomoć? <a href="#" id="zles">Pogledaj lekciju</a>.</p>':''}`
+     :`<div class="row" style="margin-top:10px"><button class="primary" id="zcheck" style="margin:0">${A.tries?'Provjeri ponovno':'Provjeri'}</button><button class="ghost" id="zsol" style="margin:0">Prikaži rješenje</button></div>${A.tries?`<p class="note" style="margin:6px 0 0">Ispravi crvena polja. Drugi pokušaj nosi pola boda.${ZLES[z.type]?' Treba ti pomoć? <a href="#" id="zles">Pogledaj lekciju</a>.':''}</p>`:''}<p class="note" style="margin:6px 0 0">Priznaje se odstupanje do 5 %. Decimalni zarez ili točka. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova.</p>`}</div>`}
 function zFinish(z,shown){const F=zFields(z),A=z.ans,Z=zProf(),max=F.reduce((s,f)=>s+f.w,0);if(A.done)return;A.done=true;if(shown)A.pts=0;
   Z.n=(Z.n||0)+1;Z.pts=(Z.pts||0)+A.pts;Z.max=(Z.max||0)+max;const full=A.pts>=max;if(full){Z.ok=(Z.ok||0)+1;Z.full=Z.full||{};Z.full[z.type]=(Z.full[z.type]||0)+1}Z.t=Z.t||{};{const T=Z.t[z.type]||(Z.t[z.type]={n:0,pts:0});T.n++;T.pts+=A.pts}
   const fr=A.pts/max;Z.d[z.type]=Math.max(1,Math.min(6,(Z.d[z.type]||2)+(fr>=0.8?0.5:fr<0.5?-0.5:0)));
