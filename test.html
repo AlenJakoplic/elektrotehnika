@@ -137,7 +137,7 @@ const BANK=JSON.parse(document.getElementById('bank').textContent);
 const NETS=Object.fromEntries(BANK.nets.map(n=>[n.id,n]));
 const QS=BANK.questions;
 const TOPICS={serpar:'Serija i paralela',ruk:'Ukupni otpor'};
-const TAGNAMES={dijagonala:'Otpornik u dijagonali',kratki_spoj:'Kratko spojeni otpornik',bez_struje:'Otpornik bez struje (slijepa grana)',skrivena_paralela:'Paralela koja ne izgleda kao paralela',udaljena_serija:'Serija kad otpornici nisu jedan do drugog',serija_iza_ugla:'Serija iza ugla',zajednicki_cvor:'Zajednički čvor, ali struja se grana',izgleda_paralelno:'Izgleda paralelno, a nije',formula_serija:'Formula za seriju',formula_paralela:'Formula za paralelu',formula_nista:'Kad nijedna formula ne vrijedi',redukcija:'Svođenje mreže na Ruk',prvi_korak:'Prvi korak svođenja',iznos_ruk:'Iznos ukupnog otpora',ista_struja:'Ista struja (serija)',isti_napon:'Isti napon (paralela)',uljez:'Pronađi uljeza'};
+const TAGNAMES={dijagonala:'Otpornik u dijagonali',kratki_spoj:'Kratko spojeni otpornik',bez_struje:'Otpornik bez struje (slijepa grana)',skrivena_paralela:'Paralela koja ne izgleda kao paralela',udaljena_serija:'Serija kad otpornici nisu jedan do drugog',serija_iza_ugla:'Serija iza ugla',zajednicki_cvor:'Zajednički čvor, ali struja se grana',izgleda_paralelno:'Izgleda paralelno, a nije',formula_serija:'Formula za seriju',formula_paralela:'Formula za paralelu',formula_nista:'Kad nijedna formula ne vrijedi',redukcija:'Svođenje mreže na Ruk',prvi_korak:'Prvi korak svođenja',zapis_ruk:'Zapis ukupnog otpora',promjena_ruk:'Promjena ukupnog otpora',ne_utjece:'Otpornik koji ne utječe na Ruk',iznos_ruk:'Iznos ukupnog otpora',ista_struja:'Ista struja (serija)',isti_napon:'Isti napon (paralela)',uljez:'Pronađi uljeza'};
 const ANS={series:'serijski',parallel:'paralelno',none:'ni serijski ni paralelno'};
 
 /* ---------- Spremište: lokalno sada, zajednička baza kasnije (ista sučelja) ---------- */
@@ -1916,12 +1916,25 @@ g.hv-okvir rect:first-of-type{stroke:#E0A800;stroke-width:3;stroke-dasharray:8 4
 g.hv-okvir rect:last-of-type{fill:#FFF3BF}
 </style>`);
 function hvSet(name,on){const g=main.querySelector(`.schem g[data-r="${name}"]`);if(!g)return;[...g.classList].filter(c=>c.startsWith('hv-')).forEach(c=>g.classList.remove(c));if(on){void g.getBBox();g.classList.add('hv-'+hvMode)}}
-function hvOn(){if(view!=='practice'||!prof())return false;const m=prof().module;return (m==='serpar'&&cur&&cur.type)||(m==='ruk'&&rk&&rk.q.type==='P')}
+function hvOn(){if(view!=='practice'||!prof())return false;const m=prof().module;return (m==='serpar'&&cur&&cur.type)||(m==='ruk'&&rk&&/^[PD]$/.test(rk.q.type))}
 main.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!hvOn())return;if(!e.relatedTarget||!b.contains(e.relatedTarget))b.dataset.a.split(',').forEach(r=>hvSet(r,true))});
 main.addEventListener('mouseout',e=>{const b=e.target.closest&&e.target.closest('.opt[data-a]');if(!b||!hvOn())return;if(!e.relatedTarget||!b.contains(e.relatedTarget))b.dataset.a.split(',').forEach(r=>hvSet(r,false))});
 
 
 /* ---------- Ukupni otpor: nove vrste pitanja ---------- */
+function spTree(net){const nd=p=>net.node[p.join(',')],A=nd(net.A),B=nd(net.B);
+  let E=net.segs.filter(s=>s.k==='r').map(s=>({u:nd(s.a),v:nd(s.b),t:{op:'L',n:s.n}})).filter(e=>e.u!==e.v);
+  for(let it=0;it<200;it++){let ch=false;const deg={};E.forEach(e=>{deg[e.u]=(deg[e.u]||0)+1;deg[e.v]=(deg[e.v]||0)+1});
+    const d1=E.findIndex(e=>[e.u,e.v].some(x=>deg[x]===1&&x!==A&&x!==B));if(d1>=0){E.splice(d1,1);continue}
+    for(let i=0;i<E.length&&!ch;i++)for(let j=i+1;j<E.length&&!ch;j++){const a=E[i],b=E[j];if((a.u===b.u&&a.v===b.v)||(a.u===b.v&&a.v===b.u)){E.splice(j,1);a.t={op:'P',c:[a.t,b.t]};ch=true}}
+    if(ch)continue;
+    for(const x in deg){const n=+x;if(deg[x]!==2||n===A||n===B)continue;const [i,j]=E.map((e,k)=>e.u===n||e.v===n?k:-1).filter(k=>k>=0);const a=E[i],b=E[j],o1=a.u===n?a.v:a.u,o2=b.u===n?b.v:b.u;E.splice(j,1);E[i]={u:o1,v:o2,t:{op:'S',c:[a.t,b.t]}};ch=true;break}
+    if(!ch)break}
+  if(E.length===1&&((E[0].u===A&&E[0].v===B)||(E[0].u===B&&E[0].v===A)))return E[0].t;return null}
+function spFlat(t){if(t.op==='L')return t;const c=[];for(const x of t.c.map(spFlat))if(x.op===t.op)c.push(...x.c);else c.push(x);return{op:t.op,c}}
+function spFmt(t,top=true){if(t.op==='L')return sub(t.n);const s=t.c.map(x=>spFmt(x,false)).join(t.op==='S'?' + ':' ∥ ');return top?s:'('+s+')'}
+function spKey(t){if(t.op==='L')return t.n;return t.op+'['+t.c.map(spKey).sort().join(',')+']'}
+
 const RKX={};
 (function(){let sd=23;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647},shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
   const rukOf=(n,vals)=>{const t=spSolve(n,vals),A=n.node[n.A.join(',')];let I=0;for(const s of n.segs){if(s.k!=='r')continue;const a=n.node[s.a.join(',')],b=n.node[s.b.join(',')];if((a===A)!==(b===A))I+=t.I[s.n]}return 1/I};
@@ -1941,12 +1954,22 @@ const RKX={};
     for(const c of cands){if([ruk,...ds].every(y=>Math.abs(c-y)/Math.max(c,y)>0.08))ds.push(c);if(ds.length===3)break}
     if(false)add.push({id:q0.id+'-N',net:n.id,topic:'ruk',type:'N',ans:String(+ruk.toFixed(2)),opts:shuf([ruk,...ds]).map(x=>String(+x.toFixed(2))),diff:Math.round(Math.min(9,q0.diff+0.5)*10)/10,tags:['iznos_ruk']});
   }
+  const flips=t=>{const out=[],nodes=[];(function w(x){if(x.op!=='L'){nodes.push(x);x.c.forEach(w)}})(t);
+    const clone=x=>x.op==='L'?x:{op:x.op,c:x.c.map(clone)};
+    for(let i=0;i<nodes.length;i++)for(let j=i;j<nodes.length;j++){const c=clone(t),ns=[];(function w(x){if(x.op!=='L'){ns.push(x);x.c.forEach(w)}})(c);ns[i].op=ns[i].op==='S'?'P':'S';if(j!==i)ns[j].op=ns[j].op==='S'?'P':'S';out.push(spFlat(c))}return out};
+  for(const q0 of QS.filter(q=>q.topic==='ruk'&&!q.type)){const n=NETS[q0.net];
+    if(n.level<=3){const t=spTree(n);if(t){const T=spFlat(t),k0=spKey(T),seen=new Set([k0]),ds=[];for(const f of shuf(flips(T))){const k=spKey(f);if(!seen.has(k)){seen.add(k);ds.push(f)}if(ds.length===3)break}
+      if(ds.length===3){const opts=shuf([T,...ds]).map(x=>spFmt(x));add.push({id:q0.id+'-Z',net:n.id,topic:'ruk',type:'Z',ans:spFmt(T),opts,diff:Math.round(Math.max(1,q0.diff)*10)/10,tags:['zapis_ruk']})}}}
+    if(n.level<=2){const live=n.segs.filter(s=>s.k==='r').map(s=>s.n),x=live[Math.floor(rnd()*live.length)],up=rnd()<0.6;
+      add.push({id:q0.id+'-V',net:n.id,topic:'ruk',type:'V',x,up,ans:up?'vise':'manje',opts:['vise','manje','isto'],diff:Math.round(Math.max(1,q0.diff-0.4)*10)/10,tags:['promjena_ruk']})}}
+  for(const n of BANK.nets){const st=n.status,dead=Object.keys(st).filter(r=>st[r]!=='ok'),live=Object.keys(st).filter(r=>st[r]==='ok');if(!dead.length||live.length<3||!spTree(n))continue;
+    const ans=dead[Math.floor(rnd()*dead.length)];add.push({id:'T-'+n.id+'-D',net:n.id,topic:'ruk',type:'D',ans,opts:shuf([ans,...shuf(live).slice(0,3)]),diff:Math.round(Math.min(9,2.5+n.level*0.6)*10)/10,tags:['ne_utjece']})}
   for(const q of add){QS.push(q);RKX[q.id]=q}})();
 function renderRukMC(){const p=prof(),q=rk.q,n=NETS[q.net],a=rk.mc,showCol=p.colors||!!a;
-  const lab=x=>q.type==='P'?x.split(',').map(sub).join(' i '):`${x.replace('.',',')} Ω`;
-  const text=q.type==='P'?'Koji par otpornika možeš <strong>odmah</strong> zamijeniti jednim otporom (serija ili paralela)?':'Koliki je <strong>ukupni otpor</strong> R<sub>uk</sub> gledano sa stezaljki A i B?';
+  const lab=x=>q.type==='P'?x.split(',').map(sub).join(' i '):q.type==='Z'?`R<sub>uk</sub> = ${x}`:q.type==='V'?{vise:'povećati',manje:'smanjiti',isto:'ostati isti'}[x]:q.type==='D'?sub(x):`${x.replace('.',',')} Ω`;
+  const text=q.type==='Z'?'Koji zapis točno opisuje <strong>ukupni otpor</strong> R<sub>uk</sub> gledano sa stezaljki A i B?':q.type==='V'?`Ako se otpor ${sub(q.x)} <strong>${q.up?'poveća':'smanji'}</strong>, ukupni otpor R<sub>uk</sub> će se:`:q.type==='D'?'Koji od ponuđenih otpornika <strong>ne utječe</strong> na ukupni otpor R<sub>uk</sub>?':q.type==='P'?'Koji par otpornika možeš <strong>odmah</strong> zamijeniti jednim otporom (serija ili paralela)?':'Koliki je <strong>ukupni otpor</strong> R<sub>uk</sub> gledano sa stezaljki A i B?';
   let fb='';if(a){const ok=a===q.ans,[x,y]=q.type==='P'?q.ans.split(','):[];
-    fb=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${q.type==='P'?`${sub(x)} i ${sub(y)} ${q.rel==='series'?'spojeni su serijski: između njih je čvor na koji ništa drugo nije spojeno.':'spojeni su paralelno: spajaju ista dva potencijala.'} Ostali ponuđeni parovi nisu ni u seriji ni u paraleli.`:`R<sub>uk</sub> = ${lab(q.ans)}. Svedi mrežu korak po korak (kao u zadacima Ukupni otpor) i provjeri na kalkulatoru.`}</p>
+    fb=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${q.type==='Z'?`Točan zapis: R<sub>uk</sub> = ${q.ans}. Kreni od najdalje točke od stezaljki i spajaj prema A i B: oznaka ∥ znači paralelu, + seriju.`:q.type==='V'?`Kroz ${sub(q.x)} teče struja, pa ${q.up?'veći':'manji'} otpor tog otpornika znači i ${q.up?'veći':'manji'} R<sub>uk</sub>. Povećanje bilo kojeg otpora u mreži nikad ne smanjuje ukupni otpor.`:q.type==='D'?`${sub(q.ans)} ${NETS[q.net].status[q.ans]==='short'?'je kratko spojen: oba kraja su na istom potencijalu, pa kroz njega ne teče struja':'je u slijepoj grani: struja nema kamo nastaviti'}. Zato ga pri svođenju na R<sub>uk</sub> izostavljaš. Ostali otpornici vode struju i utječu na R<sub>uk</sub>.`:q.type==='P'?`${sub(x)} i ${sub(y)} ${q.rel==='series'?'spojeni su serijski: između njih je čvor na koji ništa drugo nije spojeno.':'spojeni su paralelno: spajaju ista dva potencijala.'} Ostali ponuđeni parovi nisu ni u seriji ni u paraleli.`:`R<sub>uk</sub> = ${lab(q.ans)}. Svedi mrežu korak po korak (kao u zadacima Ukupni otpor) i provjeri na kalkulatoru.`}</p>
     <span class="delta">Razina ${rk.final.d>=0?'+':'−'}${fmt(Math.abs(rk.final.d))} → ${fmt(p.ratings[q.topic].r)}</span><br><button class="primary" id="next">Sljedeći zadatak</button></div>`}
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina zadatka ${fmt(qRating(q))}</span></div><div class="schem" id="rsch">${drawNet(n,{colors:showCol,values:q.type==='N'?n.vals:null})}</div></div>
   <div class="sheet side"><p class="q">${text}</p><div class="opts">${q.opts.map((x,i)=>`<button class="opt ${a?(x===q.ans?'right':(x===a?'wrong':'')):''}" data-a="${x}" ${a?'disabled':''}><kbd>${'abcd'[i]})</kbd>${lab(x)}</button>`).join('')}</div>${fb}
