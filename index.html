@@ -113,7 +113,18 @@ svg.es [data-g].on circle{stroke-width:4;stroke:var(--mark)}svg.es [data-g].on l
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-</head>
+<style id="mobfix">
+td.num,th{white-space:nowrap}
+td{overflow-wrap:normal;word-break:normal}
+@media (max-width:700px){
+ .sheet.panel{padding:16px 12px!important}
+ .panel table,.sheet table{font-size:14px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+ .panel td,.panel th,.sheet td,.sheet th{padding:6px 6px!important}
+ .num{font-size:15px}
+ .kzrow td:nth-child(2){font-size:13px}
+ .modbar{flex-wrap:wrap}
+}
+</style></head>
 <body>
 <header>
   <div class="brand">Elektrotehnika<small>Digitalna radionica</small></div>
@@ -122,7 +133,7 @@ svg.es [data-g].on circle{stroke-width:4;stroke:var(--mark)}svg.es [data-g].on l
 </header>
 <p id="net" class="msg bad hidden" style="max-width:1180px;margin:8px auto 0;padding:0 20px"></p>
 <main id="main"></main>
-<footer>Tehnički fakultet u Rijeci, Zavod za elektroenergetiku<br>Pomoć u učenju gradiva iz područja osnova elektrotehnike</footer>
+<footer>Tehnički fakultet u Rijeci, Zavod za elektroenergetiku<br>Pomoć u učenju gradiva iz područja osnova elektrotehnike<br><a href="#" id="fbfoot" style="color:inherit;font-weight:600">Pošalji povratnu informaciju</a></footer>
 
 <script>
 /* ===== POSTAVKE BAZE =====
@@ -286,8 +297,8 @@ const TABHELP={home:'Pregled tvojih gradiva i razina te preporuka što dalje vje
 function header(){
   const p=prof();
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
-  const tabs=[['home','Početna'],['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['exam','Ispit'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);
-  $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
+  const tabs=[['home','Početna'],...(typeof kzActive==='function'&&kzActive()?[['kz',isEtr()?'KZ1':'Priprema KZ']]:[]),['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);try{if(typeof askUnseen==='function'&&askUnseen()){const t=tabs.find(x=>x[0]==='progress');if(t)t[1]='Napredak ●'}}catch(e){}if(typeof isAdmin!=='undefined'&&isAdmin)tabs.push(['fb',fbNew?`Povratne (${fbNew})`:'Povratne']);
+  $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k||(k==='zad'&&view==='exam')}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
   $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}if(b.dataset.v==='board'&&view!=='board')try{boardAll=true}catch(e){}},true));
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&b.dataset.v!=='exam'&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}if(b.dataset.v!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=b.dataset.v;render()});
 }
@@ -324,7 +335,7 @@ function renderWelcomeRemote(msg=''){
     try{
       const {data,error}=await Remote.rpc(mode,{p_nick:nick,p_pin:pin});
       if(error){const m=error.message||'';err.textContent=m.includes('nick_taken')?'Taj nadimak je zauzet. Ako je tvoj, odaberi Prijavi se.':m.includes('bad_login')?'Nadimak ili PIN nisu točni.':m.includes('bad_nick')?'Nadimak mora imati 2 do 24 znaka.':'Baza trenutačno ne odgovara. Pokušaj ponovno za minutu.';return}
-      const row=data[0];session={token:row.token,nick:row.nick};Store.set('session',session);adopt(row.nick,row.state);if(mode==='register')save();view='home';render();
+      const row=data[0];session={token:row.token,nick:row.nick};Store.set('session',session);adopt(row.nick,row.state);if(mode==='register')save();fbCheckAdmin();view='home';render();
     }catch(e){err.textContent='Nema veze s bazom. Provjeri internet i pokušaj ponovno.'}
   };
   $('#reg').onclick=()=>go('register');$('#log').onclick=()=>go('login');
@@ -455,7 +466,7 @@ function renderHelp(){
   <p>Digitalna radionica pomaže ti uvježbati gradivo osnova elektrotehnike: od elektrostatike, preko spojeva otpornika i ukupnog otpora, do metoda rješavanja mreža. Rezultati se ne ocjenjuju.</p>
   <button class="primary" id="tourbtn" style="margin:4px 0 8px">▶ Pokreni kratki vodič</button>
   <h3>Kako učiti</h3>
-  <p><b>Lekcija</b> – nauči. <b>Vježba</b> – uvježbaj prepoznavanje i postupak. <b>Zadaci</b> – riješi cijeli zadatak s brojevima kao na kontrolnoj. <b>Ispit</b> – provjeri koliko znaš.</p>
+  <p><b>Lekcija</b> – nauči. <b>Vježba</b> – uvježbaj prepoznavanje i postupak. <b>Zadaci</b> – riješi cijeli zadatak s brojevima kao na kontrolnoj. <b>Testiraj se</b> (u Zadacima) – provjeri koliko znaš.</p>
   <h3>Gradiva</h3>
   <p><b>Elektrostatika.</b> Kratka pitanja koja se izmjenjuju: smjer sile na naboj i smjer polja u točki, zbrajanje vektora na istom pravcu, homogeno i nehomogeno polje, rad ili energija pri pomicanju naboja te kako se mijenja sila s nabojem i udaljenošću. Nakon odgovora na slici se vide doprinosi pojedinih naboja i njihov zbroj.</p>
   <p><b>Serija ili paralela.</b> Za dva označena otpornika odlučiš jesu li spojeni serijski, paralelno ili ništa od toga. Zapamti: elementi su u <b>seriji</b> ako kroz njih teče <b>ista struja</b>, a u <b>paraleli</b> ako su na <b>istom naponu</b>, odnosno između ista dva potencijala.</p>
@@ -474,10 +485,16 @@ function renderHelp(){
   <p>Zadaci s brojevima koje rješavaš na papiru: elektrostatika (naboji i kondenzatori), magnetsko polje, ukupni otpor i kapacitet, struje i naponi, metode rješavanja, teoremi i prilagođenje. Kod naboja i magnetskog polja možeš odabrati vrstu zadatka. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti. Na Ljestvici i Početnoj vidiš bodove i ukupno i po gradivima.</p>
   <h3>Baza zadataka</h3>
   <p>Svi zadaci s rješenjima. Svaki možeš isprobati gumbom „Isprobaj”, bez utjecaja na razinu, a uz „Prikaži moje rezultate” vidiš koji su ti zadaci točni (zeleno), koji netočni (crveno), a koji još nisu rješavani (sivo).</p>
-  <h3>Ispit</h3>
-  <p>Niz zadataka bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena.</p>
+  <h3>Testiraj se</h3>
+  <p>U kartici Zadaci odaberi <b>Testiraj se</b>: niz zadataka iz odabranog gradiva bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena.</p>
+  <h3>Priprema za KZ1</h3>
+  <p>Kartica <b>KZ1</b> vodi te kroz tri stadija: Vježba u svim gradivima, Zadaci s brojevima i <b>Probna KZ1</b> (probna kontrolna zadaća: 4 zadatka, 6 + 6 + 6 + 2 boda, 60 + 5 minuta). Stadiji se otključavaju redom, a računa se i sve što je već riješeno. Nakon predaje probne KZ1 možeš pregledati svaki zadatak s rješenjem. Bodovanje probne KZ1 može biti drukčije od stvarnog. Datum i pravila vrijede za kolegij Elektrotehnika R, a službeni listovi formula (EtR_f1, EtR_f2) mogu se preuzeti u kartici KZ1.</p>
+  <h3>Kolegij</h3>
+  <p>Aplikaciju koriste studenti više kolegija. Svoj kolegij odabereš pri prvoj prijavi, a možeš ga promijeniti na Napretku ili klikom na napomenu na Početnoj.</p>
+  <h3>Pitaj nastavnika i povratne informacije</h3>
+  <p>Uz svaki zadatak su poveznice <b>Prijavi grešku</b> i <b>Pitaj nastavnika</b>. Odgovor nastavnika vidiš na Napretku pod „Moja pitanja nastavniku”, a ako ostaviš e-mail, može stići i mailom. Pitanje i odgovor možeš obrisati. Na dnu stranice je poveznica za povratnu informaciju o aplikaciji, koja može biti i anonimna.</p>
   <h3>Gdje se sprema napredak</h3>
-  <p>Napredak se sprema uz tvoj nadimak i PIN, pa ga imaš na svakom uređaju. Na ljestvici se vidi samo nadimak. Točnost i ime su skriveni dok ih sam ne uključiš na Napretku.</p>
+  <p>Napredak se sprema uz tvoj nadimak i PIN, pa ga imaš na svakom uređaju. Na ljestvici se vidi samo nadimak. Točnost i ime su skriveni dok ih sam ne uključiš na Napretku. Nastavnik može vidjeti rezultate u bazi i koristi ih samo za poboljšanje nastave i aplikacije, nikad za ocjenjivanje.</p>
   <h3>Niz dana, značke i tjedna liga</h3>
   <p>Dan se računa kad riješiš barem jedan zadatak. Za 10 točnih odgovora zaredom dobiješ slobodan dan (najviše 3), koji čuva niz kad propustiš dan. Značke se dobivaju za niz dana, točne odgovore zaredom i svladane zamke. U tjednoj ligi na Ljestvici se broje bodovi ovog tjedna, a svaki ponedjeljak kreće ispočetka.</p>
   <p class="note" style="margin-top:24px;padding-top:14px;border-top:1px solid var(--line)">Aplikaciju je izradio dr. sc. Alen Jakoplić, 7. listopada 2026., uz pomoć velikog jezičnog modela Claude Opus 5.5 tvrtke Anthropic. Kao podloga korištena je literatura prof. dr. sc. Nina Stojkovića.</p>${verHtml()}</div>`;setTimeout(verBind,0);
@@ -543,8 +560,7 @@ function modbar(){
   main.insertAdjacentHTML('afterbegin',`<div class="modwrap"><span class="modlabel">Odaberi gradivo:</span><div class="modbar" role="tablist" aria-label="Odaberi gradivo">${MODS.map(([k,l])=>`<button data-m="${k}" aria-current="${!(view==='lesson'&&lessonX)&&modBase(p.module)===k}">${k==='ruk'&&p.module==='rukC'?'Ukupni kapacitet':l}</button>`).join('')}</div>${/^rukC?$/.test(p.module)?`<div class="modbar" aria-label="Elementi"><button data-cap="0" aria-current="${!/C$/.test(p.module)}">Otpornici</button><button data-cap="1" aria-current="${/C$/.test(p.module)}">Kondenzatori</button></div>`:''}${/^(kont|cvor|pretv)$/.test(p.module)?`<div class="modbar" aria-label="Metoda"><button data-mt="kont" aria-current="${p.module==='kont'}">Konturne struje</button><button data-mt="cvor" aria-current="${p.module==='cvor'}">Naponi čvorova</button></div>`:''}<span class="modlvl">Tvoja razina u ovom gradivu: <b>${fmt(p.ratings[p.module].r)}</b></span></div>`);
   main.querySelectorAll('.modbar button[data-cap]').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}exam=null;p.module=p.module.replace(/C$/,'')+(b.dataset.cap==='1'?'C':'');save();answered=null;rk=null;bankSel=null;render()});
   main.querySelectorAll('.modbar button[data-mt]').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}exam=null;p.module=b.dataset.mt;save();mt=null;pq=null;bankSel=null;render()});
-  if(view==='lesson'){const mb=main.querySelector('.modbar[role=tablist]');if(mb){mb.insertAdjacentHTML('beforeend',`<button data-lx="mag" aria-current="${lessonX==='mag'}">Magnetsko polje</button>`);mb.querySelector('[data-lx]').onclick=()=>{lessonX='mag';lq=null;render()}}}
-  main.querySelectorAll('.modbar button[data-m]').forEach(b=>b.addEventListener('click',()=>{lessonX=null},true));
+    main.querySelectorAll('.modbar button[data-m]').forEach(b=>b.addEventListener('click',()=>{lessonX=null},true));
   main.querySelectorAll('.modbar button').forEach(b=>b.addEventListener('click',()=>{if(typeof testType!=='undefined')testType=''},true));
   main.querySelectorAll('.modbar button[data-m]').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}exam=null;p.module=b.dataset.m;save();answered=null;fq=null;rk=null;bankSel=null;render()});
 }
@@ -1233,7 +1249,7 @@ function zmGen(type,d){const pool=QS.filter(q=>q.topic===type).sort((a,b)=>a.dif
     if(!q.c.br.filter(b=>b.R).every(b=>niceS(res.br[b.id],100)))continue;
     const big=Math.random()<0.4;return{m:true,type,q,val,res,d:lv,unit:big?'kΩ':'Ω',iu:big?'mA':'A',net:{id:q.id}}}return null}
 function zmVals(z){const o={};for(const k in z.val)o[k]=k[0]==='R'?`${z.val[k]} ${z.unit}`:k[0]==='E'?`${z.val[k]} V`:`${z.val[k]} ${z.iu}`;return o}
-function zmDraw(z){const fl={};if(zShow)z.q.c.br.forEach(b=>{if(!b.R)return;const i=z.res.br[b.id];if(Math.abs(i)<1e-9)return;fl[b.R]={d:i>0?1:-1,lab:ILAB(b.R.slice(1),zN(Math.abs(i))+' '+z.iu)}});let s=metSvg(z.q,{noMesh:false,flow:fl});const vals=zmVals(z);
+function zmDraw(z){const fl={};if(zShow)z.q.c.br.forEach(b=>{if(!b.R)return;const i=z.res.br[b.id];if(Math.abs(i)<1e-9)return;fl[b.R]={d:i>0?1:-1,lab:ILAB(b.R.slice(1),zN(Math.abs(i))+' '+z.iu)}});let s=metSvg(z.q,{noMesh:!!z.kzFree,flow:fl});const vals=zmVals(z);
   s=s.replace(/<text x="([\d.\-]+)" y="([\d.\-]+)" text-anchor="(\w+)"([^>]*)>([REI])<tspan font-size="0\.72em" dy="4">(\d+)<\/tspan><\/text>/g,(m,x,y,an,rest,L,dg)=>{const k=L+dg,v=vals[k];if(!v){if(zShow&&z.type==='kont'&&L==='I'&&an==='middle'){const x0=z.res.X[+dg-1];if(x0!==undefined)return m+`<text x="${x}" y="${z.q.c.U&&+dg===z.q.c.meshes.length?+y+30:+y-44}" text-anchor="middle" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="15" font-weight="700" fill="var(--ok)" stroke="var(--sheet)" stroke-width="4" paint-order="stroke">${IK(+dg-1).replace(/<\/?sub>/g,'')} = ${zN(x0).replace(/^-/,'−')} ${z.iu}</text>`}return m}let xx=+x,yy=+y,a2=an,fs=16;if(an==='middle'){if(L==='E')yy-=24;else yy+=56}else{const el=+x+(L==='R'?20:L==='E'?30:26);if(Math.abs(el-74)<2){a2='end';yy+=20}else{a2='start';fs=14;xx=el+(L==='I'?24:14);if(L==='E')yy+=36}}
     return m+`<text x="${xx}" y="${yy}" text-anchor="${a2}" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="${fs}" font-weight="500" fill="var(--muted)">${v}</text>`+(zShow&&L==='R'?(an==='middle'?zmRes(z,k,xx,yy+16,a2,fs,0):zmRes(z,k,+x+28,+y-6+44,'start',14,1)):'')});
   if(zShow&&z.type==='cvor')s=s.replace(/<text x="([\d.]+)" y="([\d.]+)" font-family="[^"]+" font-size="20" font-weight="700" fill="var\(--ink\)">(\d+)<\/text>/g,(m,x,y,n)=>{const v=z.res.Vn[+n-1];return v===undefined?m:m+`<text x="${+x-6}" y="${+y-20}" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="15" font-weight="700" fill="var(--ok)" stroke="var(--sheet)" stroke-width="4" paint-order="stroke">${zN(v).replace(/^-/,'−')} V</text>`});
@@ -1280,7 +1296,7 @@ function renderZad(){const Z=zProf();if(!zad||zad.type!==Z.type)zNew();const z=z
   <div class="mbtns" style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line)"><button class="ghost" id="zeasy">Lakši</button><button class="ghost" id="znew">Novi zadatak</button><button class="ghost" id="zhard">Teži</button></div>
   <p class="note" style="margin-top:10px">Zadatak riješi na papiru i upiši rezultate. Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Bodovi se računaju u niz dana, tjednu ligu i značke.</p></div></div>`;
   main.querySelectorAll('#zsteps li').forEach(li=>{li.onmouseenter=()=>{$('#zsch').innerHTML=zDraw(z,li.dataset.hl.split(','));li.style.background='color-mix(in srgb,var(--mark) 22%,transparent)'};li.onmouseleave=()=>{$('#zsch').innerHTML=zDraw(z,null);li.style.background=''}});
-  if($('#zles'))$('#zles').onclick=e=>{e.preventDefault();const L=ZLES[z.type];if(L==='mag')lessonX='mag';else{lessonX=null;prof().module=L;save()}lq=null;view='lesson';render();window.scrollTo(0,0)};
+  if($('#zles'))$('#zles').onclick=e=>{e.preventDefault();const L=ZLES[z.type];lessonX=null;prof().module=L;save();lq=null;view='lesson';render();window.scrollTo(0,0)};
   if($('#ztk'))$('#ztk').onchange=e=>{zTestKind=e.target.value;zNew();renderZad()};
   main.querySelectorAll('[data-zt]').forEach(b=>b.onclick=()=>{zTestKind='';Z.type=b.dataset.zt;save();zNew();renderZad()});
   const mv=dd=>{Z.d[Z.type]=Math.max(1,Math.min(6,Z.d[Z.type]+dd));save();zNew();renderZad();window.scrollTo(0,0)};
@@ -1296,7 +1312,7 @@ const TOUR=[
  {v:'practice',sel:'nav [data-v="practice"]',t:'Vježba',h:'Rješavaš zadatke u aplikaciji i odmah vidiš je li točno. Zadaci se prilagođavaju tvojoj razini.'},
  {v:'practice',m:'serpar',sel:'.side',t:'Pomoć i preskakanje',h:'<b>Bojice potencijala</b> pomažu kad zapneš (uz njih napreduješ sporije). Ako je zadatak prelagan, klikni <b>Prelagano</b> i dobit ćeš teži.'},
  {v:'zad',sel:'nav [data-v="zad"]',t:'Zadaci',h:'Zadaci s brojevima koje rješavaš na papiru. Upišeš rezultate, a aplikacija provjeri jesu li točni i dodijeli bodove. Postupak rješavanja možeš pogledati nakon predaje.'},
- {v:'zad',sel:'nav [data-v="exam"]',t:'Ispit',h:'Niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena.'},
+ {v:'zad',sel:'#zsub [data-zs="exam"]',t:'Testiraj se',h:'U Zadacima je i <b>Testiraj se</b>: niz zadataka bez pomoći i objašnjenja, s mjerenjem vremena.'},
  {v:'zad',sel:'nav [data-v="progress"],nav [data-v="bank"]',t:'Napredak i Baza zadataka',h:'U <b>Napretku</b> vidiš gdje najčešće griješiš. U <b>Bazi zadataka</b> su svi zadaci s rješenjima i tvoji rezultati.'},
  {v:'zad',sel:'#hdrRating',t:'Ukupna razina',h:'Ovdje je tvoja ukupna razina. Klikom na nju otvaraš Napredak. Sretno!'}];
 let tourI=-1;
@@ -1338,7 +1354,7 @@ function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0
   const why=tot===0?'Kreni od lekcije, a zatim vježbaj.':rec.n<5?'Ovo gradivo još nije dovoljno isprobano.':'Ovdje ti je razina trenutno najniža.';
   const bar=r=>`<div style="height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 10px"><div style="height:100%;width:${Math.max(4,Math.min(100,(r-1)/9*100))}%;background:var(--ok)"></div></div>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:980px">
-  <h2 style="margin-bottom:4px">Bok, ${p.nick}!</h2>
+  <h2 style="margin-bottom:4px">Bok, ${p.nick}!</h2>${kzBanner()}
   <p style="margin:0 0 4px">Ukupna razina: <b style="font-size:22px">${fmt(overall(p))}</b> <span style="color:var(--muted)">(od 1,0 do 10,0) · riješeno zadataka: ${tot}</span></p>
   ${bar(overall(p))}
   <div style="border:2px solid var(--ok);border-radius:8px;padding:14px 16px;margin:16px 0 22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
@@ -1404,11 +1420,11 @@ function delAsk(){const box=$('#rstbox'),p=prof();box.innerHTML=`<div class="she
 /* ---------- Ljestvica: ukupno ---------- */
 let boardAll=false;
 {const _mb=modbar;modbar=function(){_mb();if(view!=='board')return;const bar=main.querySelector('.modbar');if(!bar)return;
-  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll==='week'}" data-wk="1">Ovaj tjedan</button><button data-all="1" aria-current="${boardAll===true}">Ukupno</button><button data-all="1" data-zl="1" aria-current="${boardAll==='zad'}">Zadaci</button>`);
+  bar.insertAdjacentHTML('afterbegin',`<button data-all="1" aria-current="${boardAll==='week'}" data-wk="1">Ovaj tjedan</button><button data-all="1" aria-current="${boardAll===true}">Ukupno</button><button data-all="1" data-zl="1" aria-current="${boardAll==='zad'}">Zadaci</button>${kzActive()?`<button data-all="1" data-kzb="1" aria-current="${boardAll==='kz'}">Probna KZ1</button>`:''}`);
   bar.addEventListener('click',e=>{if(e.target.closest('[data-m]'))boardAll=false},true);
-  bar.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{boardAll=b.dataset.wk?'week':b.dataset.zl?'zad':true;render()});
+  bar.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>{boardAll=b.dataset.wk?'week':b.dataset.zl?'zad':b.dataset.kzb?'kz':true;render()});
   if(boardAll){bar.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-current','false'));main.querySelectorAll('.modbar[aria-label]:not([role])').forEach(b=>b.remove());const l=main.querySelector('.modlvl');if(l)l.innerHTML=boardAll==='zad'?`Tvoji bodovi iz Zadataka: <b>${zN((prof().zad||{}).pts||0)}</b>`:boardAll==='week'?`Tvoji bodovi ovaj tjedan: <b>${zN(gWeek(prof()).pts)}</b>`:`Tvoja ukupna razina: <b>${fmt(overall(prof()))}</b>`}}}
-{const _rb=renderBoard;renderBoard=function(){if(boardAll==='zad')return renderBoardZad();if(boardAll==='week')return renderBoardWeek();if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
+{const _rb=renderBoard;renderBoard=function(){if(boardAll==='kz')return renderBoardKZ();if(boardAll==='zad')return renderBoardZad();if(boardAll==='week')return renderBoardWeek();if(boardAll)return renderBoardAll();return _rb.apply(this,arguments)}}
 async function renderBoardAll(){const me=prof().nick,head='<h2>Ljestvica: ukupno</h2>';let rows=[],err='';
   if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();
     try{const {data,error}=await Remote.rpc('leaderboard_total');if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data}catch(e){err='Nema veze s bazom.'}
@@ -1444,19 +1460,19 @@ const zParse=s=>{s=String(s).trim().replace(/\s/g,'').replace(',','.').replace(/
 const zMatch=(x,e)=>Math.abs(e)<1e-9?Math.abs(x)<=0.005:Math.abs(x-e)<=ZTOL*Math.abs(e)+1e-9;
 function zFieldsHtml(z){const F=zFields(z),A=z.ans,max=F.reduce((s,f)=>s+f.w,0);
   const row=(f,i)=>{const ok=A.ok[i],lock=A.done||ok===true,col=ok===true?'var(--ok)':ok===false?'var(--bad)':'var(--line)';
-    return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:44px;text-align:right;font-weight:600">${f.lab} =</span><input type="text" inputmode="decimal" data-zf="${i}" value="${String(A.v[i]).replace(/"/g,'')}" ${lock?'disabled':''} style="max-width:120px;padding:6px 10px;border-color:${col}"><span>${f.unit}</span>${f.desc?`<span class="note" style="margin:0;white-space:nowrap">(${f.desc})</span>`:''}${ok===true?'<span style="color:var(--ok);font-weight:700">✓</span>':ok===false?`<span style="color:var(--bad);font-weight:700">✗${A.done?` <span style="font-weight:500">točno: ${zN(f.val).replace(/^-/,'−')}</span>`:''}</span>`:''}</div>`};
+    return `<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:44px;text-align:right;font-weight:600">${f.lab} =</span><input type="text" inputmode="decimal" data-zf="${i}" value="${String(A.v[i]).replace(/"/g,'')}" ${lock?'disabled':''} style="max-width:120px;padding:6px 10px;border-color:${col}"><span>${f.unit}</span>${f.desc?`<span class="note" style="margin:0;white-space:nowrap">(${f.desc})</span>`:''}${A.tries?`<span style="white-space:nowrap;font-size:13px;font-weight:700;color:${ok?'var(--ok)':'var(--muted)'}">${zN((A.pf||[])[i]||0)}/${f.w} b.</span>`:''}${ok===true?'<span style="color:var(--ok);font-weight:700">✓</span>':ok===false?`<span style="color:var(--bad);font-weight:700">✗${A.done?` <span style="font-weight:500">točno: ${zN(f.val).replace(/^-/,'−')}</span>`:''}</span>`:''}</div>`};
   return `<div id="zform"><p style="margin:0 0 4px;font-weight:600">Upiši rezultate:</p>${F.map(row).join('')}
    ${z.type==='kont'||z.type==='cvor'?'<p class="note" style="margin:4px 0">Konturne struje i napone čvorova upiši s predznakom.</p>':''}
-   ${A.done?`<p style="margin:10px 0 0;font-size:18px">Bodovi: <b>${zN(A.pts)}</b> od ${max}${A.pts>=max?' 🎉':''}</p>${A.pts<max&&ZLES[z.type]?'<p class="note" style="margin:4px 0 0">Treba ti pomoć? <a href="#" id="zles" style="color:var(--ok);font-weight:700">Pogledaj lekciju</a>.</p>':''}`
+   ${A.done?`<p style="margin:10px 0 0;font-size:18px">Bodovi: <b>${zN(A.pts)}</b> od ${max}${A.pts>=max?' 🎉':''}</p><p class="note" style="margin:2px 0 0">Bodovi po rezultatima služe za vježbu i nisu isti kao stvarno bodovanje na kontrolnoj zadaći, gdje se ponekad boduje i postupak.</p>${A.pts<max&&ZLES[z.type]?'<p class="note" style="margin:4px 0 0">Treba ti pomoć? <a href="#" id="zles" style="color:var(--ok);font-weight:700">Pogledaj lekciju</a>.</p>':''}`
      :`<div class="row" style="margin-top:10px"><button class="primary" id="zcheck" style="margin:0">${A.tries?'Provjeri ponovno':'Provjeri'}</button><button class="ghost" id="zsol" style="margin:0">Prikaži rješenje</button></div>${A.tries?`<p class="note" style="margin:6px 0 0">Ispravi crvena polja. Drugi pokušaj nosi pola boda.${ZLES[z.type]?' Treba ti pomoć? <a href="#" id="zles" style="color:var(--ok);font-weight:700">Pogledaj lekciju</a>.':''}</p>`:''}<p class="note" style="margin:6px 0 0">Priznaje se odstupanje do 5 %. Decimalni zarez ili točka. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova.</p>`}</div>`}
 function zFinish(z,shown){const F=zFields(z),A=z.ans,Z=zProf(),max=F.reduce((s,f)=>s+f.w,0);if(A.done)return;A.done=true;if(shown)A.pts=0;
-  Z.n=(Z.n||0)+1;Z.pts=(Z.pts||0)+A.pts;Z.max=(Z.max||0)+max;const full=A.pts>=max;if(full){Z.ok=(Z.ok||0)+1;Z.full=Z.full||{};Z.full[z.type]=(Z.full[z.type]||0)+1}Z.t=Z.t||{};{const T=Z.t[z.type]||(Z.t[z.type]={n:0,pts:0});T.n++;T.pts+=A.pts}
+  Z.n=(Z.n||0)+1;Z.pts=(Z.pts||0)+A.pts;Z.max=(Z.max||0)+max;const full=A.pts>=max;if(full){Z.ok=(Z.ok||0)+1;Z.full=Z.full||{};Z.full[z.type]=(Z.full[z.type]||0)+1}Z.t=Z.t||{};{const T=Z.t[z.type]||(Z.t[z.type]={n:0,pts:0});T.n++;T.pts+=A.pts;if(A.pts/max>=0.5&&!shown)T.g=(T.g||0)+1}
   const fr=A.pts/max;Z.d[z.type]=Math.max(1,Math.min(6,(Z.d[z.type]||2)+(fr>=0.8?0.5:fr<0.5?-0.5:0)));
   if(!shown)dayTick(full,A.pts);save();
   try{if(Remote&&session)Remote.rpc('record_answer',{p_token:session.token,p_qid:'Z-'+z.type,p_topic:'z'+z.type,p_score:fr,p_help:true,p_mode:'zadaci',p_qbase:0,p_qdelta:0}).then(()=>{},()=>{});gcSend&&gcSend('zadatak/z'+z.type+'/'+(full?'tocno':'netocno'))}catch(e){}}
 function zCheck(z){const F=zFields(z),A=z.ans;main.querySelectorAll('[data-zf]').forEach(i=>A.v[+i.dataset.zf]=i.value);
   if(F.some((f,i)=>A.ok[i]!==true&&isNaN(zParse(A.v[i])))){const m=$('#zmsg');if(m)m.textContent='Upiši broj u svako polje.';return false}
-  A.tries++;F.forEach((f,i)=>{if(A.ok[i]===true)return;const ok=zMatch(zParse(A.v[i]),f.val);if(ok)A.pts+=A.tries===1?f.w:f.w/2;A.ok[i]=ok});
+  A.tries++;F.forEach((f,i)=>{if(A.ok[i]===true)return;const ok=zMatch(zParse(A.v[i]),f.val);A.pf=A.pf||[];if(ok){A.pts+=A.tries===1?f.w:f.w/2;A.pf[i]=A.tries===1?f.w:f.w/2}A.ok[i]=ok});
   if(A.tries>=2||A.ok.every(x=>x===true))zFinish(z,false);return true}
 
 /* ---------- Gamifikacija: niz dana, slobodni dani, značke, zvanja, tjedna liga ---------- */
@@ -1571,6 +1587,7 @@ async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`
 
 /* ---------- Verzije ---------- */
 const VERS=[
+ ['0.16','16. 10. 2026.',['Priprema za KZ1: stadiji pripreme, spremnost i Probna KZ1 (probna kontrolna zadaća) s pregledom svakog zadatka','Formule EtR_f1 i EtR_f2 za preuzimanje','Magnetsko polje i u Vježbi','Prijava greške, Pitaj nastavnika i povratne informacije, uz odgovore nastavnika na Napretku','Odabir kolegija i usporedba kolegija na Ljestvici','Ljestvica Probne KZ1 i Zadataka po gradivima','Izbor vrste pitanja i točnost po vrstama za sve','Elektrostatika u Zadacima kao jedna kartica (naboji i kondenzatori), Testiraj se u Zadacima','Prikaži rješenje pokraj Provjeri','Bolji prikaz na mobitelu']],
  ['0.15','15. 10. 2026.',['Zadaci iz elektrostatike: naboji (polje, potencijal, sila, rad) i kondenzatori (C, Q, U, W)','Magnetsko polje ravnih vodiča: lekcija i zadaci, rješenje s vektorima na slici i silnice pri prelasku mišem','Teoremi mreža: Theveninov i Nortonov teorem','Nove vrste pitanja u Vježbi za sva gradiva i izbor vrste pitanja','Ljestvica i Početna po gradivima Zadataka','Traka napretka kod zadataka s više koraka','Nakon pogrešnog koraka objašnjenje ostaje vidljivo do klika na Dalje','Poveznica na lekciju kad zadatak ne ide']],
  ['0.14','12. 10. 2026.',['Promjena nadimka','Točnost je zadano skrivena, a može se prikazati na ljestvici i profilu','Skriveni PIN pri upisu, s okom za prikaz','Poboljšan vodič kroz aplikaciju','Easter egg']],
  ['0.13','10. 10. 2026.',['Niz dana i slobodni dani','Upis rezultata u Zadacima s bodovanjem i drugim pokušajem','Značke','Tjedna liga na Ljestvici','Javni profil: klik na nadimak na ljestvici']],
@@ -1628,7 +1645,7 @@ async function renderBoardZad(){const me=prof().nick,G=ZGROUPS.find(g=>g[0]===zb
       try{const {data,error}=await Remote.rpc('leaderboard_zad_g',{p_types:G[2]});if(error)err='Ljestvica po gradivima još nije uključena u bazi.';else rows=data}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='zad')return}
     else rows=Object.values(state.profiles).filter(p=>p.zad).map(p=>{const s=zGroupStat(p.zad,G[2]);return{nick:p.nick,pts:s.pts,n:s.n,full_n:s.full}}).filter(r=>r.n>0).sort((a,b)=>b.pts-a.pts||b.full_n-a.full_n);
     main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}<table><tr><th></th><th>Nadimak</th><th>Riješeno</th><th>Bodovi</th></tr>
-    ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.n}</td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="4">Još nitko nije riješio zadatak iz ovog gradiva.</td></tr>'}</table>
+    ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.n}</td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="4">Još nema riješenih zadataka iz ovog gradiva.</td></tr>'}</table>
     <p class="note">Bodovi i broj riješenih zadataka iz gradiva ${G[1]}. Broje se zadaci riješeni od uvođenja ljestvice po gradivima.</p></div>`;modbar();bindZg();return}
   return renderBoardZadAll(head,bindZg)}
 async function renderBoardZadAll(head,bindZg){const me=prof().nick;let rows=[],err='';
@@ -1638,7 +1655,7 @@ async function renderBoardZadAll(head,bindZg){const me=prof().nick;let rows=[],e
   else rows=Object.values(state.profiles).filter(p=>p.zad&&p.zad.n>0).map(p=>({nick:p.nick,pts:p.zad.pts||0,n:p.zad.n,full_n:Object.values(p.zad.full||{}).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.pts-a.pts||b.full_n-a.full_n);
   main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}
   <table><tr><th></th><th>Nadimak</th><th>Bodovi</th></tr>
-  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Još nitko nije riješio zadatak.</td></tr>'}</table>
+  ${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${zN(p.pts)}</td></tr>`).join('')||'<tr><td colspan="3">Još nema riješenih zadataka.</td></tr>'}</table>
   <p class="note">Bodovi su zbroj bodova iz kartice Zadaci.</p>
   ${Remote?'<div id="zstats"><p class="note">Učitavam statistiku…</p></div>':''}</div>`;
   modbar();bindZg();if(Remote)zadStats()}
@@ -1698,11 +1715,13 @@ function zthText(z){const ru=z.unit,giv=z.simple?'':Object.keys(z.val).filter(k=
   const R=sub(z.R);
   if(z.type==='thev')return `Primjenom <b>Theveninova teorema</b> odredite struju kroz otpornik ${R} (označen). Odredite i Theveninove parametre E<sub>T</sub> i R<sub>T</sub> gledano sa stezaljki otpornika ${R}.<br><br>Zadano je: ${giv}.`;
   if(z.type==='nort')return `Primjenom <b>Nortonova teorema</b> odredite struju kroz otpornik ${R} (označen). Odredite i Nortonove parametre I<sub>N</sub> i R<sub>N</sub> = 1/G<sub>N</sub> gledano sa stezaljki otpornika ${R}.<br><br>Zadano je: ${giv}.`;
+  if(z.nor)return `Otpornik ${R} (označen) zamijenimo trošilom R<sub>t</sub>. Primjenom <b>Nortonova teorema</b> odredite Nortonove parametre I<sub>N</sub> i R<sub>N</sub> gledano sa stezaljki trošila. Koliki mora biti otpor trošila da bi ono bilo prilagođeno po snazi na ostatak mreže i kolika je tada snaga na trošilu?<br><br>Zadano je: ${giv}.`;
   return `Otpornik ${R} (označen) zamijenimo trošilom R<sub>t</sub>. Koliki mora biti otpor trošila da bi ono bilo prilagođeno po snazi na ostatak mreže i kolika je tada snaga na trošilu?<br><br>Zadano je: ${giv}.`}
 function zthFields(z){const r=z.r,R=z.R?z.R.slice(1):'';
   if(z.simple)return[{lab:'R<sub>t</sub>',unit:z.unit,val:z.Ri,w:1},{lab:'I',unit:z.iu,val:z.I,w:1},{lab:'P<sub>max</sub>',unit:z.pu,val:z.P,w:2}];
   if(z.type==='thev')return[{lab:'E<sub>T</sub>',unit:'V',val:Math.abs(r.ET),w:1,desc:'iznos'},{lab:'R<sub>T</sub>',unit:z.unit,val:r.RT,w:1},{lab:`I<sub>${R}</sub>`,unit:z.iu,val:Math.abs(r.IL),w:2,desc:'iznos'}];
   if(z.type==='nort')return[{lab:'I<sub>N</sub>',unit:z.iu,val:Math.abs(r.IN),w:1,desc:'iznos'},{lab:'R<sub>N</sub>',unit:z.unit,val:r.RT,w:1},{lab:`I<sub>${R}</sub>`,unit:z.iu,val:Math.abs(r.IL),w:2,desc:'iznos'}];
+  if(z.nor)return[{lab:'I<sub>N</sub>',unit:z.iu,val:Math.abs(r.IN),w:1,desc:'iznos'},{lab:'R<sub>N</sub>',unit:z.unit,val:r.RT,w:1},{lab:'P<sub>max</sub>',unit:z.pu,val:r.Pmax,w:2}];
   return[{lab:'R<sub>T</sub>',unit:z.unit,val:r.RT,w:1},{lab:'E<sub>T</sub>',unit:'V',val:Math.abs(r.ET),w:1,desc:'iznos'},{lab:'P<sub>max</sub>',unit:z.pu,val:r.Pmax,w:2}]}
 function zthSol(z){const L=[],r=z.r,u=z.unit,iu=z.iu,pu=z.pu,f=x=>zN(Math.abs(x));
   if(z.simple){L.push([[],'Prilagođenje po snazi postiže se kad je otpor trošila jednak unutarnjem otporu izvora: <b>R<sub>t</sub> = R<sub>i</sub> = '+z.Ri+' '+u+'</b>.']);
@@ -1713,8 +1732,9 @@ function zthSol(z){const L=[],r=z.r,u=z.unit,iu=z.iu,pu=z.pu,f=x=>zN(Math.abs(x)
   L.push([[z.R],`<b>1. Ukloni ${R}</b> i promatraj stezaljke na kojima je bio (a i b).`]);
   L.push([[],`<b>2. Napon praznog hoda:</b> riješi preostalu mrežu (npr. konturnim strujama ili naponima čvorova) i odredi napon između stezaljki: E<sub>T</sub> = U<sub>ab</sub> = <b>${f(r.ET)} V</b>.`]);
   L.push([[],`<b>3. Ugasi izvore:</b> naponske izvore zamijeni kratkim spojem, a strujne odspoji. Otpor gledan sa stezaljki: R<sub>T</sub> = <b>${zN(r.RT)} ${u}</b>.`]);
-  if(z.type==='nort')L.push([[],`<b>Nortonov izvor:</b> I<sub>N</sub> = E<sub>T</sub> / R<sub>T</sub> = ${f(r.ET)} / ${zN(r.RT)} = <b>${f(r.IN)} ${iu}</b>, a R<sub>N</sub> = R<sub>T</sub> = ${zN(r.RT)} ${u} (G<sub>N</sub> = 1/R<sub>N</sub>). I<sub>N</sub> je struja kroz kratko spojene stezaljke a i b.`]);
-  if(z.type==='pril'){L.push([[],`<b>4. Prilagođenje po snazi:</b> R<sub>t</sub> = R<sub>T</sub> = <b>${zN(r.RT)} ${u}</b>.`]);L.push([[],`P<sub>max</sub> = E<sub>T</sub>² / (4 R<sub>T</sub>) = ${f(r.ET)}² / (4 · ${zN(r.RT)}) = <b>${zN(r.Pmax)} ${pu}</b>.`])}
+  if(z.type==='nort'||z.nor)L.push([[],`<b>Nortonov izvor:</b> I<sub>N</sub> = E<sub>T</sub> / R<sub>T</sub> = ${f(r.ET)} / ${zN(r.RT)} = <b>${f(r.IN)} ${iu}</b>, a R<sub>N</sub> = R<sub>T</sub> = ${zN(r.RT)} ${u} (G<sub>N</sub> = 1/R<sub>N</sub>). I<sub>N</sub> je struja kroz kratko spojene stezaljke a i b.`]);
+  if(z.type==='pril'&&z.nor){L.push([[],`<b>4. Prilagođenje po snazi:</b> R<sub>t</sub> = R<sub>N</sub> = <b>${zN(r.RT)} ${u}</b>.`]);L.push([[],`Struja kroz trošilo tada je I<sub>N</sub>/2, pa je P<sub>max</sub> = I<sub>N</sub>² · R<sub>N</sub> / 4 = ${f(r.IN)}² · ${zN(r.RT)} / 4 = <b>${zN(r.Pmax)} ${pu}</b>.`])}
+  else if(z.type==='pril'){L.push([[],`<b>4. Prilagođenje po snazi:</b> R<sub>t</sub> = R<sub>T</sub> = <b>${zN(r.RT)} ${u}</b>.`]);L.push([[],`P<sub>max</sub> = E<sub>T</sub>² / (4 R<sub>T</sub>) = ${f(r.ET)}² / (4 · ${zN(r.RT)}) = <b>${zN(r.Pmax)} ${pu}</b>.`])}
   else if(z.type==='thev')L.push([[z.R],`<b>4. Vrati ${R}:</b> I = E<sub>T</sub> / (R<sub>T</sub> + ${R}) = ${f(r.ET)} / (${zN(r.RT)} + ${z.val[z.R]}) = <b>${f(r.IL)} ${iu}</b>.`]);
   else L.push([[z.R],`<b>4. Vrati ${R}</b> paralelno Nortonovu izvoru (djelilo struje): I = I<sub>N</sub> · R<sub>N</sub> / (R<sub>N</sub> + ${R}) = ${f(r.IN)} · ${zN(r.RT)} / (${zN(r.RT)} + ${z.val[z.R]}) = <b>${f(r.IL)} ${iu}</b>.`]);
   if(z.type!=='pril')L.push([[],`<span class="note">Isti rezultat dobije se i drugim teoremom ili metodom: E<sub>T</sub> = I<sub>N</sub> · R<sub>T</sub>. Napon na ${R}: ${zN(Math.abs(r.UL))} V, snaga: ${zN(r.PL)} ${pu}.</span>`]);
@@ -2060,13 +2080,20 @@ const IS_TEST='cvoriste:'.includes('test');
 const TYPENAME={I:'Ista struja',U:'Isti napon',B:'Bez struje',X:'Uljez',P:'Koji par odmah',Z:'Zapis Ruk',V:'Promjena Ruk',D:'Ne utječe na Ruk',J:'Točna jednadžba',G:'Pronađi grešku',M:'Koja metoda',jace:'Jače polje',nula:'Nula polja'};
 let testType='';
 {const _pq=pickQuestion;pickQuestion=function(topic,exclude=new Set()){
-  if(view==='exam'||(exam&&exam.running)){const ex=new Set(exclude);for(const q of QS)if(q.topic===topic&&q.type&&TYPENAME[q.type]&&!/^(jace|nula)$/.test(q.type))ex.add(q.id);return _pq(topic,ex)}
+  if(view==='exam'||(exam&&exam.running)){const ex=new Set(exclude);for(const q of QS)if(q.topic===topic&&q.topic!=='mag'&&q.type&&TYPENAME[q.type]&&!/^(jace|nula)$/.test(q.type))ex.add(q.id);return _pq(topic,ex)}
   if(testType){const pool=QS.filter(q=>q.topic===topic&&(testType==='-'?!TYPENAME[q.type]:q.type===testType)&&!exclude.has(q.id));if(pool.length){const r=new Set(prof().recent),f=pool.filter(q=>!r.has(q.id));const a=f.length?f:pool;return a[Math.floor(Math.random()*a.length)]}}
   return _pq(topic,exclude)}}
-function testBar(){if(view!=='practice'||main.querySelector('#testbar'))return;const side=main.querySelector('.side');if(!side)return;const topic=curQ()?curQ().topic:prof().module;
+function tyStat(p,topic,t){const x=(p.ty||{})[topic+':'+t];return x&&x.n?x:null}
+function tyWeak(p,topic,ts){let w=null;for(const t of ts){const x=tyStat(p,topic,t);if(x&&x.n>=3&&x.c/x.n<0.6&&(!w||x.c/x.n<w.a))w={t,a:x.c/x.n}}return w}
+function testBar(){if(view!=='practice'||main.querySelector('#testbar'))return;const side=main.querySelector('.side');if(!side)return;const topic=curQ()?curQ().topic:prof().module,p=prof();
   const ts=[...new Set(QS.filter(q=>q.topic===topic&&TYPENAME[q.type]).map(q=>q.type))];if(!ts.length)return;
-  side.insertAdjacentHTML('afterbegin',`<div id="testbar" style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:600">Vrsta pitanja:</span><select id="ttype" class="ghost"><option value="">sve</option><option value="-" ${testType==='-'?'selected':''}>osnovna</option>${ts.map(t=>`<option value="${t}" ${testType===t?'selected':''}>${TYPENAME[t]}</option>`).join('')}</select></div>`);
-  $('#ttype').onchange=e=>{testType=e.target.value;const m=prof().module;if(m==='serpar'){answered=null;cur=null}else if(m==='ruk'){rk=null}else if(m==='estat'){eq=null}else if(m==='kont'||m==='cvor'){mt=null}else if(m==='thev'||m==='nort'){ths=null}renderPractice()}}
+  const hasBase=QS.some(q=>q.topic===topic&&!TYPENAME[q.type]),lab=t=>{const x=tyStat(p,topic,t);return x?` (${Math.round(100*x.c/x.n)} % točno)`:''},w=tyWeak(p,topic,ts);
+  side.insertAdjacentHTML('beforeend',`<details id="testbar" ${testType||w?'open':''} style="margin-top:14px;padding-top:10px;border-top:1px solid var(--line)"><summary style="cursor:pointer;font-weight:600">Usredotoči se na vrstu pitanja</summary>${w?`<p class="note" style="margin:6px 0">Preporuka: <b>${TYPENAME[w.t]}</b> ti ide slabije (${Math.round(100*w.a)} % točno). <a href="#" id="tyrec" style="color:var(--ok);font-weight:700">Vježbaj to</a></p>`:''}<div style="margin-top:6px"><select id="ttype" class="ghost"><option value="">sve vrste</option>${hasBase?`<option value="-" ${testType==='-'?'selected':''}>osnovna${lab('-')}</option>`:''}${ts.map(t=>`<option value="${t}" ${testType===t?'selected':''}>${TYPENAME[t]}${lab(t)}</option>`).join('')}</select></div></details>`);
+  const go=v=>{testType=v;const m=prof().module;if(m==='serpar'){answered=null;cur=null}else if(m==='ruk'){rk=null}else if(m==='estat'){eq=null}else if(m==='kont'||m==='cvor'){mt=null}else if(m==='thev'||m==='nort'){ths=null}else if(m==='mag'){mgq=null}renderPractice()};
+  $('#ttype').onchange=e=>go(e.target.value);if($('#tyrec'))$('#tyrec').onclick=e=>{e.preventDefault();go(w.t)}}
+{const _ar=applyResult;applyResult=function(q,correct,usedColors){const d=_ar.apply(this,arguments);try{if(!(view==='practice'||view==='exam'))return d;const p=prof();p.ty=p.ty||{};const k=q.topic+':'+(TYPENAME[q.type]?q.type:'-'),x=p.ty[k]||(p.ty[k]={n:0,c:0});x.n++;if((typeof correct==='number'?correct:(correct?1:0))>=0.5)x.c++;save()}catch(e){}return d}}
+{const _rp=renderProgress;renderProgress=function(){const r=_rp.apply(this,arguments);try{const p=prof(),ty=p.ty||{},ks=Object.keys(ty).filter(k=>ty[k].n>0&&!k.endsWith(':-'));if(!ks.length)return r;const pan=main.querySelector('.panel')||main.querySelector('.sheet');if(!pan)return r;
+  pan.insertAdjacentHTML('beforeend',`<h3 style="margin:24px 0 8px">Vrste pitanja</h3><table><tr><th>Gradivo</th><th>Vrsta</th><th>Riješeno</th><th>Točno</th></tr>${ks.sort((a,b)=>ty[a].c/ty[a].n-ty[b].c/ty[b].n).map(k=>{const[tp,t]=k.split(':'),x=ty[k],a=x.c/x.n;return `<tr><td>${STNAME[tp]||MODNAME[tp]||tp}</td><td>${TYPENAME[t]||t}</td><td class="num">${x.n}</td><td class="num" style="white-space:nowrap;color:${x.n>=3&&a<0.6?'var(--bad)':a>=0.8?'var(--ok)':'inherit'}">${Math.round(100*a)} %</td></tr>`}).join('')}</table><p class="note">Vrste koje ti idu slabije (crveno) aplikacija ti preporučuje u Vježbi, ispod pitanja.</p>`)}catch(e){}return r}}
 /* ---------- Teoremi: nove vrste pitanja ---------- */
 const THX={};
 (function(){const rnd=seeded('teoremi-tipovi'),add=[],cnt={};let n=0;
@@ -2100,7 +2127,219 @@ function progBar(){if(main.querySelector('#progbar'))return;const side=main.quer
   else if((m==='ruk'||m==='rukC')&&rk&&!rk.q.type){n=rk.n.segs.filter(s=>s.k==='r'&&(!rk.n.status||rk.n.status[s.n]==='ok')).length-1;i=Math.min(rk.steps.length,n);lab=`spojeno ${i}/${n}`}
   if(i===null||n<2)return;const pc=Math.round(i/n*100);
   side.insertAdjacentHTML('afterbegin',`<div id="progbar" style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pc}%;background:var(--ok);transition:width .3s"></div></div><span style="font-size:13px;color:var(--muted);white-space:nowrap">${lab||`${i}/${n}`}</span></div>`)}
-{const _as=addSkip;addSkip=function(){try{progBar()}catch(e){}try{testBar()}catch(e){}return _as.apply(this,arguments)}}
+/* ---------- Vježba: magnetsko polje ravnih vodiča ---------- */
+TOPICS.mag='Magnetsko polje';MODNAME.mag='Magnetsko polje';MODS.push(['mag','Magnetsko polje']);STNAME.mag='Magnetsko polje';
+for(const k in state.profiles){const p=state.profiles[k];if(!p.ratings.mag)p.ratings.mag={r:2.0,n:0,c:0}}
+{const _np=newProfile;newProfile=function(n){const p=_np(n);p.ratings.mag={r:2.0,n:0,c:0};return p}}
+Object.assign(TYPENAME,{msil:'Smjer silnica',mhp:'Smjer H u točki',mzr:'Zbroj ili razlika',mrez:'Smjer ukupnog H',msila:'Privlače ili odbijaju',movis:'Ovisnost H o r i I',mpoj:'Nazivi veličina'});
+Object.assign(TAGNAMES,{mg_silnice:'Smjer silnica (pravilo desne ruke)',mg_vektor:'Smjer vektora H u točki',mg_zbroj:'Zbrajanje polja dvaju vodiča',mg_sila:'Sila između vodiča',mg_ovis:'Ovisnost polja o udaljenosti i struji',mg_pojam:'Nazivi magnetskih veličina'});
+const MGQ=[];
+(function(){let n=0;const add=q=>{q.id='MG'+String(++n).padStart(2,'0');q.topic='mag';MGQ.push(q);QS.push(q)};
+  const ARR={u:'↑ gore',d:'↓ dolje',l:'← lijevo',r:'→ desno'},dirOf=(ux,uy)=>Math.abs(ux)>Math.abs(uy)?(ux>0?'r':'l'):(uy>0?'d':'u');
+  for(const v of[1,-1])add({type:'msil',v,ans:v>0?'ccw':'cw',opts:[['cw','u smjeru kazaljke na satu'],['ccw','suprotno od kazaljke na satu']],diff:1.3,tags:['mg_silnice']});
+  // H u točki: P desno/lijevo/gore/dolje od vodiča
+  for(const v of[1,-1])for(const [dx,dy] of[[1,0],[-1,0],[0,-1],[0,1]]){const ux=dy*v,uy=-dx*v;add({type:'mhp',v,dx,dy,ans:dirOf(ux,uy),opts:Object.entries(ARR),diff:2.4+(dy?0.4:0),tags:['mg_vektor']})}
+  // dva vodiča na pravcu
+  const two=(s1,s2,pos,I1,I2,a,b)=>{const x2=pos==='izmedju'?a+b:a,xp=pos==='izmedju'?a:(pos==='desno'?a+b:-b),r1=Math.abs(xp),r2=Math.abs(xp-x2),u1=s1*Math.sign(xp),u2=s2*Math.sign(xp-x2),H1=I1/r1,H2=I2/r2,Hs=u1*H1+u2*H2;return{x2,xp,u1,u2,H1,H2,Hs}};
+  for(const s1 of[1,-1])for(const s2 of[1,-1])for(const pos of['izmedju','desno','lijevo']){const g=two(s1,s2,pos,1,1,2,2);add({type:'mzr',s1,s2,pos,I1:1,I2:1,a:2,b:2,ans:g.u1===g.u2?'zbroj':'razlika',opts:[['zbroj','zbrajaju se (isti smjer)'],['razlika','oduzimaju se (suprotan smjer)']],diff:pos==='izmedju'?3.2:3.8,tags:['mg_zbroj']})}
+  for(const s1 of[1,-1])for(const s2 of[1,-1])for(const pos of['izmedju','desno'])for(const [I1,I2,a,b] of[[2,1,2,2],[1,2,2,2],[1,1,1,3],[3,1,3,1]]){const g=two(s1,s2,pos,I1,I2,a,b);if(Math.abs(g.Hs)<0.05)continue;if(pos==='izmedju'&&g.u1===g.u2&&(I1+I2)%2)continue;
+    add({type:'mrez',s1,s2,pos,I1,I2,a,b,ans:g.Hs>0?'u':'d',opts:Object.entries(ARR),diff:4.2+(g.u1!==g.u2?0.8:0)+(pos==='desno'?0.4:0),tags:['mg_zbroj','mg_vektor']})}
+  for(const s1 of[1,-1])for(const s2 of[1,-1])add({type:'msila',s1,s2,ans:s1===s2?'priv':'odb',opts:[['priv','privlače se'],['odb','odbijaju se']],diff:1.8,tags:['mg_sila']});
+  for(const [w,f,ans] of[['r',2,'pola'],['r',0.5,'dupl'],['I',2,'dupl'],['I',0.5,'pola'],['r',3,'trec']])add({type:'movis',w,f,ans,opts:[['dupl','dvostruko veći'],['pola','dvostruko manji'],['cetv','četiri puta manji'],['trec','tri puta manji'],['isti','isti']].filter(o=>o[0]!=='trec'||ans==='trec'),diff:1.9,tags:['mg_ovis']});
+  const POJ=[['B','gustoća magnetskog toka (magnetska indukcija)','T'],['H','jakost magnetskog polja','A/m'],['Φ','magnetski tok','Wb = Vs']];
+  for(const [s,nm,u] of POJ)add({type:'mpoj',sym:s,ans:s,opts:POJ.map(x=>[x[0],x[1]]).concat([['Θ','magnetomotorna sila']]),diff:1.2,tags:['mg_pojam'],unit:u,name:nm});
+})();
+function mgDraw(q,show){const I1='I<tspan font-size="0.72em" dy="4">1</tspan>',I2='I<tspan font-size="0.72em" dy="4">2</tspan>',fx=s=>s.replace(/<g class="mfl"/g,'<g class="mfl" style="opacity:1"');
+  if(q.type==='msil'){const s=magSvg([{t:'w',x:260,y:120,v:q.v,lab:'I'}],240);return show?fx(s):s}
+  if(q.type==='mhp'){const x=260-q.dx*110,y=125-q.dy*60;return magSvg([{t:'w',x,y,v:q.v,lab:'I'},{t:'l',x1:x,y1:y,x2:260,y2:125},{t:'p',x:260,y:125,lab:'P'}],250,{show,P:{x:260,y:125},Hs:[1]})}
+  if(q.type==='mzr'||q.type==='mrez'){const x2=q.pos==='izmedju'?q.a+q.b:q.a,xp=q.pos==='izmedju'?q.a:(q.pos==='lijevo'?-q.b:q.a+q.b),m0=Math.min(0,xp),L=Math.max(x2,xp)-m0,S=400/L,X=v=>60+(v-m0)*S,lab=(t,I)=>q.type==='mrez'?`${t}<tspan dy="-4"> = ${I===1?'':I}I</tspan>`:t;
+    const els=[{t:'l',x1:30,y1:120,x2:500,y2:120},{t:'w',x:X(0),y:120,v:q.s1,lab:lab(I1,q.I1)},{t:'w',x:X(x2),y:120,v:q.s2,lab:lab(I2,q.I2)},{t:'p',x:X(xp),y:120,lab:'P'}];
+    if(q.type==='mrez'){els.push({t:'d',x1:X(0),y1:175,x2:X(q.a),y2:175,lab:q.a===1?'a':q.a+'a',s:-8},{t:'d',x1:X(q.a),y1:175,x2:X(q.a+q.b),y2:175,lab:q.b===1?'a':q.b+'a',s:-8})}
+    const r1=Math.abs(xp),r2=Math.abs(xp-x2);return magSvg(els,240,{show,P:{x:X(xp),y:120},Hs:[q.I1/r1,q.I2/r2]})}
+  if(q.type==='msila'){const s=magSvg([{t:'w',x:170,y:120,v:q.s1,lab:I1},{t:'w',x:350,y:120,v:q.s2,lab:I2}],230);if(!show)return s;const dx=q.s1===q.s2?1:-1;return s.replace('</svg>',`<line x1="${170+22}" y1="175" x2="${170+22+dx*50}" y2="175" stroke="#1E8A4C" stroke-width="4" marker-end="url(#mar2)"/><line x1="${350-22}" y1="175" x2="${350-22-dx*50}" y2="175" stroke="#1E8A4C" stroke-width="4" marker-end="url(#mar2)"/><text x="260" y="210" text-anchor="middle" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="17" font-weight="700" fill="#1E8A4C">F</text></svg>`)}
+  if(q.type==='movis'){return magSvg([{t:'w',x:130,y:120,v:1,lab:'I'},{t:'p',x:390,y:120,lab:'T'},{t:'d',x1:130,y1:170,x2:390,y2:170,lab:'r',s:-8}],230)}
+  return fx(magSvg([{t:'w',x:260,y:120,v:1,lab:'I'}],240))}
+function mgText(q){const PS={izmedju:'između vodiča',desno:'desno od oba vodiča',lijevo:'lijevo od oba vodiča'};
+  if(q.type==='msil')return `Kroz vodič teče struja ${q.v>0?'iz papira (⊙)':'u papir (⊗)'}. Kojim smjerom idu silnice oko vodiča?`;
+  if(q.type==='mhp')return 'Kamo gleda vektor jakosti magnetskog polja H u točki P?';
+  if(q.type==='mzr')return `Točka P je ${PS[q.pos]}. Zbrajaju li se ili oduzimaju polja H<sub>1</sub> i H<sub>2</sub> u točki P?`;
+  if(q.type==='mrez')return `Kamo gleda <strong>ukupni</strong> vektor H u točki P? Struje i udaljenosti zadane su na slici.`;
+  if(q.type==='msila')return 'Dva paralelna vodiča vode struje smjerova prema slici. Kako djeluju jedan na drugi?';
+  if(q.type==='movis')return `Ako se ${q.w==='r'?'udaljenost r od vodiča':'struja I kroz vodič'} ${q.f===2?'udvostruči':q.f===3?'utrostruči':'smanji na pola'}, jakost polja H u točki T bit će:`;
+  if(q.type==='mpoj')return `Kako se zove veličina <strong>${q.sym}</strong>?`}
+function mgExplain(q){const ARRW={u:'gore',d:'dolje',l:'lijevo',r:'desno'};
+  if(q.type==='msil')return `Pravilo desne ruke: palac u smjeru struje, prsti pokazuju silnice. Struja ${q.v>0?'iz papira daje silnice suprotno od kazaljke na satu':'u papir daje silnice u smjeru kazaljke na satu'}.`;
+  if(q.type==='mhp')return `H je tangenta na silnicu kroz točku P, okomit na spojnicu vodiča i točke. Ovdje gleda ${ARRW[q.ans]}.`;
+  if(q.type==='mzr')return `Pravilom desne ruke odredi smjer svakog polja u P: ${q.ans==='zbroj'?'oba gledaju na istu stranu, pa se zbrajaju':'gledaju na suprotne strane, pa se oduzimaju'}.`;
+  if(q.type==='mrez'){const x2=q.pos==='izmedju'?q.a+q.b:q.a,xp=q.pos==='izmedju'?q.a:(q.pos==='lijevo'?-q.b:q.a+q.b),r1=Math.abs(xp),r2=Math.abs(xp-x2);return `H<sub>1</sub> ∼ ${q.I1}/${r1}, H<sub>2</sub> ∼ ${q.I2}/${r2} (H = I/2πr). ${'Jači vektor određuje smjer ukupnog polja'}: ukupni H gleda ${ARRW[q.ans]}.`}
+  if(q.type==='msila')return q.ans==='priv'?'Struje istog smjera: vodiči se privlače.':'Struje suprotnog smjera: vodiči se odbijaju.';
+  if(q.type==='movis')return q.w==='r'?`H = I/(2πr): H je obrnuto razmjeran udaljenosti (ne kvadratu!), pa je H ${q.f===2?'dvostruko manji':q.f===3?'tri puta manji':'dvostruko veći'}.`:`H = I/(2πr): H je razmjeran struji, pa je H ${q.f===2?'dvostruko veći':'dvostruko manji'}.`;
+  if(q.type==='mpoj')return `${q.sym} je ${q.name}, jedinica ${q.unit}. Pazi da ne pobrkaš B, H i Φ.`}
+let mgq=null,mgA=null;
+function renderMag(){const p=prof();if(!mgq||mgq.topic!=='mag'){mgq=pickQuestion('mag');mgA=null}const q=mgq,done=mgA!=null;
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Pitanje ${q.id}</span><span>težina pitanja ${fmt(qRating(q))}</span></div><div class="schem">${mgDraw(q,done)}</div></div>
+  <div class="sheet side"><p class="q">${mgText(q)}</p><div class="opts">${q.opts.map(([k,t],i)=>`<button class="opt ${done?(k===q.ans?'right':(k===mgA?'wrong':'')):''}" data-a="${k}" ${done?'disabled':''}><kbd>${'abcde'[i]})</kbd>${t}</button>`).join('')}</div><div id="fb"></div></div></div>`;
+  modbar();
+  if(done){const ok=mgA===q.ans,d=q._d;$('#fb').innerHTML=`<div class="fb ${ok?'ok':'bad'}"><h3>${ok?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${mgExplain(q)}</p><span class="delta">Razina ${d>=0?'+':'−'}${fmt(Math.abs(d))} → ${fmt(p.ratings.mag.r)}</span><br><button class="primary" id="next">Sljedeće pitanje</button></div>`;$('#next').onclick=()=>{mgq=null;renderMag()}}
+  else main.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{mgA=b.dataset.a;q._d=applyResult(q,mgA===q.ans,false);header();renderMag()});
+  try{addSkip()}catch(e){}}
+{const _rp=renderPractice;renderPractice=function(){if(prof().module==='mag')return renderMag();return _rp.apply(this,arguments)}}
+{const _ss=skipState;skipState=function(){if(prof().module==='mag')return{done:mgA!=null,reset:()=>{mgq=null}};return _ss.apply(this,arguments)}}
+{const _cq=curQ;curQ=function(){if(prof().module==='mag')return mgq;return _cq.apply(this,arguments)}}
+{const _re=renderExam;renderExam=function(){const mod=prof().module;if(mod!=='mag')return _re.apply(this,arguments);const N=8;
+  if(!exam||exam.mod!==mod){main.innerHTML=`<div class="sheet panel"><h2>Ispit: ${MODNAME.mag}</h2><p>Osam kratkih pitanja iz magnetskog polja ravnih vodiča, bez objašnjenja dok ne završiš. Mjeri se vrijeme, a rezultati se računaju u razinu kao i u vježbi.</p><button class="primary" id="start">Započni ispit</button></div>`;modbar();exam=null;
+    $('#start').onclick=()=>{exam={mod,qs:[],ans:[],i:0,t0:Date.now(),running:true};const e=new Set();for(let i=0;i<N;i++){const q=pickQuestion(mod,e);e.add(q.id);exam.qs.push(q)}renderExam()};return}
+  if(exam.running){const q=exam.qs[exam.i];main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Pitanje ${exam.i+1} od ${N}</span><span class="timer" id="tm"></span></div><div class="schem">${mgDraw(q,false)}</div></div><div class="sheet side"><p class="q">${mgText(q)}</p><div class="opts">${q.opts.map(([k,t],i)=>`<button class="opt" data-a="${k}"><kbd>${'abcde'[i]})</kbd>${t}</button>`).join('')}</div></div></div>`;modbar();examTick();
+    main.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{applyResult(q,b.dataset.a===q.ans,false);exam.ans.push(b.dataset.a);exam.i++;if(exam.i>=N){exam.running=false;exam.t1=Date.now()}header();renderExam()});return}
+  const s=Math.round((exam.t1-exam.t0)/1000),good=exam.qs.filter((q,i)=>exam.ans[i]===q.ans).length,lab=(q,k)=>(q.opts.find(o=>o[0]===k)||['',''])[1];
+  main.innerHTML=`<div class="sheet panel"><h2>${good} od ${N} točno</h2><p>Vrijeme ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}. Razina iz magnetskog polja sada je ${fmt(prof().ratings.mag.r)}.</p><table><tr><th>Pitanje</th><th>Tvoj odgovor</th><th>Točno</th></tr>${exam.qs.map((q,i)=>`<tr><td><button class="ghost" data-r="${i}">${q.id}</button></td><td style="color:${exam.ans[i]===q.ans?'var(--ok)':'var(--bad)'}">${lab(q,exam.ans[i])}</td><td>${lab(q,q.ans)}</td></tr>`).join('')}</table><div id="rev" style="margin-top:16px"></div><button class="primary" id="again">Novi ispit</button></div>`;modbar();
+  main.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const q=exam.qs[+b.dataset.r];$('#rev').innerHTML=`<div class="schem">${mgDraw(q,true)}</div><p>${mgText(q)}</p><p>${mgExplain(q)}</p>`});$('#again').onclick=()=>{exam=null;renderExam()}}}
+{const _rb=renderBank;renderBank=function(){if(prof().module!=='mag')return _rb.apply(this,arguments);
+  main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Baza zadataka: ${MODNAME.mag}</h2><p class="note">${MGQ.length} pitanja. Uz svako je točan odgovor.</p><table><tr><th>Pitanje</th><th>Vrsta</th><th>Tekst</th><th>Točno</th><th>Težina</th></tr>${MGQ.map(q=>`<tr><td>${q.id}</td><td>${TYPENAME[q.type]}</td><td>${mgText(q)}</td><td>${(q.opts.find(o=>o[0]===q.ans)||['',''])[1]}</td><td>${fmt(q.diff)}</td></tr>`).join('')}</table></div>`;modbar()}}
+
+/* ---------- Zadaci / Testiraj se i obavijest o KZ ---------- */
+/* */const KZ1=new Date('2026-10-28T08:00:00+01:00');
+const COURSES=[['etr','Elektrotehnika R – studij računarstva'],['emr','Elektrotehnika – studij mehatronike i robotike'],['drugi','Drugi kolegij']];
+function isEtr(){const p=prof();return !p||!p.course||p.course==='etr'}
+function courseAsk(force){const p=prof();if(!p||(!force&&p.course)||document.getElementById('fbm'))return;const m=fbModal(`<h3 style="margin:0 0 8px">Koji kolegij slušaš?</h3><p class="note" style="margin:0 0 10px">Aplikaciju koriste studenti više kolegija Tehničkog fakulteta u Rijeci. Obavijesti o kontrolnim zadaćama i datumi odnose se na kolegij Elektrotehnika R (sveučilišni prijediplomski studij računarstva).</p><select id="crs" class="ghost" style="width:100%;margin:0 0 12px">${COURSES.map(([k,t])=>`<option value="${k}" ${p.course===k?'selected':''}>${t}</option>`).join('')}</select><div class="row" style="justify-content:flex-end"><button class="primary" id="crsok" style="margin:0">Spremi</button></div><p class="note" style="margin:8px 0 0">Kolegij možeš promijeniti u Napretku.</p>`);
+  m.querySelector('#crsok').onclick=()=>{p.course=m.querySelector('#crs').value;save();m.remove();if(view==='kz'&&!isEtr())view='home';render()}}
+function kzBanner(){const now=new Date();if(now>new Date(KZ1.getTime()+60*60000))return '';if(!isEtr())return `<div id="kzban" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:10px;padding:12px 16px;margin:0 0 18px;font-size:14px;cursor:${view==='kz'?'default':'pointer'}">Priprema za KZ1 u aplikaciji izrađena je za kolegij <b>Elektrotehnika R</b> (Tehnički fakultet u Rijeci). Na tvojem kolegiju gradivo, datum i pravila prve kontrolne zadaće mogu biti drukčiji, pa ih provjeri kod svojih nastavnika. Ostali dijelovi aplikacije (Vježba, Zadaci) korisni su svima. <a href="#" id="kzcrs" style="color:inherit;font-size:12px">Promijeni kolegij</a></div>`;const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),d1=new Date(KZ1.getFullYear(),KZ1.getMonth(),KZ1.getDate()),dn=Math.round((d1-d0)/864e5);
+  const when=dn<=0?'<b>danas</b>':dn===1?'<b>sutra</b>':`za <b>${dn} ${dn%10>=2&&dn%10<=4&&(dn%100<12||dn%100>14)?'dana':'dana'}</b>`;
+  return `<div id="kzban" style="border:2px solid var(--bad);border-radius:10px;padding:14px 16px;margin:0 0 18px;cursor:${view==='kz'?'default':'pointer'}"><div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Kontrolna zadaća 1</div><div style="font-size:19px;font-weight:700;margin:2px 0 6px">Srijeda, 28. 10. 2026. u 8:00 (60 min) · ${when}</div><div style="font-size:14px">Gradivo: elektrostatika, mreže istosmjerne struje i elektromagnetizam.</div><div class="note" style="margin-top:6px">Aplikacija je dodatak, a ne zamjena za predavanja, auditorne vježbe i samostalno rješavanje zadataka s kalkulatorom.</div><div style="margin-top:8px;font-size:12px;color:var(--muted)">Termin vrijedi za kolegij Elektrotehnika R (studij računarstva). <a href="#" id="kzcrs" style="color:inherit">Nisi na tom kolegiju? Promijeni kolegij</a></div>${view==='kz'?'':'<button class="primary" style="margin:12px 0 0">Kreni s pripremom za KZ1 →</button>'}</div>`}
+function zSubBar(){if(view!=='zad'&&view!=='exam')return;if(main.querySelector('#zsub'))return;const ex=view==='exam';
+  main.insertAdjacentHTML('afterbegin',`<div class="modwrap" id="zsub" style="margin-bottom:8px"><div class="modbar"><button data-zs="zad" aria-current="${!ex}">Zadaci s brojevima</button><button data-zs="exam" aria-current="${ex}">Testiraj se</button></div></div>`);
+  main.querySelectorAll('[data-zs]').forEach(b=>b.onclick=()=>{const t=b.dataset.zs;if(t===view)return;const go=()=>{if(t!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=t;render();window.scrollTo(0,0)};if(exam&&exam.running&&t!=='exam'){exAsk(()=>go());return}go()})}
+
+/* ---------- Priprema za KZ1 ---------- */
+function kzActive(){return Date.now()<KZ1.getTime()+60*60000}
+const KZS1=[['estat','Elektrostatika',['estat']],['serpar','Serija ili paralela',['serpar']],['ruk','Ukupni otpor',['ruk','rukC']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi mreža',['thev','nort']],['mag','Magnetsko polje',['mag']]];
+const KZS2=[['nab','Elektrostatika (naboji, kondenzatori)',['nab','capu']],['ruk','Ukupni otpor, struje i naponi',['ruk','cap','ui']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi i prilagođenje',['thev','nort','pril']],['mag','Magnetsko polje',['mag']]];
+const KZR={n1:15,r1:4,n2:3,tot2:20};const KZDEP1={ruk:'serpar',kont:'ruk',thev:'kont'},KZDEP2={kont:'ruk',thev:'kont'};
+function kzState(p){const s1=KZS1.map(([k,l,ts])=>{let n=0,w=0,t=0;ts.forEach(x=>{const r=p.ratings[x];if(!r)return;n+=r.n;const ww=Math.max(1,r.n);w+=ww;t+=r.r*ww});const r=w?t/w:2;return{k,l,n,r,ok:n>=KZR.n1&&r>=KZR.r1,pr:Math.min(1,n/KZR.n1)*0.5+Math.min(1,Math.max(0,(r-1)/(KZR.r1-1)))*0.5}});
+  const Z=p.zad||{},s2=KZS2.map(([k,l,ts])=>{let g=0;ts.forEach(t=>{const x=(Z.t||{})[t]||{};g+=Math.max(x.g||0,(Z.full||{})[t]||0)});return{k,l,g,ts,ok:g>=KZR.n2,pr:Math.min(1,g/KZR.n2)}}),tot=Z.n||0;
+  const ok1=s1.every(x=>x.ok),ok2=ok1&&s2.every(x=>x.ok)&&tot>=KZR.tot2,K=p.kz||{sims:[]};
+  const p1=s1.reduce((a,x)=>a+x.pr,0)/s1.length,p2=(s2.reduce((a,x)=>a+x.pr,0)/s2.length)*0.7+Math.min(1,tot/KZR.tot2)*0.3,p3=Math.min(1,(K.best||0)/12);
+  return{s1,s2,tot,ok1,ok2,K,ready:Math.round(100*(p1*0.35+p2*0.35+p3*0.3))}}
+const KZRULES=`<ul style="margin:6px 0 0 18px;padding:0"><li>Kontrolna zadaća ima <b>4 zadatka</b>: tri po 6 bodova i jedan za 2 boda (ukupno 20).</li><li>Traje <b>60 minuta</b>.</li><li>Za prolaz treba barem <b>6 bodova</b>.</li><li>S <b>12 i više bodova</b> ostvaruješ pravo na oslobođenje završnog ispita prema pravilima kolegija.</li><li>Smiješ koristiti službeni list s formulama i kalkulator: <a href="EtR_f1.pdf" target="_blank" style="color:var(--ok);font-weight:700">EtR_f1</a> za KZ1 i KZ2, <a href="EtR_f2.pdf" target="_blank" style="color:var(--ok);font-weight:700">EtR_f2</a> za KZ3.</li></ul><p class="note" style="margin:8px 0 0">Prolaz i pravo na oslobođenje odnose se na bodove na <b>pravoj</b> kontrolnoj zadaći, a ne na probnoj KZ1. Probna KZ1 u aplikaciji služi samo za vježbu.</p>`;
+let kzSim=null,kzShowRules=false;
+function kzPickTask(i,stage){const r=Math.random(),pk=a=>a[Math.floor(Math.random()*a.length)],d=pk([3,3,4]);let z;
+  const keep=zTestKind;try{
+  if(i===0)z=r<0.7?nabGen(d):zGen('capu',d);
+  else if(i===1){for(let t=0;t<30;t++){z=zGen(pk(['kont','cvor']),d);if(z&&z.q.c.br.filter(b=>b.R).every(b=>Math.abs(z.res.br[b.id])>1e-9))break}if(z){const br=z.q.c.br.filter(b=>b.R&&Math.abs(z.res.br[b.id])>1e-9).sort(()=>Math.random()-0.5).slice(0,3);z.fields=br.map(b=>({lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(z.res.br[b.id]),w:1,desc:'iznos'}));z.kzFree=true}}
+  else if(i===2)z=zGen(r<0.7?'pril':pk(['thev','nort']),d);
+  else{const pm=0.4+0.15*(stage||0);if(r<pm){zTestKind=pk(['jedan','jedan','sila','naboj']);z=magGen(2)}else if(r<pm+0.3){zTestKind=pk(['jedan','ploce']);z=nabGen(1)}else z=zGen('ruk',2)}
+  }finally{zTestKind=keep}
+  if(!z)return kzPickTask(i,stage);zFields(z);z.ans={v:z.fields.map(()=>''),ok:z.fields.map(()=>null),tries:0,done:false,pts:0};return z}
+function kzStart(){kzSim={t0:Date.now(),zs:[0,1,2,3].map(i=>kzPickTask(i,2)),max:[6,6,6,2],i:0,done:false};view='kz';render();window.scrollTo(0,0)}
+function kzFinish(){const S=kzSim;S.done=true;S.t1=Date.now();S.parts=S.zs.map((z,i)=>{const F=z.fields;let got=0,all=0;F.forEach((f,j)=>{all+=f.w;const ok=zMatch(zParse(z.ans.v[j]),f.val);z.ans.ok[j]=ok;if(ok)got+=f.w});return Math.round(S.max[i]*got/all*2)/2});S.pts=S.parts.reduce((a,b)=>a+b,0);
+  const p=prof();p.kz=p.kz||{sims:[]};p.kz.sims.push({d:Date.now(),pts:S.pts,parts:S.parts,min:Math.round((S.t1-S.t0)/60000)});p.kz.best=Math.max(p.kz.best||0,S.pts);if(!p.kz.seenRules){p.kz.seenRules=true;kzShowRules=true}save();
+  try{gcSend&&gcSend('kz/simulacija/'+(S.pts>=6?'prolaz':'pad'))}catch(e){}}
+function kzTick(){const el=$('#kztm');if(!el||!kzSim||kzSim.done)return;const left=Math.max(0,65*60-Math.floor((Date.now()-kzSim.t0)/1000));el.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;el.style.color=left<300?'var(--bad)':'';if(left<=0){kzSave();kzFinish();renderKZ();return}clearTimeout(kzSim.tt);kzSim.tt=setTimeout(kzTick,500)}
+function kzSave(){if(!kzSim)return;const z=kzSim.zs[kzSim.i];main.querySelectorAll('[data-kf]').forEach(i=>z.ans.v[+i.dataset.kf]=i.value)}
+function kzTxt(zz){return zz.kzFree?zText(zz).replace(/^Metodom konturnih struja odredite struje kroz sve otpornike\. Smjerovi konturnih struja zadani su na slici\.|^Metodom napona čvorova odredite napone čvorova i struje kroz sve otpornike\. Donji čvor je referentni \(uzemljen\)\./,'Bilo kojom metodom odredite iznose struja kroz označene otpornike.'):zText(zz)}
+function renderKZSim(){const S=kzSim,z=S.zs[S.i],done=S.done;
+  if(done){const pass=S.pts>=6,osl=S.pts>=12;
+    main.innerHTML=`<div class="sheet panel" style="max-width:980px"><h2>Probna KZ1: ${zN(S.pts)} od 20 bodova</h2><p style="font-size:18px;margin:0 0 6px;color:${pass?'var(--ok)':'var(--bad)'};font-weight:700">${osl?'Odlično, na pravoj KZ to bi bilo pravo na oslobođenje završnog ispita (12+).':pass?'Prolaz (6+ bodova).':'Ispod praga za prolaz (6 bodova).'}</p><p class="note">Vrijeme: ${Math.round((S.t1-S.t0)/60000)} min. Probna KZ1 služi samo za vježbu. Bodovanje probne KZ1, i ukupno i parcijalno po rezultatima, može biti drukčije od stvarnog bodovanja na KZ-u: ovdje se gledaju samo konačni rezultati, a na KZ-u se ponekad boduje i postupak.</p>
+    <h3 style="margin:16px 0 4px">Pregled zadataka</h3><p class="note" style="margin:0 0 8px">Odaberi zadatak i pogledaj sliku, svoje odgovore, točne rezultate i postupak rješavanja.</p><div class="modbar" id="kzrb" style="flex-wrap:wrap">${S.parts.map((x,i)=>`<button data-kr="${i}" aria-current="${i===0}">${i+1}. zadatak · <b style="color:${x>=S.max[i]?'var(--ok)':x>0?'var(--mark)':'var(--bad)'}">${zN(x)} / ${S.max[i]}</b></button>`).join('')}</div>
+    <div id="kzrev" style="margin-top:14px"></div>${kzShowRules?`<div style="margin-top:18px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px"><b>Pravila kolegija</b>${KZRULES}</div>`:''}
+    <div class="row" style="margin-top:16px;gap:8px"><button class="primary" id="kznew" style="margin:0">Nova probna KZ1</button><button class="ghost" id="kzback" style="margin:0">Natrag na pripremu</button></div></div>`;
+    main.querySelectorAll('[data-kr]').forEach(b=>b.onclick=()=>{const zz=S.zs[+b.dataset.kr],sol=zSol(zz);const F=zz.fields,all=F.reduce((a,f)=>a+f.w,0),mx=S.max[+b.dataset.kr];$('#kzrev').innerHTML=`<div class="board"><div class="sheet"><div class="schem">${zDraw(zz,null)}</div></div><div class="sheet side"><p>${kzTxt(zz)}</p><table><tr><th>Veličina</th><th>Tvoj</th><th>Točno</th><th>Bodovi</th></tr>${F.map((f,j)=>`<tr><td>${f.lab}</td><td style="color:${zz.ans.ok[j]?'var(--ok)':'var(--bad)'}">${zz.ans.v[j]||'–'}</td><td>${zN(f.val)} ${f.unit}</td><td style="white-space:nowrap;font-weight:700">${zN(zz.ans.ok[j]?mx*f.w/all:0)} / ${zN(mx*f.w/all)}</td></tr>`).join('')}</table><h3 style="margin:12px 0 6px">Rješenje</h3><ol class="steps">${sol.steps.map(s=>`<li>${s[1]}</li>`).join('')}</ol>${sol.table||''}</div></div>`});
+    main.querySelectorAll('[data-kr]').forEach(b=>b.addEventListener('click',()=>main.querySelectorAll('[data-kr]').forEach(x=>x.setAttribute('aria-current',x===b))));{const f=main.querySelector('[data-kr="0"]');if(f)f.click()}
+    $('#kznew').onclick=kzStart;$('#kzback').onclick=()=>{kzSim=null;kzShowRules=false;renderKZ()};return}
+  const txt=kzTxt;const _unused=zz=>zz.kzFree?zText(zz).replace(/^Metodom konturnih struja odredite struje kroz sve otpornike\. Smjerovi konturnih struja zadani su na slici\.|^Metodom napona čvorova odredite napone čvorova i struje kroz sve otpornike\. Donji čvor je referentni \(uzemljen\)\./,'Bilo kojom metodom odredite iznose struja kroz označene otpornike.'):zText(zz);
+  main.innerHTML=`<div class="modwrap"><div class="modbar">${S.zs.map((_,i)=>`<button data-kt="${i}" aria-current="${i===S.i}">${i+1}. zadatak (${S.max[i]} b.)</button>`).join('')}</div><span class="modlvl">Preostalo: <b id="kztm"></b> · <a href="EtR_f1.pdf" target="_blank" style="color:var(--ok)">formule EtR_f1</a></span></div>
+  <div class="board"><div class="sheet"><div class="meta"><span>Probna KZ1 · ${S.i+1}. zadatak</span><span>riješi na papiru</span></div><div class="schem">${zDraw(z,null)}</div></div>
+  <div class="sheet side"><p style="margin:0 0 14px">${txt(z)}</p><p style="margin:0 0 4px;font-weight:600">Upiši rezultate:</p>${z.fields.map((f,j)=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:44px;text-align:right;font-weight:600">${f.lab} =</span><input type="text" inputmode="decimal" data-kf="${j}" value="${String(z.ans.v[j]).replace(/"/g,'')}" style="max-width:120px;padding:6px 10px"><span>${f.unit}</span>${f.desc?`<span class="note" style="margin:0;white-space:nowrap">(${f.desc})</span>`:''}</div>`).join('')}
+  <p class="note" style="margin:6px 0 0">Odgovori se provjeravaju tek kad predaš. Priznaje se odstupanje do 5 %.</p>
+  <div class="row" style="margin-top:12px;gap:8px">${S.i<3?'<button class="ghost" id="kznext" style="margin:0">Sljedeći zadatak →</button>':''}<button class="primary" id="kzsub" style="margin:0">Predaj probnu KZ1</button></div>${IS_TEST?'<p class="note" style="margin:10px 0 0"><button class="ghost" id="kzother" style="margin:0 8px 0 0">Drugi zadatak</button>Samo za test: zamijeni ovaj zadatak novim. Studenti ovaj gumb ne vide.</p>':''}</div></div>`;
+  if($('#kzother'))$('#kzother').onclick=()=>{S.zs[S.i]=kzPickTask(S.i,2);renderKZ()};
+  main.querySelectorAll('[data-kt]').forEach(b=>b.onclick=()=>{kzSave();S.i=+b.dataset.kt;renderKZ()});
+  if($('#kznext'))$('#kznext').onclick=()=>{kzSave();S.i++;renderKZ();window.scrollTo(0,0)};
+  $('#kzsub').onclick=()=>{kzSave();const empty=S.zs.reduce((a,zz)=>a+zz.ans.v.filter(v=>String(v).trim()==='').length,0);if(empty&&!confirm(`Još ${empty} polja nije popunjeno. Predati probnu KZ1?`))return;kzFinish();renderKZ()};
+  kzTick()}
+function renderKZ(){if(kzSim)return renderKZSim();const p=prof(),S=kzState(p);{const st=S.ok2?3:S.ok1?2:1;p.kz=p.kz||{sims:[]};if(p.kz.stage!==st){p.kz.stage=st;save()}}const bar=(x,c)=>`<div style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.round(100*x)}%;background:${c||'var(--ok)'}"></div></div>`;
+  const stage=(n,title,open,done,body)=>`<div data-stg="${n}" style="border:1px solid var(--line);border-left:4px solid ${done?'var(--ok)':open?'var(--mark)':'var(--line)'};border-radius:8px;padding:14px 16px;margin:12px 0;${open?'':'opacity:.6'}"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">${n}. stadij: ${title}</h3><span style="font-weight:700;color:${done?'var(--ok)':'var(--muted)'}">${done?'✓ ispunjeno':open?'u tijeku':'🔒 zaključano'}</span></div>${open?'':`<p class="note" style="margin:8px 0 0">Ovaj stadij otključava se kad ispuniš ${n-1}. stadij, tj. kad sve njegove stavke dobiju ✓. Stadiji idu redom: najprije Vježba, zatim Zadaci, pa Probna KZ1.</p>`}${body}</div>`;
+  const row=(l,v,ok,btn)=>`<tr class="kzrow"><td>${l}</td><td>${v}</td><td style="color:${ok?'var(--ok)':'var(--bad)'};font-weight:700">${ok?'✓':'✗'}</td><td>${ok?'':btn}</td></tr>`;
+  const lk=(arr,dep,x)=>{const d=dep[x.k];if(!d)return null;const y=arr.find(z=>z.k===d);return y&&!y.ok?y.l:null};
+  const rowL=(x,v,btn,arr,dep)=>{const L=lk(arr,dep,x);if(x.ok||!L)return row(x.l,v,x.ok,btn);return `<tr class="kzrow" style="opacity:.55"><td>${x.l}</td><td>${v}</td><td>🔒</td><td class="note" style="margin:0">najprije: ${L}</td></tr>`};
+  const b1=`<p class="note" style="margin:6px 0">U svakom gradivu Vježbe riješi barem ${KZR.n1} pitanja i dosegni razinu barem ${fmt(KZR.r1)}. Mreže idu redom: serija ili paralela → ukupni otpor → metode → teoremi.</p><table>${S.s1.map(x=>rowL(x,`<span style="white-space:nowrap">${x.n} pitanja</span><br><span style="white-space:nowrap">razina ${fmt(x.r)}</span>`,`<button class="ghost" style="padding:4px 10px;margin:0" data-kgo="${x.k}">Vježbaj</button>`,S.s1,KZDEP1)).join('')}</table>`;
+  const b2=`<p class="note" style="margin:6px 0">Iz svake skupine riješi barem ${KZR.n2} zadatka s barem pola bodova, a ukupno barem ${KZR.tot2} zadataka (sada ${S.tot}).</p><table>${S.s2.map(x=>rowL(x,`${x.g} od ${KZR.n2}`,`<button class="ghost" style="padding:4px 10px;margin:0" data-kzt="${x.ts[0]}">Riješi zadatak</button>`,S.s2,KZDEP2)).join('')}</table>`;
+  const sims=S.K.sims||[];const b3=`<p class="note" style="margin:6px 0">Probna KZ1 (probna kontrolna zadaća 1) kao prava: 4 zadatka (6 + 6 + 6 + 2 boda), 60 + 5 minuta. Rezultati se provjeravaju tek nakon predaje. Prolaz je 6 bodova, a 12 i više bodova daje pravo na oslobođenje završnog ispita.</p><p class="note" style="margin:6px 0"><b>Napomena:</b> bodovanje probne KZ1 može biti drukčije od stvarnog bodovanja na kontrolnoj zadaći. Ovdje se gledaju samo konačni rezultati, a na KZ-u se ponekad boduje i postupak.</p>${sims.length?`<p style="margin:6px 0">Najbolji rezultat: <b>${zN(S.K.best||0)} / 20</b> · probnih KZ1: ${sims.length}</p><details style="margin:0 0 8px"><summary style="cursor:pointer;color:var(--ok);font-weight:600">Prikaži rezultate prijašnjih probnih KZ1</summary><table style="margin-top:6px"><tr><th>#</th><th>Datum</th><th>Bodovi</th><th>Po zadacima</th><th>Trajanje</th></tr>${sims.map((s,i)=>`<tr><td class="num">${i+1}</td><td style="white-space:nowrap">${new Date(s.d).toLocaleString('hr-HR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</td><td class="num" style="font-weight:700;color:${s.pts>=6?'var(--ok)':'var(--bad)'}">${zN(s.pts)} / 20</td><td style="white-space:nowrap">${(s.parts||[]).map(zN).join(' + ')}</td><td class="num">${s.min!=null?s.min+' min':''}</td></tr>`).reverse().join('')}</table></details>`:''}<button class="primary" id="kzgo" style="margin:6px 0 0" ${S.ok2||IS_TEST?'':'disabled'}>Pokreni probnu KZ1</button>${IS_TEST&&!S.ok2?'<span class="note" style="margin-left:8px">TEST: probna KZ1 otključana za isprobavanje</span>':''}`;
+  main.innerHTML=`<div class="sheet panel" style="max-width:980px">${kzBanner()}
+  <h2 style="margin:0 0 6px">Priprema za KZ1${isEtr()?'':' (Elektrotehnika R)'}</h2><div style="display:flex;align-items:center;gap:12px;margin:0 0 4px"><div style="flex:1">${bar(S.ready/100)}</div><b style="font-size:20px">${S.ready} %</b></div><p class="note" style="margin:0 0 8px">Spremnost: koliko je priprema gotova. Stadiji se otključavaju redom, a računa se i sve što je već riješeno.</p>
+  ${stage(1,'Vježba po gradivima',true,S.ok1,b1)}${stage(2,'Zadaci s brojevima',S.ok1,S.ok2,b2)}${stage(3,'Probna KZ1',S.ok2,(S.K.best||0)>=12,b3)}
+  <p style="margin:14px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button class="ghost" id="kzrules" style="margin:0">Pravila kolegija</button><a class="ghost" href="EtR_f1.pdf" target="_blank" style="margin:0;padding:8px 14px;border-radius:8px;background:var(--line);color:var(--ink);text-decoration:none">Formule EtR_f1 (PDF)</a></p>${kzShowRules?`<div style="margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px">${KZRULES}</div>`:''}</div>`;
+  main.querySelectorAll('[data-kgo]').forEach(b=>b.onclick=()=>{p.module=b.dataset.kgo;save();view='practice';render();window.scrollTo(0,0)});
+  main.querySelectorAll('[data-kzt]').forEach(b=>b.onclick=()=>{const Z=zProf();Z.type=b.dataset.kzt;save();zNew();view='zad';render();window.scrollTo(0,0)});
+  if($('#kzgo'))$('#kzgo').onclick=kzStart;$('#kzrules').onclick=()=>{kzShowRules=!kzShowRules;renderKZ()}}
+
+async function renderBoardKZ(){const me=prof().nick,head='<h2>Ljestvica: probna KZ1</h2>';let rows=[],err='';
+  if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();try{const {data,error}=await Remote.rpc('leaderboard_kz');if(error)err='Ljestvica KZ još nije uključena u bazi.';else rows=data}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='kz')return}
+  else rows=Object.values(state.profiles).filter(p=>p.kz).map(p=>({nick:p.nick,best:p.kz.best||0,n:(p.kz.sims||[]).length,stage:p.kz.stage||1})).sort((a,b)=>b.best-a.best||b.stage-a.stage);
+  main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}<table><tr><th></th><th>Nadimak</th><th>Stadij pripreme</th><th>Najbolja probna</th><th>Probnih</th></tr>${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.stage||1} od 3</td><td class="num">${p.n?zN(p.best)+' / 20':'–'}</td><td class="num">${p.n}</td></tr>`).join('')||'<tr><td colspan="5">Priprema još nije započeta.</td></tr>'}</table><p class="note">Stadij pripreme u koji je korisnik stigao i najbolji rezultat iz probne KZ1 (4 zadatka, 20 bodova).</p></div>`;modbar()}
+/* ---------- Povratne informacije ---------- */
+let isAdmin=false,fbNew=0;
+async function fbCount(){fbNew=0;if(!isAdmin||!Remote||!session)return;try{const {data}=await Remote.rpc('feedback_list',{p_token:session.token});const seen=(prof()&&prof().fbSeen)||0;fbNew=(data||[]).filter(r=>new Date(r.created_at).getTime()>seen).length;if(prof())header()}catch(e){}}
+async function fbCheckAdmin(){isAdmin=false;if(!Remote||!session)return;askLoad();try{const {data}=await Remote.rpc('is_admin',{p_token:session.token});isAdmin=!!data;if(isAdmin&&prof()){header();fbCount()}}catch(e){}}
+async function fbSend(o){if(!Remote||!session)throw new Error('offline');const {error}=await Remote.rpc('feedback_send',{p_token:session.token,p_anon:!!o.anon,p_kind:o.kind,p_qid:o.qid||null,p_page:view,p_msg:o.msg||'',p_rating:o.rating||null,p_extra:o.extra||{}});if(error)throw error}
+function fbModal(inner){document.getElementById('fbm')?.remove();document.body.insertAdjacentHTML('beforeend',`<div id="fbm" style="position:fixed;inset:0;z-index:9998;background:rgba(10,18,26,.55);display:flex;align-items:center;justify-content:center;padding:12px"><div style="background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:18px 18px 16px">${inner}</div></div>`);return document.getElementById('fbm')}
+function fbOpen(o={}){const m=fbModal(`<h3 style="margin:0 0 8px">${o.qid?'Prijavi grešku u pitanju':'Povratna informacija'}</h3>${o.qid?`<p class="note" style="margin:0 0 8px">Pitanje ili zadatak: <b>${o.qid}</b></p>`:''}
+  <label style="display:block;margin:6px 0">Vrsta: <select id="fbk" class="ghost">${[['greska','Greška u pitanju ili zadatku'],['nejasno','Nešto nije jasno'],['prijedlog','Prijedlog'],['pohvala','Pohvala'],['ostalo','Ostalo']].map(([k,t])=>`<option value="${k}" ${o.qid&&k==='greska'?'selected':''}>${t}</option>`).join('')}</select></label>
+  <textarea id="fbt" rows="5" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--paper,transparent);color:inherit;font:inherit" placeholder="${o.qid?'Što nije u redu? Npr. točan odgovor bi trebao biti…':'Napiši što misliš o aplikaciji, što ne radi ili što bi dodao…'}"></textarea>
+  <label class="toggle" style="margin:8px 0"><input type="checkbox" id="fba"><span>Pošalji anonimno<small>Nadimak se neće spremiti uz poruku.</small></span></label>
+  <p class="msg bad" id="fbe" style="margin:4px 0"></p><div class="row" style="gap:8px;justify-content:flex-end"><button class="ghost" id="fbc" style="margin:0">Odustani</button><button class="primary" id="fbs" style="margin:0">Pošalji</button></div>`);
+  m.querySelector('#fbc').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()};
+  m.querySelector('#fbs').onclick=async()=>{const msg=m.querySelector('#fbt').value.trim();if(!msg){m.querySelector('#fbe').textContent='Napiši poruku.';return}m.querySelector('#fbs').disabled=true;
+    try{await fbSend({kind:m.querySelector('#fbk').value,qid:o.qid,msg,anon:m.querySelector('#fba').checked});m.querySelector('div').innerHTML='<h3 style="margin:0 0 8px">Hvala!</h3><p>Poruka je poslana.</p><div class="row" style="justify-content:flex-end"><button class="primary" id="fbc2" style="margin:0">Zatvori</button></div>';m.querySelector('#fbc2').onclick=()=>m.remove()}
+    catch(e){m.querySelector('#fbs').disabled=false;m.querySelector('#fbe').textContent=String(e&&e.message||'').includes('too_many')?'Danas je poslano previše poruka. Pokušaj sutra.':'Poruka se trenutačno ne može poslati. Provjeri vezu.'}}}
+function fbSurvey(which){const p=prof(),feats=[['lekcija','Lekcije'],['vjezba','Vježba'],['zadaci','Zadaci s brojevima'],['kz','Priprema i probna KZ1'],['ljestvica','Ljestvica, niz dana i značke']];let rating=0;
+  const m=fbModal(`<h3 style="margin:0 0 4px">Kratka anketa</h3><p class="note" style="margin:0 0 10px">${which==='kz'?'Prva probna KZ1 je gotova.':'Već imaš više od 100 riješenih zadataka.'} Pomozi nam poboljšati aplikaciju, traje pola minute.</p>
+  <p style="margin:6px 0 4px;font-weight:600">Koliko ti je aplikacija korisna?</p><div class="row" style="gap:6px">${[1,2,3,4,5].map(n=>`<button class="ghost" data-sr="${n}" style="margin:0;min-width:42px">${n}</button>`).join('')}</div><p class="note" style="margin:2px 0 0">1 = nimalo, 5 = jako</p>
+  <p style="margin:12px 0 4px;font-weight:600">Što ti najviše pomaže?</p>${feats.map(([k,t])=>`<label style="display:block;margin:2px 0"><input type="checkbox" data-sf="${k}"> ${t}</label>`).join('')}
+  <p style="margin:12px 0 4px;font-weight:600">Što nedostaje ili ne radi dobro?</p><textarea id="sv1" rows="3" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit"></textarea>
+  <p style="margin:10px 0 4px;font-weight:600">Komentar (nije obavezno)</p><textarea id="sv2" rows="2" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit"></textarea>
+  <label class="toggle" style="margin:8px 0"><input type="checkbox" id="sva" checked><span>Pošalji anonimno<small>Nadimak se neće spremiti uz odgovore.</small></span></label>
+  <p class="msg bad" id="sve" style="margin:4px 0"></p><div class="row" style="gap:8px;justify-content:flex-end"><button class="ghost" id="svl" style="margin:0">Ne sada</button><button class="primary" id="svs" style="margin:0">Pošalji</button></div>`);
+  m.querySelectorAll('[data-sr]').forEach(b=>b.onclick=()=>{rating=+b.dataset.sr;m.querySelectorAll('[data-sr]').forEach(x=>{x.className=+x.dataset.sr===rating?'primary':'ghost'})});
+  const done=v=>{p.fbs=p.fbs||{};p.fbs[which]=v;save()};
+  m.querySelector('#svl').onclick=()=>{if(which==='100'){p.fbs=p.fbs||{};p.fbs.next100=fbTotal(p)+50}else done('skip');save();m.remove()};
+  m.querySelector('#svs').onclick=async()=>{if(!rating){m.querySelector('#sve').textContent='Odaberi ocjenu od 1 do 5.';return}m.querySelector('#svs').disabled=true;
+    try{await fbSend({kind:'anketa',msg:[m.querySelector('#sv1').value.trim(),m.querySelector('#sv2').value.trim()].filter(Boolean).join('\n---\n'),rating,anon:m.querySelector('#sva').checked,extra:{anketa:which,najkorisnije:[...m.querySelectorAll('[data-sf]:checked')].map(x=>x.dataset.sf),nedostaje:m.querySelector('#sv1').value.trim(),komentar:m.querySelector('#sv2').value.trim()}});done('sent');m.querySelector('div').innerHTML='<h3 style="margin:0 0 8px">Hvala!</h3><p>Odgovori su poslani.</p><div class="row" style="justify-content:flex-end"><button class="primary" id="fbc2" style="margin:0">Zatvori</button></div>';m.querySelector('#fbc2').onclick=()=>m.remove()}
+    catch(e){m.querySelector('#svs').disabled=false;m.querySelector('#sve').textContent='Odgovori se trenutačno ne mogu poslati. Provjeri vezu.'}}}
+function fbTotal(p){let n=0;for(const k in p.ratings)n+=p.ratings[k].n||0;return n+((p.zad&&p.zad.n)||0)}
+function fbAfterRender(){const p=prof();if(!p)return;{const b=document.getElementById('kzban');if(b&&!b.dataset.bound){b.dataset.bound=1;b.onclick=e=>{if(e.target.closest('#kzcrs')){e.preventDefault();courseAsk(true);return}if(view!=='kz'){view='kz';render();window.scrollTo(0,0)}}}}if(!p.course&&!(tourI>=0)){setTimeout(()=>courseAsk(false),300)}
+  const side=main.querySelector('.side');if(side&&(view==='practice'||view==='zad')&&!main.querySelector('#fbq')){const q=view==='zad'?(zad?`Z-${zad.type}${zad.kind?'-'+zad.kind:''}${zad.net&&zad.net.id&&!zad.cst?'-'+zad.net.id:''}`:null):(curQ()?curQ().id:null);
+    if(q){side.insertAdjacentHTML('beforeend',`<p style="margin:10px 0 0;text-align:right;display:flex;gap:14px;justify-content:flex-end;flex-wrap:wrap"><a href="#" id="fbask" class="note" style="color:var(--ok);font-weight:600">Pitaj nastavnika</a><a href="#" id="fbq" class="note" style="color:var(--muted)">Prijavi grešku u ovom ${view==='zad'?'zadatku':'pitanju'}</a></p>`);$('#fbq').onclick=e=>{e.preventDefault();fbOpen({qid:q})};$('#fbask').onclick=e=>{e.preventDefault();askOpen(q)}}}
+  if(!Remote||!session||document.getElementById('fbm'))return;const fs=p.fbs||{};
+  if(!fs['100']&&fbTotal(p)>=(fs.next100||100)&&view!=='kz'&&!(exam&&exam.running)){setTimeout(()=>fbSurvey('100'),600);fs['100']='shown';p.fbs=fs;save();return}
+  if(!fs.kz&&p.kz&&(p.kz.sims||[]).some(s=>(s.min||0)>=10)&&view==='kz'&&!kzSim){setTimeout(()=>fbSurvey('kz'),400);fs.kz='shown';p.fbs=fs;save()}}
+async function renderFb(){main.innerHTML='<div class="sheet panel" style="max-width:none"><h2>Povratne informacije</h2><p class="note">Učitavam…</p></div>';let rows=[],err='';
+  try{const {data,error}=await Remote.rpc('feedback_list',{p_token:session.token});if(error)err='Nema pristupa ili baza nije spremna.';else rows=data}catch(e){err='Nema veze s bazom.'}
+  if(view!=='fb')return;{const p=prof();p.fbSeen=Date.now();save();if(fbNew){fbNew=0;header()}}const KN={pitanje:'Pitanje nastavniku',greska:'Greška',nejasno:'Nejasno',prijedlog:'Prijedlog',pohvala:'Pohvala',ostalo:'Ostalo',anketa:'Anketa'},esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  const ank=rows.filter(r=>r.kind==='anketa'&&r.rating),avg=ank.length?ank.reduce((a,r)=>a+r.rating,0)/ank.length:null;
+  main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Povratne informacije</h2>${err?`<p class="msg bad">${err}</p>`:''}<p class="note">Poruka: ${rows.length}${avg!=null?` · prosječna ocjena ankete ${fmt(avg)} (${ank.length})`:''}. Vidljivo samo administratoru.</p>
+  <table><tr><th>Vrijeme</th><th>Tko</th><th>Vrsta</th><th>Pitanje</th><th>Ocjena</th><th>Poruka</th></tr>${rows.map(r=>`<tr><td style="white-space:nowrap">${new Date(r.created_at).toLocaleString('hr-HR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</td><td>${r.nick?esc(r.nick):'<i>anonimno</i>'}</td><td>${KN[r.kind]||esc(r.kind)}${r.extra&&r.extra.anketa?` (${r.extra.anketa==='kz'?'nakon KZ':'100 zadataka'})`:''}</td><td>${esc(r.qid||'')}</td><td class="num">${r.rating||''}</td><td style="white-space:pre-wrap;min-width:220px">${esc(r.msg)}${r.extra&&r.extra.najkorisnije&&r.extra.najkorisnije.length?`<br><span class="note">Najkorisnije: ${r.extra.najkorisnije.join(', ')}</span>`:''}${r.kind==='pitanje'?`${r.extra&&r.extra.tekst?`<br><span class="note">Zadatak: ${esc(r.extra.tekst)}</span>`:''}${r.email?`<br><a href="mailto:${esc(r.email)}?subject=${encodeURIComponent('Elektrotehnika: odgovor na pitanje '+(r.qid||''))}" style="color:var(--ok)">${esc(r.email)}</a>`:''}${r.reply?`<div style="margin-top:6px;padding:6px 8px;border-radius:6px;background:color-mix(in srgb,var(--ok) 12%,transparent)"><b>Odgovor:</b> ${esc(r.reply)}</div>`:''}<div style="margin-top:6px"><textarea data-rt="${r.id}" rows="2" style="width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit" placeholder="${r.reply?'Promijeni odgovor…':'Napiši odgovor…'}"></textarea><button class="primary" data-rb="${r.id}" style="margin:4px 0 0;padding:4px 12px">Odgovori</button></div>`:''}<div style="margin-top:6px"><a href="#" data-fd="${r.id}" style="color:var(--bad);font-size:12px">Obriši poruku</a></div></td></tr>`).join('')||'<tr><td colspan="6">Još nema poruka.</td></tr>'}</table></div>`;
+  main.querySelectorAll('[data-rb]').forEach(b=>b.onclick=async()=>{const id=+b.dataset.rb,t=main.querySelector(`[data-rt="${id}"]`).value.trim();if(!t)return;b.disabled=true;try{const {error}=await Remote.rpc('feedback_reply',{p_token:session.token,p_id:id,p_reply:t});if(error)throw error;renderFb()}catch(e){b.disabled=false;alert('Odgovor se ne može spremiti.')}});
+  main.querySelectorAll('[data-fd]').forEach(a=>a.onclick=async e=>{e.preventDefault();if(!confirm('Obrisati ovu poruku'+(a.closest('tr').innerHTML.includes('Odgovor:')?' i odgovor':'')+'? Brisanje se ne može poništiti.'))return;try{const {error}=await Remote.rpc('feedback_delete',{p_token:session.token,p_id:+a.dataset.fd});if(error)throw error;renderFb()}catch(e){alert('Poruka se ne može obrisati.')}})}
+/* ---------- Pitanja nastavniku ---------- */
+let myQ=[];
+async function askLoad(){myQ=[];if(!Remote||!session)return;try{const {data}=await Remote.rpc('my_questions',{p_token:session.token});myQ=data||[];if(prof())header()}catch(e){}}
+function askUnseen(){return myQ.filter(q=>q.reply&&!q.seen).length}
+function askOpen(qid){const side=main.querySelector('.side'),qt=side?(side.querySelector('.q')||side.querySelector('p')):null,ctx=qt?qt.textContent.replace(/\s+/g,' ').trim().slice(0,400):'';
+  const m=fbModal(`<h3 style="margin:0 0 8px">Pitaj nastavnika</h3><p class="note" style="margin:0 0 8px">Pitanje se odnosi na: <b>${qid}</b>. Pitanje <b>nije anonimno</b>: nastavnik vidi tvoj nadimak, a odgovor stiže u aplikaciju (Napredak → Moja pitanja).</p>
+  <textarea id="akt" rows="5" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;font:inherit" placeholder="Što ti nije jasno u ovom zadatku?"></textarea>
+  <label style="display:block;margin:8px 0 2px">E-mail za odgovor (nije obavezno)</label><input id="ake" type="email" placeholder="ime.prezime@student.uniri.hr" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line)">
+  <p class="msg bad" id="ake2" style="margin:4px 0"></p><div class="row" style="gap:8px;justify-content:flex-end"><button class="ghost" id="akc" style="margin:0">Odustani</button><button class="primary" id="aks" style="margin:0">Pošalji pitanje</button></div>`);
+  m.querySelector('#akc').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()};
+  m.querySelector('#aks').onclick=async()=>{const msg=m.querySelector('#akt').value.trim(),em=m.querySelector('#ake').value.trim();if(!msg){m.querySelector('#ake2').textContent='Napiši pitanje.';return}if(em&&!/^\S+@\S+\.\S+$/.test(em)){m.querySelector('#ake2').textContent='E-mail nije ispravan.';return}
+    m.querySelector('#aks').disabled=true;try{if(!Remote||!session)throw new Error('offline');const {error}=await Remote.rpc('ask_send',{p_token:session.token,p_qid:qid,p_page:view,p_msg:msg,p_email:em||null,p_ctx:{tekst:ctx}});if(error)throw error;
+      m.querySelector('div').innerHTML='<h3 style="margin:0 0 8px">Pitanje je poslano</h3><p>Odgovor ćeš vidjeti u Napretku, pod „Moja pitanja"'+(em?', a nastavnik ti može odgovoriti i na e-mail':'')+'.</p><div class="row" style="justify-content:flex-end"><button class="primary" id="fbc2" style="margin:0">Zatvori</button></div>';m.querySelector('#fbc2').onclick=()=>m.remove();askLoad()}
+    catch(e){m.querySelector('#aks').disabled=false;m.querySelector('#ake2').textContent=String(e&&e.message||'').includes('too_many')?'Danas je poslano previše poruka. Pokušaj sutra.':'Pitanje se trenutačno ne može poslati. Provjeri vezu.'}}}
+{const _rp=renderProgress;renderProgress=function(){const r=_rp.apply(this,arguments);try{if(!myQ.length)return r;const pan=main.querySelector('.panel')||main.querySelector('.sheet');if(!pan)return r;const esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  pan.insertAdjacentHTML('afterbegin',`<div style="margin:0 0 18px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px"><h3 style="margin:0 0 8px">Moja pitanja nastavniku</h3>${myQ.map(q=>`<div style="margin:8px 0;padding-top:8px;border-top:1px solid var(--line)"><div class="note">${new Date(q.created_at).toLocaleDateString('hr-HR')} · ${esc(q.qid||'')}${q.reply&&!q.seen?' · <b style="color:var(--ok)">novi odgovor</b>':''}</div><div style="white-space:pre-wrap">${esc(q.msg)}</div>${q.reply?`<div style="margin-top:6px;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--ok) 12%,transparent);white-space:pre-wrap"><b>Odgovor:</b> ${esc(q.reply)}</div>`:'<div class="note" style="margin-top:4px">Čeka odgovor.</div>'}<div style="margin-top:4px"><a href="#" data-qd="${q.id}" style="color:var(--muted);font-size:12px">Obriši ${q.reply?'pitanje i odgovor':'pitanje'}</a></div></div>`).join('')}</div>`);
+  pan.querySelectorAll('[data-qd]').forEach(a=>a.onclick=async e=>{e.preventDefault();const id=+a.dataset.qd,q=myQ.find(x=>x.id===id);if(!confirm(q&&q.reply?'Obrisati pitanje i odgovor nastavnika? Brisanje se ne može poništiti.':'Obrisati pitanje? Nastavnik ga više neće vidjeti.'))return;try{const {error}=await Remote.rpc('my_question_delete',{p_token:session.token,p_id:id});if(error)throw error;myQ=myQ.filter(x=>x.id!==id);header();render()}catch(e){alert('Pitanje se ne može obrisati.')}});
+  if(askUnseen()&&Remote&&session){Remote.rpc('my_questions_seen',{p_token:session.token}).then(()=>{myQ.forEach(q=>{if(q.reply)q.seen=true});header()},()=>{})}}catch(e){}return r}}
+{const _as=addSkip;addSkip=function(){try{progBar()}catch(e){}const r=_as.apply(this,arguments);try{testBar()}catch(e){}return r}}
 /* ---------- Zadaci: naboji s brojevima ---------- */
 const KE=1/(4*Math.PI*8.854e-12);
 const PFX=[[9,'G'],[6,'M'],[3,'k'],[0,''],[-3,'m'],[-6,'μ'],[-9,'n'],[-12,'p']];
@@ -2233,12 +2472,45 @@ async function boot(){
     if(!session){state.profiles={};state.active=null}
     main.innerHTML='<div class="sheet panel"><p class="note">Spajam se na bazu…</p></div>';
     try{const {data}=await Remote.rpc('get_qstats');if(data){state.qstats={};for(const r of data)state.qstats[r.qid]={r:r.r,n:r.n,c:r.c}}}catch(e){}
-    if(session){try{const {data,error}=await Remote.rpc('resume',{p_token:session.token});if(!error&&data&&data.length)adopt(data[0].nick,data[0].state);else{session=null;Store.set('session',null);state.profiles={};state.active=null}}catch(e){netWarn='Nema veze s bazom, radim s lokalnom kopijom.'}}
+    if(session){try{const {data,error}=await Remote.rpc('resume',{p_token:session.token});if(!error&&data&&data.length){adopt(data[0].nick,data[0].state);fbCheckAdmin()}else{session=null;Store.set('session',null);state.profiles={};state.active=null}}catch(e){netWarn='Nema veze s bazom, radim s lokalnom kopijom.'}}
   }
   render();showNet();
 }
+
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{zSubBar()}catch(e){}return r}}
+for(const nm of['renderExam','renderZad']){const f=window[nm];window[nm]=function(){const r=f.apply(this,arguments);try{zSubBar()}catch(e){}return r}}
+{const _r2=render;render=function(){if(view==='kz'&&prof()){header();renderKZ();try{fbAfterRender()}catch(e){}return}if(view==='fb'&&prof()){header();renderFb();return}const r=_r2.apply(this,arguments);try{fbAfterRender()}catch(e){}return r}}
+{const f=document.getElementById('fbfoot');if(f)f.onclick=e=>{e.preventDefault();if(!prof())return;fbOpen({})}}
+for(const nm of['renderSerpar','renderRuk','renderRukMC','renderEstat','metRender','thRender','renderMag','renderZad','renderKZ']){const f=window[nm];if(typeof f!=='function')continue;window[nm]=function(){const r=f.apply(this,arguments);try{fbAfterRender()}catch(e){}return r}}
+
 view='home';
 boot();
+
+function kzLive(){return typeof kzSim!=='undefined'&&kzSim&&!kzSim.done}
+function kzLeaveAsk(go){const m=fbModal(`<h3 style="margin:0 0 8px">Probna KZ1 je u tijeku</h3><p>Ako sada izađeš, probna KZ1 se prekida i <b>neće se računati</b>. Želiš li stvarno izaći?</p><div class="row" style="gap:8px;justify-content:flex-end"><button class="primary" id="kzst" style="margin:0">Nastavi probnu KZ1</button><button class="ghost" id="kzlv" style="margin:0">Izađi i prekini</button></div>`);
+  m.querySelector('#kzst').onclick=()=>m.remove();m.querySelector('#kzlv').onclick=()=>{m.remove();clearTimeout(kzSim&&kzSim.tt);kzSim=null;go()}}
+document.addEventListener('click',e=>{if(!kzLive())return;const t=e.target.closest&&e.target.closest('#nav button,.brand,#fbfoot');if(!t)return;if(t.matches('#nav button')&&t.dataset.v==='kz')return;
+  e.preventDefault();e.stopImmediatePropagation();kzLeaveAsk(()=>{t.click()})},true);
+addEventListener('beforeunload',e=>{if(kzLive()){e.preventDefault();e.returnValue=''}});
+
+{const _rpc=renderProgress;renderProgress=function(){const r=_rpc.apply(this,arguments);try{const p=prof(),pan=main.querySelector('.panel')||main.querySelector('.sheet');if(pan&&!document.getElementById('crsrow')){pan.insertAdjacentHTML('beforeend',`<p id="crsrow" style="margin:18px 0 0">Kolegij: <b>${(COURSES.find(c=>c[0]===p.course)||['','nije odabran'])[1]}</b> <button class="ghost" id="crsch" style="margin:0 0 0 8px;padding:4px 10px">Promijeni</button></p>`);$('#crsch').onclick=()=>courseAsk(true)}}catch(e){}return r}}
+
+async function courseStats(){if(!Remote)return;let rows=null;try{const {data,error}=await Remote.rpc('stats_course');if(!error)rows=data}catch(e){}
+  if(view!=='board'||boardAll!==true)return;const pan=main.querySelector('.panel')||main.querySelector('.sheet');if(!pan||document.getElementById('crsst'))return;
+  if(!rows){pan.insertAdjacentHTML('beforeend','<div id="crsst"><p class="note" style="margin-top:20px">Usporedba kolegija još nije uključena u bazi.</p></div>');return}
+  const CN={etr:'Elektrotehnika R',drugi:'Drugi kolegij',nepoznato:'Kolegij nije odabran'},TOP=[['estat','Elektrostatika'],['serpar','Serija ili paralela'],['ruk','Ukupni otpor'],['kont','Konturne struje'],['cvor','Naponi čvorova'],['thev','Thevenin'],['nort','Norton'],['mag','Magnetsko polje']],R=rows.filter(r=>r.users>0&&r.course!=='nepoznato');if(!R.length)return;
+  const cell=v=>v==null?'–':fmt(v);
+  pan.insertAdjacentHTML('beforeend',`<div id="crsst" style="margin-top:26px;padding-top:16px;border-top:1px solid var(--line)"><h3 style="margin:0 0 8px">Usporedba kolegija</h3>
+  <table><tr><th></th>${R.map(r=>`<th>${CN[r.course]||r.course}</th>`).join('')}</tr>
+  <tr><td>Korisnika</td>${R.map(r=>`<td class="num">${r.users}</td>`).join('')}</tr>
+  <tr><td>Odgovora u Vježbi</td>${R.map(r=>`<td class="num">${r.answered}</td>`).join('')}</tr>
+  <tr><td>Prosječna razina</td>${R.map(r=>`<td class="num">${cell(r.avg_level)}</td>`).join('')}</tr>
+  ${TOP.map(([k,l])=>`<tr><td style="padding-left:18px">${l}</td>${R.map(r=>{const t=(r.topics||{})[k];return `<td class="num">${t?fmt(t.lvl)+` <span class="note">(${t.users})</span>`:'–'}</td>`}).join('')}</tr>`).join('')}
+  <tr><td>Riješenih zadataka</td>${R.map(r=>`<td class="num">${r.zad_n}</td>`).join('')}</tr>
+  <tr><td>Probna KZ1</td>${R.map(r=>`<td class="num">${r.kz_sims}</td>`).join('')}</tr>
+  <tr><td>Prosj. najbolja probna KZ1</td>${R.map(r=>`<td class="num">${r.kz_best==null?'–':zN(r.kz_best)+' / 20'}</td>`).join('')}</tr></table>
+  <p class="note">Uspoređuju se samo korisnici koji su odabrali kolegij. Statistika iznad i dalje obuhvaća sve. Razina po gradivu je prosjek korisnika koji su vježbali to gradivo (u zagradi broj korisnika).</p></div>`)}
+{const _rba=renderBoardAll;renderBoardAll=async function(){const r=await _rba.apply(this,arguments);try{courseStats()}catch(e){}return r}}
 </script>
 </body>
 </html>
