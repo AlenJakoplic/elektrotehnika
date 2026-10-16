@@ -2539,8 +2539,8 @@ async function renderAnStudent(nick){const s=anData.find(x=>x.nick.toLowerCase()
   let ans=[];try{const {data}=await Remote.rpc('admin_student_answers',{p_token:session.token,p_nick:s.nick});ans=data||[]}catch(e){}
   if(view!=='fb'||anNick!==nick)return;const P=s.P,pc=(c,n)=>n?`<b style="color:${c/n<0.5?'var(--bad)':c/n<0.75?'var(--mark)':'var(--ok)'}">${Math.round(100*c/n)} %</b>`:'–';
   const rat=Object.entries(P.ratings).filter(([k,x])=>TOPICS[k]&&x.n).map(([k,x])=>`<tr><td>${TOPICS[k]}</td><td class="num">${fmt(x.r)}</td><td class="num">${x.n}</td><td>${x.c!=null?pc(x.c,x.n):'–'}</td></tr>`).join('');
-  const ty=Object.entries(P.ty||{}).filter(([k])=>TYPENAME[k.split(':')[1]]).sort((a,b)=>a[1].c/a[1].n-b[1].c/b[1].n).map(([k,x])=>`<tr><td>${TOPICS[k.split(':')[0]]||k.split(':')[0]}: ${TYPENAME[k.split(':')[1]]}</td><td class="num">${x.n}</td><td>${pc(x.c,x.n)}</td></tr>`).join('');
-  const tg=Object.entries(P.tags||{}).filter(([k,x])=>TAGNAMES[k.split(':')[1]]&&x.n).sort((a,b)=>a[1].c/a[1].n-b[1].c/b[1].n).map(([k,x])=>`<tr><td>${TAGNAMES[k.split(':')[1]]}</td><td class="num">${x.n}</td><td>${pc(x.c,x.n)}</td></tr>`).join('');
+  const ty=Object.entries(P.ty||{}).filter(([k])=>TYPENAME[k.split(':')[1]]).sort((a,b)=>a[1].c/a[1].n-b[1].c/b[1].n).map(([k,x])=>`<tr><td>${TOPICS[k.split(':')[0]]||k.split(':')[0]}: ${TYPENAME[k.split(':')[1]]}</td><td class="num">${x.n}</td><td>${pc(x.c,x.n)}</td></tr>`);
+  const tg=Object.entries(P.tags||{}).filter(([k,x])=>TAGNAMES[k.split(':')[1]]&&x.n).sort((a,b)=>a[1].c/a[1].n-b[1].c/b[1].n).map(([k,x])=>`<tr><td>${TAGNAMES[k.split(':')[1]]}</td><td class="num">${x.n}</td><td>${pc(x.c,x.n)}</td></tr>`);
   const zt=Object.entries((P.zad||{}).t||{}).map(([k,x])=>`<tr><td>${(ZT.find(z=>z[0]===k)||[0,k])[1]}</td><td class="num">${x.n}</td><td class="num">${zN(x.pts||0)}</td><td class="num">${x.g||0}</td></tr>`).join('');
   const sims=((P.kz||{}).sims||[]).slice().reverse().map(x=>`<tr><td>${anDate(x.d)}</td><td class="num" style="font-weight:700;color:${x.pts>=6?'var(--ok)':'var(--bad)'}">${zN(x.pts)} / 20</td><td>${(x.parts||[]).map(zN).join(' + ')}</td><td class="num">${x.min!=null?x.min+' min':''}</td></tr>`).join('');
   const dayN={};ans.forEach(a=>{const d=new Date(a.created_at).toLocaleDateString('hr-HR');dayN[d]=(dayN[d]||0)+1});
@@ -2556,8 +2556,8 @@ async function renderAnStudent(nick){const s=anData.find(x=>x.nick.toLowerCase()
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px">
   ${card('Priprema za KZ1',`<div style="margin:0 0 4px">${stg}</div>${sims?`<details><summary style="cursor:pointer;color:var(--ok);font-weight:600">Prikaži sve probne KZ1</summary><table style="margin-top:6px"><tr><th>Probna KZ1</th><th>Bodovi</th><th>Po zadacima</th><th>Trajanje</th></tr>${sims}</table></details>`:''}`)}
   ${card('Razine po gradivima',rat?`<table><tr><th>Gradivo</th><th>Razina</th><th>Odg.</th><th>Točno</th></tr>${rat}</table>`:'<p class="note">Nema podataka.</p>')}
-  ${card('Vrste pitanja (najslabije prve)',ty?`<table><tr><th>Vrsta</th><th>Odg.</th><th>Točno</th></tr>${ty}</table>`:'<p class="note">Nema podataka.</p>')}
-  ${card('Zamke (najslabije prve)',tg?`<table><tr><th>Zamka</th><th>Odg.</th><th>Točno</th></tr>${tg}</table>`:'<p class="note">Nema podataka.</p>')}
+  ${card('Vrste pitanja (najslabije prve)',anMore(ty,'<tr><th>Vrsta</th><th>Odg.</th><th>Točno</th></tr>','vrste'))}
+  ${card('Zamke (najslabije prve)',anMore(tg,'<tr><th>Zamka</th><th>Odg.</th><th>Točno</th></tr>','zamke'))}
   ${card('Zadaci s brojevima',zt?`<table><tr><th>Vrsta</th><th>Riješeno</th><th>Bodova</th><th>S pola bodova</th></tr>${zt}</table>`:'<p class="note">Nema riješenih zadataka.</p>')}
   ${card('Aktivnost po danima',Object.keys(dayN).length?`<table><tr><th>Dan</th><th>Odgovora</th></tr>${Object.entries(dayN).slice(0,14).map(([d,n])=>`<tr><td>${d}</td><td class="num">${n}</td></tr>`).join('')}</table>`:'<p class="note">Nema zapisa u dnevniku.</p>')}
   </div>
@@ -2639,6 +2639,9 @@ function svShowR(r){if(!r)return;const x=r.extra||{},chk=new Set(x.najkorisnije|
   <p style="margin:12px 0 4px;font-weight:600">Što nedostaje ili ne radi dobro?</p>${ta(ned)}
   <p style="margin:10px 0 4px;font-weight:600">Komentar (nije obavezno)</p>${ta(kom)}
   <p style="margin:12px 0 0;text-align:right"><button class="primary" id="svx" style="margin:0">Zatvori</button></p>`);document.getElementById('svx').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()}}
+
+function anMore(rows,head,what,k){k=k||5;if(!rows||!rows.length)return '<p class="note">Nema podataka.</p>';const t=r=>`<table>${head}${r.join('')}</table>`;
+  return rows.length<=k?t(rows):t(rows.slice(0,k))+`<details><summary style="cursor:pointer;color:var(--ok);font-weight:600;margin-top:6px">Prikaži sve ${what} (${rows.length})</summary>${t(rows.slice(k))}</details>`}
 
 view='home';
 boot();
