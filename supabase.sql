@@ -377,177 +377,21 @@ language sql security definer set search_path = public as $$
   having sum(coalesce((p.state->'ratings'->k->>'n')::int, 0)) > 0
   order by 2 desc limit 200;
 $$;
--- Ljestvica Zadataka po gradivima (zbraja bodove iz state.zad.t za zadane vrste zadataka).
-create or replace function public.leaderboard_zad_g(p_types text[])
-returns table(nick text, pts real, n integer, full_n integer)
-language sql security definer set search_path = public as $$
-  select p.nick,
-         sum(coalesce((t.value->>'pts')::real, 0))::real,
-         sum(coalesce((t.value->>'n')::int, 0))::int,
-         sum(coalesce((p.state->'zad'->'full'->>t.key)::int, 0))::int
-  from profiles p, jsonb_each(coalesce(p.state->'zad'->'t', '{}'::jsonb)) t
-  where t.key = any(p_types)
-  group by p.nick
-  having sum(coalesce((t.value->>'n')::int, 0)) > 0
-  order by 2 desc, 4 desc limit 200;
-$$;
-revoke all on function public.leaderboard_zad_g from public;
-grant execute on function public.leaderboard_zad_g to anon, authenticated;
--- Ljestvica simulacija KZ1 (najbolji rezultat iz state.kz.best, stadij pripreme iz state.kz.stage).
-drop function if exists public.leaderboard_kz();
-create or replace function public.leaderboard_kz()
-returns table(nick text, best real, n integer, stage integer)
-language sql security definer set search_path = public as $$
-  select p.nick,
-         coalesce((p.state->'kz'->>'best')::real, 0),
-         coalesce(jsonb_array_length(p.state->'kz'->'sims'), 0),
-         coalesce((p.state->'kz'->>'stage')::int, 1)
-  from profiles p
-  where p.state ? 'kz'
-  order by 2 desc, 4 desc, 3 desc limit 200;
-$$;
-revoke all on function public.leaderboard_kz from public;
-grant execute on function public.leaderboard_kz to anon, authenticated;
--- Povratne informacije studenata (poruke, prijave grešaka, ankete). Pokreni jednom u SQL Editoru.
-create table if not exists public.feedback (
-  id         bigserial primary key,
-  profile_id uuid references public.profiles(id) on delete set null,
-  kind       text not null,
-  qid        text,
-  page       text,
-  msg        text,
-  rating     integer,
-  extra      jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now()
-);
-alter table public.feedback enable row level security;
-revoke all on public.feedback from anon, authenticated;
-
-create table if not exists public.feedback_rl (
-  profile_id uuid references public.profiles(id) on delete cascade,
-  day        date not null default current_date,
-  n          integer not null default 0,
-  primary key (profile_id, day)
-);
-alter table public.feedback_rl enable row level security;
-revoke all on public.feedback_rl from anon, authenticated;
-
-create table if not exists public.admins (
-  profile_id uuid primary key references public.profiles(id) on delete cascade
-);
-alter table public.admins enable row level security;
-revoke all on public.admins from anon, authenticated;
--- Administrator: profil s nadimkom Alen.
-insert into public.admins(profile_id) select id from public.profiles where nick = 'Alen' on conflict do nothing;
-
-create or replace function public.feedback_send(p_token uuid, p_anon boolean, p_kind text, p_qid text, p_page text, p_msg text, p_rating integer, p_extra jsonb)
-returns void
-language plpgsql security definer set search_path = public as $$
-declare pid uuid; cnt integer;
-begin
-  select id into pid from profiles where token = p_token;
-  if pid is null then raise exception 'no_session'; end if;
-  insert into feedback_rl(profile_id, day, n) values (pid, current_date, 1)
-    on conflict (profile_id, day) do update set n = feedback_rl.n + 1 returning n into cnt;
-  if cnt > 30 then raise exception 'too_many'; end if;
-  insert into feedback(profile_id, kind, qid, page, msg, rating, extra)
-  values (case when p_anon then null else pid end, left(coalesce(p_kind,''),20), left(p_qid,40), left(p_page,40),
-          left(p_msg,3000), case when p_rating between 1 and 5 then p_rating end, coalesce(p_extra,'{}'::jsonb));
-end $$;
-
-create or replace function public.is_admin(p_token uuid)
-returns boolean
-language sql security definer set search_path = public as $$
-  select exists(select 1 from admins a join profiles p on p.id = a.profile_id where p.token = p_token);
-$$;
-
-create or replace function public.feedback_list(p_token uuid)
-returns table(id bigint, created_at timestamptz, nick text, kind text, qid text, page text, msg text, rating integer, extra jsonb)
-language plpgsql security definer set search_path = public as $$
-begin
-  if not exists(select 1 from admins a join profiles p on p.id = a.profile_id where p.token = p_token) then raise exception 'forbidden'; end if;
-  return query select f.id, f.created_at, p.nick, f.kind, f.qid, f.page, f.msg, f.rating, f.extra
-    from feedback f left join profiles p on p.id = f.profile_id order by f.created_at desc limit 1000;
-end $$;
-
-revoke all on function public.feedback_send, public.is_admin, public.feedback_list from public;
-grant execute on function public.feedback_send, public.is_admin, public.feedback_list to anon, authenticated;
-
--- Pitanja nastavniku (nisu anonimna), s odgovorom u aplikaciji.
-alter table public.feedback add column if not exists email text;
-alter table public.feedback add column if not exists reply text;
-alter table public.feedback add column if not exists replied_at timestamptz;
-alter table public.feedback add column if not exists seen boolean not null default false;
-
-create or replace function public.ask_send(p_token uuid, p_qid text, p_page text, p_msg text, p_email text, p_ctx jsonb)
-returns void
-language plpgsql security definer set search_path = public as $$
-declare pid uuid; cnt integer;
-begin
-  select id into pid from profiles where token = p_token;
-  if pid is null then raise exception 'no_session'; end if;
-  insert into feedback_rl(profile_id, day, n) values (pid, current_date, 1)
-    on conflict (profile_id, day) do update set n = feedback_rl.n + 1 returning n into cnt;
-  if cnt > 30 then raise exception 'too_many'; end if;
-  insert into feedback(profile_id, kind, qid, page, msg, email, extra)
-  values (pid, 'pitanje', left(p_qid,40), left(p_page,40), left(p_msg,3000), nullif(left(btrim(coalesce(p_email,'')),120),''), coalesce(p_ctx,'{}'::jsonb));
-end $$;
-
-create or replace function public.my_questions(p_token uuid)
-returns table(id bigint, created_at timestamptz, qid text, msg text, reply text, replied_at timestamptz, seen boolean)
-language sql security definer set search_path = public as $$
-  select f.id, f.created_at, f.qid, f.msg, f.reply, f.replied_at, f.seen
-  from feedback f join profiles p on p.id = f.profile_id
-  where p.token = p_token and f.kind = 'pitanje' order by f.created_at desc limit 200;
-$$;
-
-create or replace function public.my_questions_seen(p_token uuid)
+-- Brisanje pitanja (student) i povratnih informacija (nastavnik)
+create or replace function public.my_question_delete(p_token uuid, p_id bigint)
 returns void
 language sql security definer set search_path = public as $$
-  update feedback f set seen = true from profiles p
-  where p.id = f.profile_id and p.token = p_token and f.kind = 'pitanje' and f.reply is not null;
+  delete from feedback f using profiles p
+  where f.id = p_id and p.id = f.profile_id and p.token = p_token and f.kind = 'pitanje';
 $$;
 
-create or replace function public.feedback_reply(p_token uuid, p_id bigint, p_reply text)
+create or replace function public.feedback_delete(p_token uuid, p_id bigint)
 returns void
 language plpgsql security definer set search_path = public as $$
 begin
   if not exists(select 1 from admins a join profiles p on p.id = a.profile_id where p.token = p_token) then raise exception 'forbidden'; end if;
-  update feedback set reply = left(p_reply,4000), replied_at = now(), seen = false where id = p_id;
+  delete from feedback where id = p_id;
 end $$;
 
-drop function if exists public.feedback_list(uuid);
-create or replace function public.feedback_list(p_token uuid)
-returns table(id bigint, created_at timestamptz, nick text, kind text, qid text, page text, msg text, rating integer, extra jsonb, email text, reply text, replied_at timestamptz)
-language plpgsql security definer set search_path = public as $$
-begin
-  if not exists(select 1 from admins a join profiles p on p.id = a.profile_id where p.token = p_token) then raise exception 'forbidden'; end if;
-  return query select f.id, f.created_at, p.nick, f.kind, f.qid, f.page, f.msg, f.rating, f.extra, f.email, f.reply, f.replied_at
-    from feedback f left join profiles p on p.id = f.profile_id order by f.created_at desc limit 1000;
-end $$;
-
-revoke all on function public.ask_send, public.my_questions, public.my_questions_seen, public.feedback_reply, public.feedback_list from public;
-grant execute on function public.ask_send, public.my_questions, public.my_questions_seen, public.feedback_reply, public.feedback_list to anon, authenticated;
--- Usporedba studenata po kolegiju (iz state.course). Pokreni jednom u SQL Editoru.
-create or replace function public.stats_course()
-returns table(course text, users integer, answered bigint, avg_level real, zad_n bigint, zad_pts real, kz_sims bigint, kz_best real, topics jsonb)
-language sql security definer set search_path = public as $$
-  with p as (
-    select coalesce(nullif(state->>'course',''),'nepoznato') c, state from profiles
-  )
-  select c,
-    count(*)::int,
-    sum((select coalesce(sum((v->>'n')::int),0) from jsonb_each(coalesce(state->'ratings','{}'::jsonb)) r(k,v)))::bigint,
-    avg((select avg((v->>'r')::real) from jsonb_each(coalesce(state->'ratings','{}'::jsonb)) r(k,v) where (v->>'n')::int > 0))::real,
-    sum(coalesce((state->'zad'->>'n')::int,0))::bigint,
-    avg(nullif(coalesce((state->'zad'->>'pts')::real,0),0))::real,
-    sum(coalesce(jsonb_array_length(state->'kz'->'sims'),0))::bigint,
-    avg((state->'kz'->>'best')::real)::real,
-    (select coalesce(jsonb_object_agg(k, jsonb_build_object('lvl', lv, 'users', nu)),'{}'::jsonb) from (
-       select r.k, avg((r.v->>'r')::real) lv, count(*) nu
-       from p p2, jsonb_each(coalesce(p2.state->'ratings','{}'::jsonb)) r(k,v)
-       where p2.c = p.c and (r.v->>'n')::int > 0 group by r.k) t)
-  from p group by c order by 2 desc;
-$$;
-revoke all on function public.stats_course from public;
-grant execute on function public.stats_course to anon, authenticated;
+grant execute on function public.my_question_delete(uuid, bigint) to anon, authenticated;
+grant execute on function public.feedback_delete(uuid, bigint) to anon, authenticated;
