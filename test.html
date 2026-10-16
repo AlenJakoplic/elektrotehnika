@@ -2494,7 +2494,7 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
   ${TOP.map(([k,l])=>`<tr><td style="padding-left:18px">${l}</td>${R.map(r=>{const t=(r.topics||{})[k];return `<td class="num">${t?fmt(t.lvl)+` <span class="note">(${t.users})</span>`:'–'}</td>`}).join('')}</tr>`).join('')}
   <tr><td>Riješenih zadataka</td>${R.map(r=>`<td class="num">${r.zad_n}</td>`).join('')}</tr>
   <tr><td>Probna KZ1</td>${R.map(r=>`<td class="num">${r.kz_sims}</td>`).join('')}</tr>
-  <tr><td>Prosj. najbolja simulacija</td>${R.map(r=>`<td class="num">${r.kz_best==null?'–':zN(r.kz_best)+' / 20'}</td>`).join('')}</tr></table>
+  <tr><td>Prosj. najbolja probna KZ1</td>${R.map(r=>`<td class="num">${r.kz_best==null?'–':zN(r.kz_best)+' / 20'}</td>`).join('')}</tr></table>
   <p class="note">Uspoređuju se samo korisnici koji su odabrali kolegij. Statistika iznad i dalje obuhvaća sve. Razina po gradivu je prosjek korisnika koji su vježbali to gradivo (u zagradi broj korisnika).</p></div>`)}
 {const _rba=renderBoardAll;renderBoardAll=async function(){const r=await _rba.apply(this,arguments);try{courseStats()}catch(e){}return r}}
 </script>
