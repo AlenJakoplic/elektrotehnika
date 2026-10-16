@@ -1681,7 +1681,7 @@ function thCalc(q,val,load){const c=q.c,b=c.br.find(x=>x.id===load),a=c.node(b.p
   const k=mnaSolve(c,val,{skip:load,kill:true,inj:[a,bb]});if(!k)return null;const RT=k.V(a)-k.V(bb);
   if(!(RT>1e-6)||RT>1e5)return null;const RL=val[b.R],IL=ET/(RT+RL);return{ET,RT,IN:ET/RT,RL,IL,UL:IL*RL,PL:IL*IL*RL,Pmax:ET*ET/(4*RT)}}
 const TH_T=['thev','nort','pril'];
-function zthGen0(type,d){const lv=Math.max(1,Math.min(6,Math.round(d))),pk=a=>a[Math.floor(Math.random()*a.length)],big=Math.random()<0.4;
+function zthGen(type,d){const lv=Math.max(1,Math.min(6,Math.round(d))),pk=a=>a[Math.floor(Math.random()*a.length)],big=Math.random()<0.4;
   if(type==='pril'&&lv<=2){for(let t=0;t<500;t++){const E=pk(ZE),Ri=pk(ZR);const P=E*E/(4*Ri),I=E/(2*Ri);if(niceS(P,100)&&niceS(I,100))return{th:true,simple:true,type,d:lv,E,Ri,P,I,unit:big?'kΩ':'Ω',iu:big?'mA':'A',pu:big?'mW':'W',net:{id:'izvor'}}}}
   const pool=QS.filter(q=>q.topic==='kont').sort((a,b)=>a.diff-b.diff),n=pool.length,L=type==='pril'?Math.max(1,lv-2):lv,lo=Math.floor((L-1)/6*n),hi=Math.max(lo+1,Math.floor(L/6*n)),cand=pool.slice(lo,hi);
   const useL=THLEC.length&&L<=4&&Math.random()<(L<=2?0.6:0.35);
@@ -1710,7 +1710,6 @@ function zthText(z){const ru=z.unit,giv=z.simple?'':Object.keys(z.val).filter(k=
   if(z.type==='nort')return `Primjenom <b>Nortonova teorema</b> odredite struju kroz otpornik ${R} (označen). Odredite i Nortonove parametre I<sub>N</sub> i R<sub>N</sub> = 1/G<sub>N</sub> gledano sa stezaljki otpornika ${R}.<br><br>Zadano je: ${giv}.`;
   if(z.nor)return `Otpornik ${R} (označen) zamijenimo trošilom R<sub>t</sub>. Primjenom <b>Nortonova teorema</b> odredite Nortonove parametre I<sub>N</sub> i R<sub>N</sub> gledano sa stezaljki trošila. Koliki mora biti otpor trošila da bi ono bilo prilagođeno po snazi na ostatak mreže i kolika je tada snaga na trošilu?<br><br>Zadano je: ${giv}.`;
   return `Otpornik ${R} (označen) zamijenimo trošilom R<sub>t</sub>. Koliki mora biti otpor trošila da bi ono bilo prilagođeno po snazi na ostatak mreže i kolika je tada snaga na trošilu?<br><br>Zadano je: ${giv}.`}
-function zthGen(type,d){const z=zthGen0(type,d);if(z&&type==='pril'&&!z.simple&&Math.random()<0.5)z.nor=true;return z}
 function zthFields(z){const r=z.r,R=z.R?z.R.slice(1):'';
   if(z.simple)return[{lab:'R<sub>t</sub>',unit:z.unit,val:z.Ri,w:1},{lab:'I',unit:z.iu,val:z.I,w:1},{lab:'P<sub>max</sub>',unit:z.pu,val:z.P,w:2}];
   if(z.type==='thev')return[{lab:'E<sub>T</sub>',unit:'V',val:Math.abs(r.ET),w:1,desc:'iznos'},{lab:'R<sub>T</sub>',unit:z.unit,val:r.RT,w:1},{lab:`I<sub>${R}</sub>`,unit:z.iu,val:Math.abs(r.IL),w:2,desc:'iznos'}];
