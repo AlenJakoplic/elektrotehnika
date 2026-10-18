@@ -2524,14 +2524,14 @@ async function renderAn(){main.innerHTML='<div class="sheet panel" style="max-wi
   const act7=L.filter(s=>s.idle<=7).length,withSim=L.filter(s=>s.sims),avgR=L.length?Math.round(L.reduce((a,s)=>a+s.ready,0)/L.length):0,avgB=withSim.length?withSim.reduce((a,s)=>a+s.best,0)/withSim.length:null,risk=L.filter(s=>s.risk.length&&s.idle<60).length;
   const th=(k,l)=>`<th><a href="#" data-ans="${k}" style="color:inherit;${anSort===k?'text-decoration:underline':''}">${l}</a></th>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Analitika</h2>${anErr?`<p class="msg bad">${anErr}</p>`:''}<p class="note">Vidljivo samo administratoru. Podaci iz baze: profili studenata i dnevnik svih odgovora. Klik na nadimak otvara detalje.</p>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px"><label>Kolegij: <select id="ancrs" style="padding:6px 8px">${[['sve','Svi'],...COURSES,['-','Nije odabran']].map(([k,l])=>`<option value="${k}" ${anCourse===k?'selected':''}>${l}</option>`).join('')}</select></label><label>Aktivni: <select id="andays" style="padding:6px 8px">${[[0,'svi'],[1,'danas'],[3,'zadnja 3 dana'],[7,'zadnjih 7 dana'],[14,'zadnjih 14 dana'],[30,'zadnjih 30 dana']].map(([v,l])=>`<option value="${v}" ${anDays===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Riješeno barem: <select id="anmin" style="padding:6px 8px">${[0,1,10,20,50,100,200].map(v=>`<option value="${v}" ${anMin===v?'selected':''}>${v?v+' (pitanja + zadaci)':'bez uvjeta'}</option>`).join('')}</select></label><span class="note" style="margin:0">Prikazano: ${L.length} od ${anData.length}</span><button class="ghost" id="anref" style="margin:0">Osvježi</button><button class="ghost" id="ancsv" style="margin:0">Izvoz u CSV (Excel)</button></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px"><label>Kolegij: <select id="ancrs" style="padding:6px 8px">${[['sve','Svi'],...COURSES,['-','Nije odabran']].map(([k,l])=>`<option value="${k}" ${anCourse===k?'selected':''}>${l}</option>`).join('')}</select></label><label>Aktivni: <select id="andays" style="padding:6px 8px">${[[0,'svi'],[1,'danas'],[3,'zadnja 3 dana'],[7,'zadnjih 7 dana'],[14,'zadnjih 14 dana'],[30,'zadnjih 30 dana']].map(([v,l])=>`<option value="${v}" ${anDays===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Riješeno barem: <select id="anmin" style="padding:6px 8px">${[0,1,10,20,50,100,200].map(v=>`<option value="${v}" ${anMin===v?'selected':''}>${v?v+' (pitanja + zadaci)':'bez uvjeta'}</option>`).join('')}</select></label><span class="note" style="margin:0">Prikazano: ${L.length} od ${anData.length}</span><button class="ghost" id="anref" style="margin:0">Osvježi</button><button class="ghost" id="ancsv" style="margin:0">Izvoz u CSV (Excel)</button><button class="ghost" id="anexp" style="margin:0" title="Svi podaci iz baze, anonimizirano (JSON)">Potpuni izvoz za analizu</button></div>
   <div class="modbar" style="margin:0 0 14px;flex-wrap:wrap">${[['pre','Pregled i studenti'],['kz','Priprema za KZ1: gdje zapinju'],['grp','Cijela grupa']].map(([k,l])=>`<button data-ansec="${k}" aria-current="${anSec===k}">${l}</button>`).join('')}</div>${anSec!=='pre'?'':`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px">${anTile(L.length,'studenata')}${anTile(act7,'aktivnih u 7 dana')}${anTile(avgR+' %','prosječna spremnost za KZ1')}${anTile(withSim.length,'riješilo probnu KZ1')}${anTile(avgB==null?'–':zN(avgB),'prosj. najbolja probna')}${anTile(risk,'u riziku','var(--bad)')}</div>
   <h3 style="margin:0 0 6px">Aktivnost</h3>${anActChart()}
   <h3 style="margin:18px 0 6px">Studenti</h3><table><tr>${th('nick','Nadimak')}<th>Ime</th><th>Kolegij</th>${th('ov','Razina')}${th('nAns','Odgovora')}<th>Zadataka</th>${th('ready','Spremnost')}<th>Stadij</th>${th('best','Probna (najbolja / br.)')}${th('last','Zadnje')}<th>Najslabije</th>${th('risk','Rizik')}</tr>
   ${L.map(s=>`<tr><td><a href="#" data-ann="${anEsc(s.nick)}" style="color:var(--ok);font-weight:700">${anEsc(s.nick)}</a></td><td>${anEsc(s.name)}</td><td style="font-size:13px">${s.course?anCN(s.course).split(' – ')[0]:'–'}</td><td class="num">${fmt(s.ov)}</td><td class="num">${s.nAns}</td><td class="num">${s.zn}</td><td class="num">${s.ready} %</td><td class="num">${s.stage}</td><td class="num">${s.sims?zN(s.best)+' / '+s.sims:'–'}</td><td style="white-space:nowrap">${anAgo(s.last)}</td><td style="font-size:13px">${s.weak}</td><td style="font-size:13px;color:var(--bad)">${s.risk.join(', ')}</td></tr>`).join('')||'<tr><td colspan="12">Nema studenata.</td></tr>'}</table>`}
   ${anSec==='kz'?`<h3 style="margin:4px 0 6px">Priprema za KZ1: gdje zapinju</h3>${anPrep(L)}`:''}${anSec==='grp'?anGroup(L):''}</div>`;
   main.querySelectorAll('[data-ansec]').forEach(b=>b.onclick=()=>{anSec=b.dataset.ansec;renderAn()});
-  adBar();$('#ancrs').onchange=e=>{anCourse=e.target.value;renderAn()};$('#andays').onchange=e=>{anDays=+e.target.value;renderAn()};$('#anmin').onchange=e=>{anMin=+e.target.value;renderAn()};$('#anref').onclick=async()=>{await anLoad(true);renderAn()};$('#ancsv').onclick=()=>anCsv(L);
+  adBar();$('#ancrs').onchange=e=>{anCourse=e.target.value;renderAn()};$('#andays').onchange=e=>{anDays=+e.target.value;renderAn()};$('#anmin').onchange=e=>{anMin=+e.target.value;renderAn()};$('#anref').onclick=async()=>{await anLoad(true);renderAn()};$('#ancsv').onclick=()=>anCsv(L);$('#anexp').onclick=anExport;
   main.querySelectorAll('[data-ans]').forEach(a=>a.onclick=e=>{e.preventDefault();anSort=a.dataset.ans;renderAn()});
   main.querySelectorAll('[data-ann]').forEach(a=>a.onclick=e=>{e.preventDefault();e.stopPropagation();anNick=a.dataset.ann;renderAn();window.scrollTo(0,0)})}
 async function renderAnStudent(nick){const s=anData.find(x=>x.nick.toLowerCase()===nick.toLowerCase());
@@ -2642,6 +2642,79 @@ function svShowR(r){if(!r)return;const x=r.extra||{},chk=new Set(x.najkorisnije|
 
 function anMore(rows,head,what,k){k=k||5;if(!rows||!rows.length)return '<p class="note">Nema podataka.</p>';const t=r=>`<table>${head}${r.join('')}</table>`;
   return rows.length<=k?t(rows):t(rows.slice(0,k))+`<details><summary style="cursor:pointer;color:var(--ok);font-weight:600;margin-top:6px">Prikaži sve ${what} (${rows.length})</summary>${t(rows.slice(k))}</details>`}
+
+/* ---------- Tjedna ljestvica: povijest, tjedni vrh, značke ---------- */
+let WM=null,WL=null,bwSel=null;
+const wkFmt=w=>{const d=new Date(w+'T00:00:00Z'),e=new Date(d.getTime()+6*864e5),f=x=>`${x.getUTCDate()}. ${x.getUTCMonth()+1}.`;return `${f(d)} – ${f(e)}`};
+const wkPrev=()=>{const d=new Date(weekId(zgDate())+'T00:00:00Z');return new Date(d-7*864e5).toISOString().slice(0,10)};
+const wkIcon=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'⭐';
+async function wmLoad(force){if(!Remote||(WM&&!force))return;try{const [a,b]=await Promise.all([Remote.rpc('week_medals'),Remote.rpc('week_list')]);WM=a.error?[]:(a.data||[]);WL=b.error?[]:(b.data||[])}catch(e){WM=WM||[];WL=WL||[]}}
+function wmOf(nick,week){return (WM||[]).find(x=>x.week===week&&x.nick===nick)}
+function wmCount(nick){return (WM||[]).filter(x=>x.nick===nick).length}
+{const _ps=pushState;pushState=async function(){const r=await _ps.apply(this,arguments);try{const p=prof();if(Remote&&session&&p&&p.week&&p.week.pts>0)Remote.rpc('week_save',{p_token:session.token,p_week:p.week.id,p_pts:p.week.pts}).then(()=>{},()=>{})}catch(e){}return r}}
+{const _gw=gWeek;gWeek=function(p){const old=p.week,w=weekId(zgDate());if(old&&old.id!==w&&old.pts>0&&Remote&&session)Remote.rpc('week_save',{p_token:session.token,p_week:old.id,p_pts:old.pts}).then(()=>{},()=>{});return _gw(p)}}
+renderBoardWeek=async function(){const me=prof().nick,cur=weekId(zgDate()),wk=bwSel||cur,isCur=wk===cur,esc=s=>String(s).replace(/[<>&"]/g,'');let rows=[],err='';
+  main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: ${isCur?'ovaj tjedan':'tjedan '+wkFmt(wk)}</h2><p class="note">Učitavam…</p></div>`;modbar();
+  if(Remote){await wmLoad();try{const {data,error}=await Remote.rpc('leaderboard_week',{p_week:wk});if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data||[]}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='week')return}
+  else rows=Object.values(state.profiles).filter(p=>p.week&&p.week.id===wk&&p.week.pts>0).map(p=>({nick:p.nick,pts:p.week.pts})).sort((a,b)=>b.pts-a.pts);
+  const N=rows.length,top=Math.max(1,Math.ceil(N*0.1)),dow=(new Date(zgDate()+'T00:00:00Z').getUTCDay()+6)%7,left=6-dow,last=wkPrev();
+  const weeks=[...new Set([cur,...(WL||[]).map(x=>x.week)])].sort().reverse();
+  const sel=`<label style="font-size:14px">Tjedan: <select id="bwsel" style="background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;font-size:14px">${weeks.map(w=>`<option value="${w}" ${w===wk?'selected':''}>${w===cur?'ovaj tjedan':wkFmt(w)}${w===last?' (prošli)':''}</option>`).join('')}</select></label>`;
+  const rank=[];rows.forEach((r,i)=>rank[i]=i&&r.pts===rows[i-1].pts?rank[i-1]:i+1);
+  const info=isCur?`<p class="note" style="margin:6px 0 10px">Tjedan ${wkFmt(cur)} (svaki ponedjeljak kreće ispočetka). ${N?`Na kraju tjedna <b>prvih ${top}</b> (10 % od ${N} sudionika) dobiva značku <b>Tjedni vrh</b>.`:''} Ikone uz nadimke označavaju tjedni vrh prošlog tjedna.</p>${left<=2&&N?`<p class="msg" style="margin:0 0 10px">${left===0?'Danas je zadnji dan tjedna':'Do kraja tjedna još '+(left===1?'1 dan':left+' dana')}! Značku Tjedni vrh dobiva prvih ${top}. Trenutačno u vrhu: ${rows.filter((r,i)=>rank[i]<=top).map(r=>`<b>${esc(r.nick)}</b>`).join(', ')}.</p>`:''}`
+    :`<p class="note" style="margin:6px 0 10px">Završeni tjedan (${wkFmt(wk)}): ${N} sudionika, značku Tjedni vrh dobilo je prvih ${top}.</p>`;
+  main.innerHTML=`<div class="sheet panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">Ljestvica: ${isCur?'ovaj tjedan':'tjedan '+wkFmt(wk)}</h2>${sel}</div>${info}${err?`<p class="msg bad">${err}</p>`:''}
+  <table><tr><th></th><th>Nadimak</th><th>Bodovi</th></tr>
+  ${rows.map((p,i)=>{const m=isCur?wmOf(p.nick,last):(rank[i]<=top?{rnk:rank[i]}:null),inTop=isCur&&rank[i]<=top;return `<tr${p.nick===me?' style="font-weight:700"':''}><td>${rank[i]}.</td><td><a href="#" data-nick="${esc(p.nick)}">${esc(p.nick)}</a>${m?` <span title="${isCur?'Tjedni vrh prošlog tjedna':'Tjedni vrh'}">${wkIcon(m.rnk)}</span>`:''}${inTop&&left<=2?' <span class="note" style="margin:0" title="Trenutačno u vrhu">▲</span>':''}</td><td class="num">${zN(p.pts)}</td></tr>`}).join('')||`<tr><td colspan="3">${isCur?'Ovaj tjedan još nitko nema bodova.':'Nema podataka za taj tjedan.'}</td></tr>`}</table>
+  <p class="note">Bodovi: 1 za svaki točan odgovor u Vježbi i Ispitu, u Zadacima onoliko koliko zadatak donese, te bonus za ispunjene zadatke dana na Početnoj. Ovdje se ne gleda razina, nego trud.</p></div>`;
+  $('#bwsel').onchange=e=>{bwSel=e.target.value===cur?null:e.target.value;renderBoardWeek()};modbar();if(Remote)boardStats(null)};
+/* značka na profilu i Napretku */
+{const _sp=showProfile;showProfile=async function(nick){await _sp.apply(this,arguments);await wmLoad();const k=wmCount(nick),box=document.querySelector('#profov .sheet h2');if(k&&box)box.insertAdjacentHTML('afterend',`<p style="margin:6px 0 0">🏅 <b>Tjedni vrh</b> ×${k}</p>`)}}
+
+/* ---------- Zadaci dana (Početna) ---------- */
+const QB=5;
+function qGroups(){return KZS1.map(([k,l,ts])=>({k,l,ts}))}
+function qGroupOf(){const p=prof();if(view==='practice'){const m=p.module;return qGroups().find(g=>g.ts.includes(m))||null}return null}
+function qMake(p){const t=zgDate();if(p.quest&&p.quest.day===t)return p.quest;const G=qGroups().map(g=>{let n=0,w=0,s=0;g.ts.forEach(x=>{const r=p.ratings[x];if(r){n+=r.n;const ww=Math.max(1,r.n);w+=ww;s+=r.r*ww}});return{...g,n,r:w?s/w:2}});
+  const weak=G.filter(g=>g.n>=3).sort((a,b)=>a.r-b.r)[0]||G.sort((a,b)=>a.n-b.n)[0],rest=G.filter(g=>g.k!==weak.k).sort((a,b)=>a.n-b.n),few=rest[0];
+  const q=[{id:'mix',t:'Miks: riješi 10 pitanja iz barem 3 različita gradiva',need:10,prog:0,set:[],done:false},
+    {id:'weak',g:weak.k,t:`Slabije gradivo: riješi točno 5 pitanja iz gradiva ${weak.l}`,need:5,prog:0,done:false},
+    {id:'few',g:few.k,t:`Manje vježbano: riješi 5 pitanja iz gradiva ${few.l}`,need:5,prog:0,done:false}];
+  p.quest={day:t,q};return p.quest}
+function qTick(correct){const p=prof();if(!p||view!=='practice')return;const g=qGroupOf();if(!g)return;const Q=qMake(p);let won=0;
+  Q.q.forEach(x=>{if(x.done)return;if(x.id==='mix'){x.prog++;if(!x.set.includes(g.k))x.set.push(g.k);if(x.prog>=x.need&&x.set.length>=3)x.done=true}
+    else if(x.g===g.k&&(x.id==='few'||correct)){x.prog++;if(x.prog>=x.need)x.done=true}if(x.done){won++;gWeek(p).pts+=QB}});
+  if(won){save();toast(`⭐ Zadatak dana ispunjen! +${QB*won} bodova za tjednu ljestvicu`)}}
+{const _dt=dayTick;dayTick=function(correct,pts){const r=_dt.apply(this,arguments);try{qTick(!!correct);qNudge()}catch(e){}return r}}
+function qHtml(p){const Q=qMake(p),all=Q.q.every(x=>x.done);
+  return `<div style="border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:0 0 22px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h3 style="margin:0">Zadaci dana</h3><span class="note" style="margin:0">Svaki donosi +${QB} bodova za tjednu ljestvicu · novi zadaci svaki dan</span></div>
+  ${Q.q.map(x=>{const pr=x.id==='mix'?`${Math.min(x.prog,x.need)}/${x.need} pitanja · ${x.set.length}/3 gradiva`:`${Math.min(x.prog,x.need)}/${x.need}`,go=x.id==='mix'?(qGroups().find(g=>!x.set.includes(g.k))||qGroups()[0]).k:x.g;
+    return `<div style="display:flex;align-items:center;gap:10px;margin:10px 0 0;${x.done?'opacity:.6':''}"><span style="font-size:18px;width:22px">${x.done?'✅':'⬜'}</span><div style="flex:1;min-width:0"><div style="font-weight:600">${x.t}</div><div class="note" style="margin:0">${x.done?'Ispunjeno':pr}</div></div>${x.done?'':`<button class="ghost" data-qgo="${go}" style="margin:0;padding:6px 12px">Kreni</button>`}</div>`}).join('')}
+  ${all?'<p class="note" style="margin:10px 0 0">Svi zadaci dana su ispunjeni. Sutra stižu novi!</p>':''}</div>`}
+/* Početna: zadaci dana i tjedni vrh */
+{const _rh2=renderHome;renderHome=function(){const r=_rh2.apply(this,arguments);try{const p=prof(),h3=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Gradiva');if(h3&&!main.querySelector('[data-qgo],#qbox')){h3.insertAdjacentHTML('beforebegin',`<div id="qbox">${qHtml(p)}</div>`);
+    main.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>{const g=qGroups().find(x=>x.k===b.dataset.qgo);if(!g)return;p.module=g.ts[0];save();view='practice';render();window.scrollTo(0,0)})}
+    wmLoad().then(()=>{if(view!=='home'||!WM)return;const last=wkPrev(),win=WM.filter(x=>x.week===last),mine=win.find(x=>x.nick===p.nick);if(!win.length||main.querySelector('#wmhome'))return;const qb=main.querySelector('#qbox');if(!qb)return;
+      qb.insertAdjacentHTML('beforebegin',`<div id="wmhome" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:10px 14px;margin:0 0 16px">${mine?`<b>Čestitamo! Prošli tjedan: tjedni vrh, ${mine.rnk}. mjesto ${wkIcon(mine.rnk)}</b><br>`:''}<span style="font-size:14px">Tjedni vrh prošlog tjedna: ${win.map(x=>`${wkIcon(x.rnk)} ${String(x.nick).replace(/[<>&]/g,'')}`).join(' · ')}</span></div>`)})}catch(e){}return r}}
+/* Podsjetnik nakon 20 pitanja u istom gradivu */
+let qSame={k:null,n:0};
+function qNudge(){if(view!=='practice')return;const p=prof(),g=qGroupOf();if(!g)return;if(qSame.k!==g.k)qSame={k:g.k,n:0};qSame.n++;if(qSame.n%20)return;
+  let miss=null;try{const S=kzState(p);miss=S.s1.find(x=>!x.ok&&x.k!==g.k)}catch(e){}if(!miss)miss=qGroups().filter(x=>x.k!==g.k).sort((a,b)=>{const n=x=>x.ts.reduce((s,t)=>s+((p.ratings[t]||{}).n||0),0);return n(a)-n(b)})[0];if(!miss)return;
+  const tg=qGroups().find(x=>x.k===miss.k);document.getElementById('qnudge')?.remove();
+  document.body.insertAdjacentHTML('beforeend',`<div id="qnudge" style="position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:10px;padding:12px 16px;z-index:9997;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:min(520px,92vw)"><b>Odlično ti ide!</b> ${qSame.n} pitanja zaredom iz istog gradiva. ${isEtr()?'Za pripremu za KZ1 ti još fali':'Probaj i'}: <b>${tg.l}</b>.<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end"><button class="ghost" id="qnx" style="margin:0;padding:6px 12px">Nastavi ovdje</button><button class="primary" id="qngo" style="margin:0;padding:6px 12px">Prijeđi na ${tg.l}</button></div></div>`);
+  $('#qnx').onclick=()=>document.getElementById('qnudge')?.remove();$('#qngo').onclick=()=>{document.getElementById('qnudge')?.remove();p.module=tg.ts[0];save();render();window.scrollTo(0,0)}}
+
+/* ---------- Potpuni izvoz za analizu (administrator) ---------- */
+async function anExport(){try{const {data,error}=await Remote.rpc('admin_export',{p_token:session.token});if(error)throw error;const D=data,map={},adm=new Set(D.admins||[]);let i=0;
+  const sid=id=>id?(map[id]||(map[id]=(adm.has(id)?'ADMIN':'S'+String(++i).padStart(3,'0')))):null;
+  (D.profiles||[]).sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at))).forEach(p=>sid(p.id));
+  const strip=s=>{const x=JSON.parse(JSON.stringify(s||{}));delete x.nick;delete x.name;delete x.fullName;return x};
+  const out={exported_at:D.exported_at,app_version:(typeof VERS!=='undefined'&&VERS[0])?VERS[0][0]:'',note:'Anonimizirano: nadimci zamijenjeni oznakama S001…, bez imena, PIN-a i tokena.',
+    profiles:(D.profiles||[]).map(p=>({sid:sid(p.id),admin:adm.has(p.id),has_name:p.has_name,created_at:p.created_at,updated_at:p.updated_at,state:strip(p.state)})),
+    answers:(D.answers||[]).map(a=>({sid:sid(a.pid),qid:a.qid,topic:a.topic,score:a.score,help:a.help,mode:a.mode,t:a.t})),
+    week_scores:(D.week_scores||[]).map(w=>({sid:sid(w.pid),week:w.week,pts:w.pts})),qstats:D.qstats||[],
+    feedback:(D.feedback||[]).map(f=>({sid:sid(f.pid),kind:f.kind,qid:f.qid,page:f.page,msg:f.msg,rating:f.rating,extra:f.extra,replied:!!f.reply,t:f.t}))};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:'application/json'}));a.download='radionica-izvoz-'+zgDate()+'.json';a.click()}catch(e){alert('Izvoz nije uspio. Je li pokrenut supabase-dodatak-tjedni.sql?')}}
 
 view='home';
 boot();
