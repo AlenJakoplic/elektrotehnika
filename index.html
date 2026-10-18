@@ -203,7 +203,7 @@ function pickQuestion(topic,exclude=new Set()){
   let best=null,bs=1e9;
   for(const q of QS){
     if(q.topic!==topic||recent.has(q.id)||exclude.has(q.id))continue;
-    let sc=Math.abs(qRating(q)-(s+0.3))+Math.random()*0.8;
+    let sc=Math.abs(qRating(q)-(s+0.8))+Math.random()*0.8;
     for(const t of q.tags)if(weak.has(t))sc-=0.35;
     if(sc<bs){bs=sc;best=q}
   }
@@ -496,7 +496,9 @@ function renderHelp(){
   <h3>Gdje se sprema napredak</h3>
   <p>Napredak se sprema uz tvoj nadimak i PIN, pa ga imaš na svakom uređaju. Na ljestvici se vidi samo nadimak. Točnost i ime su skriveni dok ih sam ne uključiš na Napretku. Nastavnik može vidjeti rezultate u bazi i koristi ih samo za poboljšanje nastave i aplikacije, nikad za ocjenjivanje.</p>
   <h3>Niz dana, značke i tjedna liga</h3>
-  <p>Dan se računa kad riješiš barem jedan zadatak. Za 10 točnih odgovora zaredom dobiješ slobodan dan (najviše 3), koji čuva niz kad propustiš dan. Značke se dobivaju za niz dana, točne odgovore zaredom i svladane zamke. U tjednoj ligi na Ljestvici se broje bodovi ovog tjedna, a svaki ponedjeljak kreće ispočetka.</p>
+  <p>Dan se računa kad riješiš barem jedan zadatak. Za 10 točnih odgovora zaredom dobiješ slobodan dan (najviše 3), koji čuva niz kad propustiš dan. Značke se dobivaju za niz dana, točne odgovore zaredom i svladane zamke. U tjednoj ligi na Ljestvici se broje bodovi ovog tjedna, a svaki ponedjeljak kreće ispočetka. U gradivu koje je već svladano (razina 7+) točan odgovor donosi manje bodova. Na kraju tjedna prvih 10 % dobiva značku Tjedni vrh, a prijašnji tjedni mogu se pogledati na ljestvici.</p>
+  <h3>Zadaci dana</h3>
+  <p>Na Početnoj su svaki dan novi zadaci: miks gradiva, slabije gradivo, gradivo koje je na redu i zadatak s brojevima. Ispunjeni zadaci donose bonus bodove za tjednu ljestvicu.</p>
   <p class="note" style="margin-top:24px;padding-top:14px;border-top:1px solid var(--line)">Aplikaciju je izradio dr. sc. Alen Jakoplić, 7. listopada 2026., uz pomoć velikog jezičnog modela Claude Opus 5.5 tvrtke Anthropic. Kao podloga korištena je literatura prof. dr. sc. Nina Stojkovića.</p>${verHtml()}</div>`;setTimeout(verBind,0);
   $('#tourbtn').onclick=()=>tourStart();
 }
@@ -864,7 +866,7 @@ let eq=null,eAns=null,lastEType=null;
 function esHl(el){const svg=el&&el.closest('svg.es');document.querySelectorAll('svg.es.hov').forEach(x=>{if(x!==svg){x.classList.remove('hov');x.querySelectorAll('.on').forEach(o=>o.classList.remove('on'))}});if(!svg)return;const k=el.getAttribute('data-g');svg.classList.add('hov');svg.querySelectorAll('[data-g]').forEach(o=>o.classList.toggle('on',k==='all'||o.getAttribute('data-g')===k))}
 document.addEventListener('pointerover',e=>{const t=e.target.closest&&e.target.closest('svg.es [data-g]');esHl(t||null)});
 document.addEventListener('pointerleave',()=>esHl(null));
-function pickEstat(ex=new Set()){const p=prof(),s=p.ratings.estat.r+((p.boost&&p.boost.estat)||0),rec=new Set(p.recent);let best=null,bs=1e9;for(const q of EQ){if(rec.has(q.id)||ex.has(q.id))continue;const ts=p.tags['estat:'+q.tags[0]],mast=ts&&ts.n>=3&&ts.c/ts.n>=0.8;let sc=Math.random()*2+0.15*Math.abs(qRating(q)-s)+(q.type===lastEType?3:0)+(mast?1.5:0);if(sc<bs){bs=sc;best=q}}best=best||EQ[Math.floor(Math.random()*EQ.length)];lastEType=best.type;return best}
+function pickEstat(ex=new Set()){const p=prof(),s=p.ratings.estat.r+((p.boost&&p.boost.estat)||0),rec=new Set(p.recent);let best=null,bs=1e9;for(const q of EQ){if(rec.has(q.id)||ex.has(q.id))continue;const ts=p.tags['estat:'+q.tags[0]],mast=ts&&ts.n>=3&&ts.c/ts.n>=0.8;let sc=Math.random()*2+0.15*Math.abs(qRating(q)-(s+0.5))+(q.type===lastEType?3:0)+(mast?1.5:0);if(sc<bs){bs=sc;best=q}}best=best||EQ[Math.floor(Math.random()*EQ.length)];lastEType=best.type;return best}
 const _pickQ=pickQuestion;pickQuestion=function(t,ex){return t==='estat'?pickEstat(ex):_pickQ(t,ex)};
 function renderEstat(){
   const p=prof();if(!eq){eq=pickEstat();eAns=null}const q=eq,done=eAns!=null;
@@ -1486,7 +1488,7 @@ function gWeek(p){const w=weekId(zgDate());if(!p.week||p.week.id!==w)p.week={id:
 function dayTick(correct,pts){const p=prof();if(!p)return;const D=gDays(p),t=zgDate();
   if(D.last!==t){if(!D.last)D.streak=1;else{const g=dDiff(D.last,t)-1;if(g<=0)D.streak++;else if(D.free>=g){D.free-=g;D.streak++}else D.streak=1}D.last=t;D.best=Math.max(D.best,D.streak)}
   if(correct){D.run++;D.bestRun=Math.max(D.bestRun,D.run);if(D.run>=FREE_EVERY){D.run=0;if(D.free<FREE_MAX){D.free++;toast('🛡️ Zaslužen je slobodan dan!')}}}else D.run=0;
-  gWeek(p).pts+=pts==null?(correct?1:0):pts;
+  gWeek(p).pts+=pts==null?(correct?wkFactor(p):0):pts;
   checkBadges(p)}
 const tagsOk=p=>Object.values(p.tags||{}).filter(t=>t.n>=5&&t.c/t.n>=0.8).length;
 const rt=(p,k)=>(p.ratings&&p.ratings[k])||{r:2,n:0,c:0};
@@ -1587,6 +1589,7 @@ async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`
 
 /* ---------- Verzije ---------- */
 const VERS=[
+ ['0.17','18. 10. 2026.',['Zadaci dana na Početnoj','Tjedna ljestvica: prijašnji tjedni i značka Tjedni vrh','Poruka kad je gradivo svladano i poveznica na zadatke s brojevima iz Vježbe','Pitanja su sada malo zahtjevnija','Formule otvaraju se u pregledniku, poveznica na lekciju u Vježbi i Zadacima']],
  ['0.16','16. 10. 2026.',['Priprema za KZ1: stadiji pripreme, spremnost i Probna KZ1 (probna kontrolna zadaća) s pregledom svakog zadatka','Formule EtR_f1 i EtR_f2 za preuzimanje','Magnetsko polje i u Vježbi','Prijava greške, Pitaj nastavnika i povratne informacije, uz odgovore nastavnika na Napretku','Odabir kolegija i usporedba kolegija na Ljestvici','Ljestvica Probne KZ1 i Zadataka po gradivima','Izbor vrste pitanja i točnost po vrstama za sve','Elektrostatika u Zadacima kao jedna kartica (naboji i kondenzatori), Testiraj se u Zadacima','Prikaži rješenje pokraj Provjeri','Bolji prikaz na mobitelu']],
  ['0.15','15. 10. 2026.',['Zadaci iz elektrostatike: naboji (polje, potencijal, sila, rad) i kondenzatori (C, Q, U, W)','Magnetsko polje ravnih vodiča: lekcija i zadaci, rješenje s vektorima na slici i silnice pri prelasku mišem','Teoremi mreža: Theveninov i Nortonov teorem','Nove vrste pitanja u Vježbi za sva gradiva i izbor vrste pitanja','Ljestvica i Početna po gradivima Zadataka','Traka napretka kod zadataka s više koraka','Nakon pogrešnog koraka objašnjenje ostaje vidljivo do klika na Dalje','Poveznica na lekciju kad zadatak ne ide']],
  ['0.14','12. 10. 2026.',['Promjena nadimka','Točnost je zadano skrivena, a može se prikazati na ljestvici i profilu','Skriveni PIN pri upisu, s okom za prikaz','Poboljšan vodič kroz aplikaciju','Easter egg']],
@@ -2201,8 +2204,8 @@ function renderMag(){const p=prof();if(!mgq||mgq.topic!=='mag'){mgq=pickQuestion
 /* */const KZ1=new Date('2026-10-28T08:00:00+01:00');
 const COURSES=[['etr','Elektrotehnika R – studij računarstva'],['emr','Elektrotehnika – studij mehatronike i robotike'],['drugi','Drugi kolegij']];
 function isEtr(){const p=prof();return !p||!p.course||p.course==='etr'}
-function courseAsk(force){const p=prof();if(!p||(!force&&p.course)||document.getElementById('fbm'))return;const m=fbModal(`<h3 style="margin:0 0 8px">Koji kolegij slušaš?</h3><p class="note" style="margin:0 0 10px">Aplikaciju koriste studenti više kolegija Tehničkog fakulteta u Rijeci. Obavijesti o kontrolnim zadaćama i datumi odnose se na kolegij Elektrotehnika R (sveučilišni prijediplomski studij računarstva).</p><select id="crs" class="ghost" style="width:100%;margin:0 0 12px">${COURSES.map(([k,t])=>`<option value="${k}" ${p.course===k?'selected':''}>${t}</option>`).join('')}</select><div class="row" style="justify-content:flex-end"><button class="primary" id="crsok" style="margin:0">Spremi</button></div><p class="note" style="margin:8px 0 0">Kolegij možeš promijeniti u Napretku.</p>`);
-  m.querySelector('#crsok').onclick=()=>{p.course=m.querySelector('#crs').value;save();m.remove();if(view==='kz'&&!isEtr())view='home';render()}}
+function courseAsk(force){const p=prof();if(!p||(!force&&p.course)||document.getElementById('fbm'))return;const m=fbModal(`<h3 style="margin:0 0 8px">Koji kolegij slušaš?</h3><p class="note" style="margin:0 0 10px">Aplikaciju koriste studenti više kolegija Tehničkog fakulteta u Rijeci. Obavijesti o kontrolnim zadaćama i datumi odnose se na kolegij Elektrotehnika R (sveučilišni prijediplomski studij računarstva).</p><select id="crs" class="ghost" style="width:100%;margin:0 0 12px">${p.course?'':'<option value="" selected disabled>Odaberi kolegij…</option>'}${COURSES.map(([k,t])=>`<option value="${k}" ${p.course===k?'selected':''}>${t}</option>`).join('')}</select><div class="row" style="justify-content:flex-end"><button class="primary" id="crsok" style="margin:0">Spremi</button></div><p class="note" style="margin:8px 0 0">Kolegij možeš promijeniti u Napretku.</p>`);
+  m.querySelector('#crsok').onclick=()=>{if(!m.querySelector('#crs').value){m.querySelector('#crs').focus();return}p.course=m.querySelector('#crs').value;save();m.remove();if(view==='kz'&&!isEtr())view='home';render()}}
 function kzBanner(){const now=new Date();if(now>new Date(KZ1.getTime()+60*60000))return '';if(!isEtr())return `<div id="kzban" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:10px;padding:12px 16px;margin:0 0 18px;font-size:14px;cursor:${view==='kz'?'default':'pointer'}">Priprema za KZ1 u aplikaciji izrađena je za kolegij <b>Elektrotehnika R</b> (Tehnički fakultet u Rijeci). Na tvojem kolegiju gradivo, datum i pravila prve kontrolne zadaće mogu biti drukčiji, pa ih provjeri kod svojih nastavnika. Ostali dijelovi aplikacije (Vježba, Zadaci) korisni su svima. <a href="#" id="kzcrs" style="color:inherit;font-size:12px">Promijeni kolegij</a></div>`;const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),d1=new Date(KZ1.getFullYear(),KZ1.getMonth(),KZ1.getDate()),dn=Math.round((d1-d0)/864e5);
   const when=dn<=0?'<b>danas</b>':dn===1?'<b>sutra</b>':`za <b>${dn} ${dn%10>=2&&dn%10<=4&&(dn%100<12||dn%100>14)?'dana':'dana'}</b>`;
   return `<div id="kzban" style="border:2px solid var(--bad);border-radius:10px;padding:14px 16px;margin:0 0 18px;cursor:${view==='kz'?'default':'pointer'}"><div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Kontrolna zadaća 1</div><div style="font-size:19px;font-weight:700;margin:2px 0 6px">Srijeda, 28. 10. 2026. u 8:00 (60 min) · ${when}</div><div style="font-size:14px">Gradivo: elektrostatika, mreže istosmjerne struje i elektromagnetizam.</div><div class="note" style="margin-top:6px">Aplikacija je dodatak, a ne zamjena za predavanja, auditorne vježbe i samostalno rješavanje zadataka s kalkulatorom.</div><div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:12px;color:var(--muted)">Termin vrijedi za kolegij Elektrotehnika R (studij računarstva). <a href="#" id="kzcrs" style="color:inherit">Nisi na tom kolegiju? Promijeni kolegij</a></span>${view==='kz'?'':'<button class="primary" style="margin:0">Kreni s pripremom za KZ1 →</button>'}</div></div>`}
@@ -2524,14 +2527,14 @@ async function renderAn(){main.innerHTML='<div class="sheet panel" style="max-wi
   const act7=L.filter(s=>s.idle<=7).length,withSim=L.filter(s=>s.sims),avgR=L.length?Math.round(L.reduce((a,s)=>a+s.ready,0)/L.length):0,avgB=withSim.length?withSim.reduce((a,s)=>a+s.best,0)/withSim.length:null,risk=L.filter(s=>s.risk.length&&s.idle<60).length;
   const th=(k,l)=>`<th><a href="#" data-ans="${k}" style="color:inherit;${anSort===k?'text-decoration:underline':''}">${l}</a></th>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Analitika</h2>${anErr?`<p class="msg bad">${anErr}</p>`:''}<p class="note">Vidljivo samo administratoru. Podaci iz baze: profili studenata i dnevnik svih odgovora. Klik na nadimak otvara detalje.</p>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px"><label>Kolegij: <select id="ancrs" style="padding:6px 8px">${[['sve','Svi'],...COURSES,['-','Nije odabran']].map(([k,l])=>`<option value="${k}" ${anCourse===k?'selected':''}>${l}</option>`).join('')}</select></label><label>Aktivni: <select id="andays" style="padding:6px 8px">${[[0,'svi'],[1,'danas'],[3,'zadnja 3 dana'],[7,'zadnjih 7 dana'],[14,'zadnjih 14 dana'],[30,'zadnjih 30 dana']].map(([v,l])=>`<option value="${v}" ${anDays===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Riješeno barem: <select id="anmin" style="padding:6px 8px">${[0,1,10,20,50,100,200].map(v=>`<option value="${v}" ${anMin===v?'selected':''}>${v?v+' (pitanja + zadaci)':'bez uvjeta'}</option>`).join('')}</select></label><span class="note" style="margin:0">Prikazano: ${L.length} od ${anData.length}</span><button class="ghost" id="anref" style="margin:0">Osvježi</button><button class="ghost" id="ancsv" style="margin:0">Izvoz u CSV (Excel)</button></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px"><label>Kolegij: <select id="ancrs" style="padding:6px 8px">${[['sve','Svi'],...COURSES,['-','Nije odabran']].map(([k,l])=>`<option value="${k}" ${anCourse===k?'selected':''}>${l}</option>`).join('')}</select></label><label>Aktivni: <select id="andays" style="padding:6px 8px">${[[0,'svi'],[1,'danas'],[3,'zadnja 3 dana'],[7,'zadnjih 7 dana'],[14,'zadnjih 14 dana'],[30,'zadnjih 30 dana']].map(([v,l])=>`<option value="${v}" ${anDays===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Riješeno barem: <select id="anmin" style="padding:6px 8px">${[0,1,10,20,50,100,200].map(v=>`<option value="${v}" ${anMin===v?'selected':''}>${v?v+' (pitanja + zadaci)':'bez uvjeta'}</option>`).join('')}</select></label><span class="note" style="margin:0">Prikazano: ${L.length} od ${anData.length}</span><button class="ghost" id="anref" style="margin:0">Osvježi</button><button class="ghost" id="ancsv" style="margin:0">Izvoz u CSV (Excel)</button><button class="ghost" id="anexp" style="margin:0" title="Svi podaci iz baze, anonimizirano (JSON)">Potpuni izvoz za analizu</button></div>
   <div class="modbar" style="margin:0 0 14px;flex-wrap:wrap">${[['pre','Pregled i studenti'],['kz','Priprema za KZ1: gdje zapinju'],['grp','Cijela grupa']].map(([k,l])=>`<button data-ansec="${k}" aria-current="${anSec===k}">${l}</button>`).join('')}</div>${anSec!=='pre'?'':`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px">${anTile(L.length,'studenata')}${anTile(act7,'aktivnih u 7 dana')}${anTile(avgR+' %','prosječna spremnost za KZ1')}${anTile(withSim.length,'riješilo probnu KZ1')}${anTile(avgB==null?'–':zN(avgB),'prosj. najbolja probna')}${anTile(risk,'u riziku','var(--bad)')}</div>
   <h3 style="margin:0 0 6px">Aktivnost</h3>${anActChart()}
   <h3 style="margin:18px 0 6px">Studenti</h3><table><tr>${th('nick','Nadimak')}<th>Ime</th><th>Kolegij</th>${th('ov','Razina')}${th('nAns','Odgovora')}<th>Zadataka</th>${th('ready','Spremnost')}<th>Stadij</th>${th('best','Probna (najbolja / br.)')}${th('last','Zadnje')}<th>Najslabije</th>${th('risk','Rizik')}</tr>
   ${L.map(s=>`<tr><td><a href="#" data-ann="${anEsc(s.nick)}" style="color:var(--ok);font-weight:700">${anEsc(s.nick)}</a></td><td>${anEsc(s.name)}</td><td style="font-size:13px">${s.course?anCN(s.course).split(' – ')[0]:'–'}</td><td class="num">${fmt(s.ov)}</td><td class="num">${s.nAns}</td><td class="num">${s.zn}</td><td class="num">${s.ready} %</td><td class="num">${s.stage}</td><td class="num">${s.sims?zN(s.best)+' / '+s.sims:'–'}</td><td style="white-space:nowrap">${anAgo(s.last)}</td><td style="font-size:13px">${s.weak}</td><td style="font-size:13px;color:var(--bad)">${s.risk.join(', ')}</td></tr>`).join('')||'<tr><td colspan="12">Nema studenata.</td></tr>'}</table>`}
   ${anSec==='kz'?`<h3 style="margin:4px 0 6px">Priprema za KZ1: gdje zapinju</h3>${anPrep(L)}`:''}${anSec==='grp'?anGroup(L):''}</div>`;
   main.querySelectorAll('[data-ansec]').forEach(b=>b.onclick=()=>{anSec=b.dataset.ansec;renderAn()});
-  adBar();$('#ancrs').onchange=e=>{anCourse=e.target.value;renderAn()};$('#andays').onchange=e=>{anDays=+e.target.value;renderAn()};$('#anmin').onchange=e=>{anMin=+e.target.value;renderAn()};$('#anref').onclick=async()=>{await anLoad(true);renderAn()};$('#ancsv').onclick=()=>anCsv(L);
+  adBar();$('#ancrs').onchange=e=>{anCourse=e.target.value;renderAn()};$('#andays').onchange=e=>{anDays=+e.target.value;renderAn()};$('#anmin').onchange=e=>{anMin=+e.target.value;renderAn()};$('#anref').onclick=async()=>{await anLoad(true);renderAn()};$('#ancsv').onclick=()=>anCsv(L);$('#anexp').onclick=anExport;
   main.querySelectorAll('[data-ans]').forEach(a=>a.onclick=e=>{e.preventDefault();anSort=a.dataset.ans;renderAn()});
   main.querySelectorAll('[data-ann]').forEach(a=>a.onclick=e=>{e.preventDefault();e.stopPropagation();anNick=a.dataset.ann;renderAn();window.scrollTo(0,0)})}
 async function renderAnStudent(nick){const s=anData.find(x=>x.nick.toLowerCase()===nick.toLowerCase());
@@ -2642,6 +2645,96 @@ function svShowR(r){if(!r)return;const x=r.extra||{},chk=new Set(x.najkorisnije|
 
 function anMore(rows,head,what,k){k=k||5;if(!rows||!rows.length)return '<p class="note">Nema podataka.</p>';const t=r=>`<table>${head}${r.join('')}</table>`;
   return rows.length<=k?t(rows):t(rows.slice(0,k))+`<details><summary style="cursor:pointer;color:var(--ok);font-weight:600;margin-top:6px">Prikaži sve ${what} (${rows.length})</summary>${t(rows.slice(k))}</details>`}
+
+/* ---------- Tjedna ljestvica: povijest, tjedni vrh, značke ---------- */
+let WM=null,WL=null,bwSel=null;
+const wkFmt=w=>{const d=new Date(w+'T00:00:00Z'),e=new Date(d.getTime()+6*864e5),f=x=>`${x.getUTCDate()}. ${x.getUTCMonth()+1}.`;return `${f(d)} – ${f(e)}`};
+const wkPrev=()=>{const d=new Date(weekId(zgDate())+'T00:00:00Z');return new Date(d-7*864e5).toISOString().slice(0,10)};
+const wkIcon=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'⭐';
+async function wmLoad(force){if(!Remote||(WM&&!force))return;try{const [a,b]=await Promise.all([Remote.rpc('week_medals'),Remote.rpc('week_list')]);WM=a.error?[]:(a.data||[]);WL=b.error?[]:(b.data||[])}catch(e){WM=WM||[];WL=WL||[]}}
+function wmOf(nick,week){return (WM||[]).find(x=>x.week===week&&x.nick===nick)}
+function wmCount(nick){return (WM||[]).filter(x=>x.nick===nick).length}
+{const _ps=pushState;pushState=async function(){const r=await _ps.apply(this,arguments);try{const p=prof();if(Remote&&session&&p&&p.week&&p.week.pts>0)Remote.rpc('week_save',{p_token:session.token,p_week:p.week.id,p_pts:p.week.pts}).then(()=>{},()=>{})}catch(e){}return r}}
+{const _gw=gWeek;gWeek=function(p){const old=p.week,w=weekId(zgDate());if(old&&old.id!==w&&old.pts>0&&Remote&&session)Remote.rpc('week_save',{p_token:session.token,p_week:old.id,p_pts:old.pts}).then(()=>{},()=>{});return _gw(p)}}
+renderBoardWeek=async function(){const me=prof().nick,cur=weekId(zgDate()),wk=bwSel||cur,isCur=wk===cur,esc=s=>String(s).replace(/[<>&"]/g,'');let rows=[],err='';
+  main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: ${isCur?'ovaj tjedan':'tjedan '+wkFmt(wk)}</h2><p class="note">Učitavam…</p></div>`;modbar();
+  if(Remote){await wmLoad();try{const {data,error}=await Remote.rpc('leaderboard_week',{p_week:wk});if(error)err='Ljestvica se trenutačno ne može učitati.';else rows=data||[]}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='week')return}
+  else rows=Object.values(state.profiles).filter(p=>p.week&&p.week.id===wk&&p.week.pts>0).map(p=>({nick:p.nick,pts:p.week.pts})).sort((a,b)=>b.pts-a.pts);
+  const N=rows.length,top=Math.max(1,Math.ceil(N*0.1)),dow=(new Date(zgDate()+'T00:00:00Z').getUTCDay()+6)%7,left=6-dow,last=wkPrev();
+  const weeks=[...new Set([cur,...(WL||[]).map(x=>x.week)])].sort().reverse();
+  const sel=`<label style="font-size:14px">Tjedan: <select id="bwsel" style="background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;font-size:14px">${weeks.map(w=>`<option value="${w}" ${w===wk?'selected':''}>${w===cur?'ovaj tjedan':wkFmt(w)}${w===last?' (prošli)':''}</option>`).join('')}</select></label>`;
+  const rank=[];rows.forEach((r,i)=>rank[i]=i&&r.pts===rows[i-1].pts?rank[i-1]:i+1);
+  const info=isCur?`<p class="note" style="margin:6px 0 10px">Tjedan ${wkFmt(cur)} (svaki ponedjeljak kreće ispočetka). ${N?`Na kraju tjedna <b>prvih ${top}</b> (10 % od ${N} sudionika) dobiva značku <b>Tjedni vrh</b>.`:''} Ikone uz nadimke označavaju tjedni vrh prošlog tjedna.</p>`
+    :`<p class="note" style="margin:6px 0 10px">Završeni tjedan (${wkFmt(wk)}): ${N} sudionika, značku Tjedni vrh dobilo je prvih ${top}.</p>`;
+  main.innerHTML=`<div class="sheet panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">Ljestvica: ${isCur?'ovaj tjedan':'tjedan '+wkFmt(wk)}</h2>${sel}</div>${info}${err?`<p class="msg bad">${err}</p>`:''}
+  <table><tr><th></th><th>Nadimak</th><th>Bodovi</th></tr>
+  ${rows.map((p,i)=>{const m=isCur?wmOf(p.nick,last):(rank[i]<=top?{rnk:rank[i]}:null),inTop=isCur&&rank[i]<=top;return `<tr${p.nick===me?' style="font-weight:700"':''}><td>${rank[i]}.</td><td><a href="#" data-nick="${esc(p.nick)}">${esc(p.nick)}</a>${m?` <span title="${isCur?'Tjedni vrh prošlog tjedna':'Tjedni vrh'}">${wkIcon(m.rnk)}</span>`:''}</td><td class="num">${zN(p.pts)}</td></tr>`}).join('')||`<tr><td colspan="3">${isCur?'Ovaj tjedan još nitko nema bodova.':'Nema podataka za taj tjedan.'}</td></tr>`}</table>
+  <p class="note">Bodovi: 1 za svaki točan odgovor u Vježbi i Ispitu (pola boda u gradivu s razinom 7+, četvrtina s razinom 9+), u Zadacima onoliko koliko zadatak donese, te bonus za ispunjene zadatke dana na Početnoj. Ovdje se ne gleda razina, nego trud.</p></div>`;
+  $('#bwsel').onchange=e=>{bwSel=e.target.value===cur?null:e.target.value;renderBoardWeek()};modbar();if(Remote)boardStats(null)};
+/* značka na profilu i Napretku */
+{const _sp=showProfile;showProfile=async function(nick){await _sp.apply(this,arguments);await wmLoad();const k=wmCount(nick),box=document.querySelector('#profov .sheet h2');if(k&&box)box.insertAdjacentHTML('afterend',`<p style="margin:6px 0 0">🏅 <b>Tjedni vrh</b> ×${k}</p>`)}}
+
+/* ---------- Zadaci dana (Početna) ---------- */
+const QB=5;
+function qGroups(){return KZS1.map(([k,l,ts])=>({k,l,ts}))}
+function qGroupOf(){const p=prof();if(view==='practice'){const m=p.module;return qGroups().find(g=>g.ts.includes(m))||null}return null}
+function qMake(p){const t=zgDate();if(p.quest&&p.quest.day===t)return p.quest;const G=qGroups().map(g=>{let n=0,w=0,s=0;g.ts.forEach(x=>{const r=p.ratings[x];if(r){n+=r.n;const ww=Math.max(1,r.n);w+=ww;s+=r.r*ww}});return{...g,n,r:w?s/w:2}});
+  const weak=G.filter(g=>g.n>=3).sort((a,b)=>a.r-b.r)[0]||G[0],rest=G.filter(g=>g.k!==weak.k),few=rest.find(g=>g.n<15||g.r<4)||rest.slice().sort((a,b)=>a.n-b.n)[0];
+  const q=[{id:'mix',t:'Miks: riješi 10 pitanja iz barem 3 različita gradiva',need:10,prog:0,set:[],done:false},
+    {id:'weak',g:weak.k,t:`Slabije gradivo: riješi točno 5 pitanja iz gradiva ${weak.l}`,need:5,prog:0,done:false},
+    {id:'few',g:few.k,t:`Manje vježbano: riješi 5 pitanja iz gradiva ${few.l}`,need:5,prog:0,done:false}];
+  q.push(qZad(p));p.quest={day:t,q};return p.quest}
+function qZad(p){const Z=p.zad||{},T=Z.t||{},G=KZS2.map(([k,l,ts])=>({k,l,ts,g:ts.reduce((s,t)=>s+((T[t]||{}).g||0),0)})).sort((a,b)=>a.g-b.g),g=G[0];return{id:'zad',g:g.k,t:`Zadatak s brojevima: riješi 2 zadatka iz skupine ${g.l} s barem pola bodova`,need:2,prog:0,done:false,b:10}}
+function qTick(correct){const p=prof();if(!p||view!=='practice')return;if(p.quest&&p.quest.day===zgDate()&&!p.quest.q.some(x=>x.id==='zad'))p.quest.q.push(qZad(p));const g=qGroupOf();if(!g)return;const Q=qMake(p);let won=0;
+  Q.q.forEach(x=>{if(x.done||x.id==='zad')return;if(x.id==='mix'){x.prog++;if(!x.set.includes(g.k))x.set.push(g.k);if(x.prog>=x.need&&x.set.length>=3)x.done=true}
+    else if(x.g===g.k&&(x.id==='few'||correct)){x.prog++;if(x.prog>=x.need)x.done=true}if(x.done){won++;gWeek(p).pts+=QB}});
+  if(won){save();toast(`⭐ Zadatak dana ispunjen! +${QB*won} bodova za tjednu ljestvicu`)}}
+{const _dt=dayTick;dayTick=function(correct,pts){const r=_dt.apply(this,arguments);try{qTick(!!correct);qNudge()}catch(e){}return r}}
+function qHtml(p){const Q=qMake(p),all=Q.q.every(x=>x.done);
+  return `<div style="border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:0 0 22px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><h3 style="margin:0">Zadaci dana</h3><span class="note" style="margin:0">Bonus bodovi za <a href="#" id="qwk" style="color:var(--ok);font-weight:600">tjednu ljestvicu</a> · novi zadaci svaki dan</span></div>
+  ${Q.q.map(x=>{const pr=x.id==='mix'?`${Math.min(x.prog,x.need)}/${x.need} pitanja · ${x.set.length}/3 gradiva`:`${Math.min(x.prog,x.need)}/${x.need}`,go=x.id==='zad'?'Z:'+x.g:x.id==='mix'?(qGroups().find(g=>!x.set.includes(g.k))||qGroups()[0]).k:x.g;
+    return `<div style="display:flex;align-items:center;gap:10px;margin:10px 0 0;${x.done?'opacity:.6':''}"><span style="font-size:18px;width:22px">${x.done?'✅':'⬜'}</span><div style="flex:1;min-width:0"><div style="font-weight:600">${x.t} <span class="note" style="margin:0;font-weight:400">+${x.b||QB}</span></div><div class="note" style="margin:0">${x.done?'Ispunjeno':pr}</div></div>${x.done?'':`<button class="ghost" data-qgo="${go}" style="margin:0;padding:6px 12px">Kreni</button>`}</div>`}).join('')}
+  ${all?'<p class="note" style="margin:10px 0 0">Svi zadaci dana su ispunjeni. Sutra stižu novi!</p>':''}</div>`}
+/* Početna: zadaci dana i tjedni vrh */
+{const _rh2=renderHome;renderHome=function(){const r=_rh2.apply(this,arguments);try{const p=prof(),h3=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Gradiva');if(h3&&!main.querySelector('[data-qgo],#qbox')){h3.insertAdjacentHTML('beforebegin',`<div id="qbox">${qHtml(p)}</div>`);
+    {const w=document.getElementById('qwk');if(w)w.onclick=e=>{e.preventDefault();view='board';boardAll='week';bwSel=null;render();window.scrollTo(0,0)}}main.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>{if(b.dataset.qgo.startsWith('Z:')){const G=KZS2.find(x=>x[0]===b.dataset.qgo.slice(2)),Z=zProf();if(G){zTestKind='';Z.type=G[2][0];save();zad=null}view='zad';render();window.scrollTo(0,0);return}const g=qGroups().find(x=>x.k===b.dataset.qgo);if(!g)return;p.module=g.ts[0];save();view='practice';render();window.scrollTo(0,0)})}
+    wmLoad().then(()=>{if(view!=='home'||!WM)return;const last=wkPrev(),win=WM.filter(x=>x.week===last),mine=win.find(x=>x.nick===p.nick);if(!mine||main.querySelector('#wmhome'))return;const qb=main.querySelector('#qbox');if(!qb)return;
+      qb.insertAdjacentHTML('beforebegin',`<div id="wmhome" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:10px 14px;margin:0 0 16px"><b>Čestitamo! Prošli tjedan: tjedni vrh, ${mine.rnk}. mjesto ${wkIcon(mine.rnk)}</b></div>`)})}catch(e){}return r}}
+/* Podsjetnik nakon 20 pitanja u istom gradivu */
+let qSame={k:null,n:0};
+function qNudge(){if(view!=='practice')return;const p=prof(),g=qGroupOf();if(!g)return;if(qSame.k!==g.k)qSame={k:g.k,n:0};qSame.n++;if(qSame.n%20)return;
+  let miss=null;try{const S=kzState(p);miss=S.s1.find(x=>!x.ok&&x.k!==g.k)}catch(e){}if(!miss)miss=qGroups().filter(x=>x.k!==g.k).sort((a,b)=>{const n=x=>x.ts.reduce((s,t)=>s+((p.ratings[t]||{}).n||0),0);return n(a)-n(b)})[0];if(!miss)return;
+  const tg=qGroups().find(x=>x.k===miss.k);document.getElementById('qnudge')?.remove();
+  document.body.insertAdjacentHTML('beforeend',`<div id="qnudge" style="position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:10px;padding:12px 16px;z-index:9997;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:min(520px,92vw)"><b>Odlično ti ide!</b> ${qSame.n} pitanja zaredom iz istog gradiva. ${isEtr()?'Za pripremu za KZ1 ti još fali':'Probaj i'}: <b>${tg.l}</b>.<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end"><button class="ghost" id="qnx" style="margin:0;padding:6px 12px">Nastavi ovdje</button><button class="primary" id="qngo" style="margin:0;padding:6px 12px">Prijeđi na ${tg.l}</button></div></div>`);
+  $('#qnx').onclick=()=>document.getElementById('qnudge')?.remove();$('#qngo').onclick=()=>{document.getElementById('qnudge')?.remove();p.module=tg.ts[0];save();render();window.scrollTo(0,0)}}
+
+/* ---------- Potpuni izvoz za analizu (administrator) ---------- */
+async function anExport(){try{const {data,error}=await Remote.rpc('admin_export',{p_token:session.token});if(error)throw error;const D=data,map={},adm=new Set(D.admins||[]);let i=0;
+  const sid=id=>id?(map[id]||(map[id]=(adm.has(id)?'ADMIN':'S'+String(++i).padStart(3,'0')))):null;
+  (D.profiles||[]).sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at))).forEach(p=>sid(p.id));
+  const strip=s=>{const x=JSON.parse(JSON.stringify(s||{}));delete x.nick;delete x.name;delete x.fullName;return x};
+  const out={exported_at:D.exported_at,app_version:(typeof VERS!=='undefined'&&VERS[0])?VERS[0][0]:'',note:'Anonimizirano: nadimci zamijenjeni oznakama S001…, bez imena, PIN-a i tokena.',
+    profiles:(D.profiles||[]).map(p=>({sid:sid(p.id),admin:adm.has(p.id),has_name:p.has_name,created_at:p.created_at,updated_at:p.updated_at,state:strip(p.state)})),
+    answers:(D.answers||[]).map(a=>({sid:sid(a.pid),qid:a.qid,topic:a.topic,score:a.score,help:a.help,mode:a.mode,t:a.t})),
+    week_scores:(D.week_scores||[]).map(w=>({sid:sid(w.pid),week:w.week,pts:w.pts})),qstats:D.qstats||[],
+    feedback:(D.feedback||[]).map(f=>({sid:sid(f.pid),kind:f.kind,qid:f.qid,page:f.page,msg:f.msg,rating:f.rating,extra:f.extra,replied:!!f.reply,t:f.t}))};
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:'application/json'}));a.download='radionica-izvoz-'+zgDate()+'.json';a.click()}catch(e){alert('Izvoz nije uspio. Je li pokrenut supabase-dodatak-tjedni.sql?')}}
+
+{const _zf=zFinish;zFinish=function(z,shown){const was=z&&z.ans&&z.ans.done;const r=_zf.apply(this,arguments);try{if(!was&&!shown){const p=prof(),F=zFields(z),max=F.reduce((s,f)=>s+f.w,0);if(max&&z.ans.pts/max>=0.5){const Q=qMake(p);if(!Q.q.some(x=>x.id==='zad'))Q.q.push(qZad(p));const x=Q.q.find(x=>x.id==='zad');const G=KZS2.find(g=>g[0]===x.g);if(!x.done&&G&&G[2].includes(z.type)){x.prog++;if(x.prog>=x.need){x.done=true;gWeek(p).pts+=x.b||QB;toast(`⭐ Zadatak dana ispunjen! +${x.b||QB} bodova za tjednu ljestvicu`)}save()}}}}catch(e){}return r}}
+
+/* ---------- Tjedni bodovi u svladanom gradivu, svladano, zadaci iz Vježbe ---------- */
+const ZFROM={estat:'nab',ruk:'ruk',rukC:'cap',kont:'kont',cvor:'cvor',thev:'thev',nort:'nort',mag:'mag'};
+function wkFactor(p){if(view!=='practice')return 1;const r=rt(p,p.module).r;return r>=9?0.25:r>=7?0.5:1}
+function mastCheck(){const p=prof();if(!p||view!=='practice')return;const g=qGroupOf();if(!g)return;const r=g.ts.reduce((m,t)=>Math.max(m,rt(p,t).r),0);p.mast=p.mast||{};if(r<8||p.mast[g.k])return;p.mast[g.k]=1;save();
+  const order=qGroups(),i=order.findIndex(x=>x.k===g.k),nx=order.slice(i+1).concat(order.slice(0,i)).find(x=>Math.max(...x.ts.map(t=>rt(p,t).r))<8);
+  document.getElementById('qnudge')?.remove();
+  document.body.insertAdjacentHTML('beforeend',`<div id="qnudge" style="position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:10px;padding:12px 16px;z-index:9997;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:min(560px,92vw)"><b>Gradivo svladano: ${g.l}!</b> Razina 8+. Ovdje sada dobivaš manje bodova za tjednu ljestvicu, pa je vrijeme za ${ZFROM[p.module]?'zadatke s brojevima ili ':''}sljedeće gradivo${nx?`: <b>${nx.l}</b>`:''}.<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap"><button class="ghost" id="qnx" style="margin:0;padding:6px 12px">Nastavi ovdje</button>${ZFROM[p.module]?'<button class="ghost" id="qnz" style="margin:0;padding:6px 12px">Zadaci s brojevima</button>':''}${nx?`<button class="primary" id="qngo" style="margin:0;padding:6px 12px">Prijeđi na ${nx.l}</button>`:''}</div></div>`);
+  const cl=()=>document.getElementById('qnudge')?.remove();$('#qnx').onclick=cl;if($('#qnz'))$('#qnz').onclick=()=>{cl();goZad(ZFROM[p.module])};if($('#qngo'))$('#qngo').onclick=()=>{cl();p.module=nx.ts[0];save();render();window.scrollTo(0,0)}}
+function goZad(t){const Z=zProf();zTestKind='';Z.type=t;save();zad=null;view='zad';render();window.scrollTo(0,0)}
+{const _dt2=dayTick;dayTick=function(){const r=_dt2.apply(this,arguments);try{mastCheck()}catch(e){}return r}}
+/* poveznica na zadatke s brojevima u Vježbi (razina 5+) */
+new MutationObserver(()=>{try{if(view!=='practice')return;const p=prof(),t=ZFROM[p.module];if(!t||rt(p,p.module).r<5)return;const s=main.querySelector('.side');if(!s||s.querySelector('[data-zfromv]'))return;
+  s.insertAdjacentHTML('beforeend',`<div data-zfromv style="text-align:right;margin:8px 0 0;font-size:14px"><a href="#" style="color:var(--ok);font-weight:700">Probaj zadatak s brojevima iz ovog gradiva →</a></div>`);s.querySelector('[data-zfromv] a').onclick=e=>{e.preventDefault();goZad(t)}}catch(e){}}).observe(main,{childList:true,subtree:true});
 
 view='home';
 boot();
