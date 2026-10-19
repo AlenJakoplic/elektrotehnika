@@ -1354,6 +1354,7 @@ function homeMods(p){return MODS.map(([k,l])=>{const ts=k==='kont'?['kont','cvor
 function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0);
   const fresh=ms.find(m=>m.n<5),weak=ms.slice().sort((a,b)=>a.r-b.r)[0],rec=tot===0?ms.find(m=>m.k===p.module)||ms[0]:fresh||weak;
   const why=tot===0?'Kreni od lekcije, a zatim vježbaj.':rec.n<5?'Ovo gradivo još nije dovoljno isprobano.':'Ovdje ti je razina trenutno najniža.';
+  const ZR={estat:['nab',['nab','capu']],ruk:['ruk',['ruk','cap','ui']],kont:['kont',['kont','cvor']],thev:['thev',['thev','nort','pril']],mag:['mag',['mag']]}[rec.k],zg=ZR?ZR[1].reduce((s,t)=>s+((((p.zad||{}).t||{})[t]||{}).g||0),0):0,zrec=tot>0&&ZR&&rec.r>=5&&zg<3?ZR[0]:null;
   const bar=r=>`<div style="height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 10px"><div style="height:100%;width:${Math.max(4,Math.min(100,(r-1)/9*100))}%;background:var(--ok)"></div></div>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:980px">
   <h2 style="margin-bottom:4px">Bok, ${p.nick}!</h2>${kzBanner()}
@@ -1361,8 +1362,8 @@ function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0
   ${bar(overall(p))}
   <div style="border:2px solid var(--ok);border-radius:8px;padding:14px 16px;margin:16px 0 22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
     <div style="flex:1;min-width:220px"><div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Preporuka za danas</div>
-    <div style="font-size:18px;font-weight:700;margin-top:2px">${tot===0?'Lekcija':'Vježbaj'}: ${rec.l}</div><div style="color:var(--muted);font-size:14px">${why}</div></div>
-    <button class="primary" style="margin:0" data-go="${rec.k}" data-v="${tot===0?'lesson':'practice'}">Kreni</button></div>
+    <div style="font-size:18px;font-weight:700;margin-top:2px">${zrec?'Riješi zadatak s brojevima':tot===0?'Lekcija':'Vježbaj'}: ${rec.l}</div><div style="color:var(--muted);font-size:14px">${zrec?`U Vježbi si na razini ${fmt(rec.r)}, pa je vrijeme za zadatke s brojevima (riješeno s barem pola bodova: ${zg} od 3).`:why}</div></div>
+    ${zrec?`<button class="primary" style="margin:0" id="zrecgo" data-zr="${zrec}">Kreni</button>`:`<button class="primary" style="margin:0" data-go="${rec.k}" data-v="${tot===0?'lesson':'practice'}">Kreni</button>`}</div>
   <h3 style="margin:0 0 10px">Gradiva</h3>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px">${ms.map(m=>`<div style="border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column">
     <div style="font-weight:700;font-size:16px">${m.l}</div>
@@ -2735,6 +2736,8 @@ function goZad(t){const Z=zProf();zTestKind='';Z.type=t;save();zad=null;view='za
 /* poveznica na zadatke s brojevima u Vježbi (razina 5+) */
 new MutationObserver(()=>{try{if(view!=='practice')return;const p=prof(),t=ZFROM[p.module];if(!t||rt(p,p.module).r<5)return;const s=main.querySelector('.side');if(!s||s.querySelector('[data-zfromv]'))return;
   s.insertAdjacentHTML('beforeend',`<div data-zfromv style="text-align:right;margin:8px 0 0;font-size:14px"><a href="#" style="color:var(--ok);font-weight:700">Probaj zadatak s brojevima iz ovog gradiva →</a></div>`);s.querySelector('[data-zfromv] a').onclick=e=>{e.preventDefault();goZad(t)}}catch(e){}}).observe(main,{childList:true,subtree:true});
+
+document.addEventListener('click',e=>{const b=e.target.closest('#zrecgo');if(!b)return;e.preventDefault();goZad(b.dataset.zr)});
 
 view='home';
 boot();
