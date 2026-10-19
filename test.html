@@ -348,11 +348,11 @@ let colKey=null;function colFor(k){if(colKey!==k){const p=prof();if(p)p.colors=f
 function renderSerpar(){
   const p=prof();
   const TP=p.module;if(!cur||cur.topic!==TP||answered===null){cur=pickQuestion(TP);answered=false;colKey=null}colFor(cur);
-  const n=NETS[cur.net];
+  const n=cur.type==='S'?{id:cur.src}:NETS[cur.net];
   const showCol=p.colors||answered;
-  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(cur))}</span></div><div class="schem">${drawNet(n,{colors:showCol,highlight:cur.type?(cur.x?[cur.x]:[]):[cur.r1,cur.r2]})}</div></div>
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Mreža ${n.id}</span><span>težina pitanja ${fmt(qRating(cur))}</span></div><div class="schem">${cur.type==='S'?metSvg(cur,{noMesh:true,hl:new Set([cur.r1,cur.r2])}):drawNet(n,{colors:showCol,highlight:cur.type?(cur.x?[cur.x]:[]):[cur.r1,cur.r2]})}</div></div>
   <div class="sheet side">${questionHTML(cur)}${optsHTML(cur)}<div id="fb"></div>
-  <label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka.</small></span></label></div></div>`;
+  ${cur.type==='S'?'<input type="checkbox" id="col" hidden>':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${answered?'disabled':''}><span>Bojice potencijala<small>Svi vodiči na istom potencijalu iste su boje. Točan odgovor s bojicama donosi manje napretka.</small></span></label>`}</div></div>`;
   $('#col').onchange=e=>{p.colors=e.target.checked;save();renderSerpar()};
   main.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answerPractice(b.dataset.a));modbar();
 }
@@ -2748,6 +2748,51 @@ new MutationObserver(()=>{try{if(view!=='practice')return;const s=main.querySele
   s.insertAdjacentHTML('beforeend',`<div data-midskip style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)">${M.step?'<a href="#" data-ms="step" style="color:inherit">Preskoči korak</a> · ':''}<a href="#" data-ms="task" style="color:inherit">Preskoči zadatak</a>${M.step?'<div style="font-size:12px;margin-top:2px">Preskočeni korak računa se kao pogreška.</div>':''}</div>`);
   s.querySelectorAll('[data-ms]').forEach(a=>a.onclick=e=>{e.preventDefault();const X=midState();if(!X)return;const p=prof(),old=curQ()||(ths&&ths.q);if(a.dataset.ms==='step'){X.step();return}
     if(old&&old.id){(p.wrong||[]).forEach(w=>{if(w.id===old.id)w.due=(p.answered||0)+5});p.recent=[old.id,...(p.recent||[]).filter(x=>x!==old.id)].slice(0,40);save()}X.task();renderPractice();window.scrollTo(0,0)})}catch(e){}}).observe(main,{childList:true,subtree:true});
+
+/* ---------- Serija i paralela: mreže s izvorima ---------- */
+function srcRel(c){const key=p=>p.join(','),par={},f=x=>{while(par[x]!==x)x=par[x]=par[par[x]];return x};
+  c.br.forEach(b=>{[key(b.p1),key(b.p2)].forEach(k=>{if(!(k in par))par[k]=k})});
+  c.br.filter(b=>b.t==='W').forEach(b=>{par[f(key(b.p1))]=f(key(b.p2))});const bot=Object.keys(par).filter(k=>k.endsWith(',1'));bot.forEach(k=>{par[f(k)]=f(bot[0])});
+  const E=c.br.filter(b=>b.t!=='W').map(b=>({id:b.id,a:f(key(b.p1)),b:f(key(b.p2)),el:[b.R,b.E,b.I].filter(Boolean)}));
+  const deg={};E.forEach(e=>{deg[e.a]=(deg[e.a]||0)+1;deg[e.b]=(deg[e.b]||0)+1});
+  // lanci: spoji grane kroz čvorove stupnja 2
+  const used=new Set(),chains=[];
+  for(const e0 of E){if(used.has(e0.id))continue;let ch=[e0],ends=[e0.a,e0.b];used.add(e0.id);
+    for(let side=0;side<2;side++){let n=ends[side];let guard=0;while(deg[n]===2&&guard++<50){const nx=E.find(e=>!used.has(e.id)&&(e.a===n||e.b===n));if(!nx)break;used.add(nx.id);ch.push(nx);n=nx.a===n?nx.b:nx.a}ends[side]=n}
+    chains.push({el:ch.flatMap(e=>e.el),ends})}
+  const chOf=r=>chains.find(ch=>ch.el.includes(r));
+  return{chains,rel(a,b){const A=chOf(a),B=chOf(b);if(!A||!B)return null;if(A===B)return A.ends[0]===A.ends[1]?null:'serijski';
+    const same=(A.ends[0]===B.ends[0]&&A.ends[1]===B.ends[1])||(A.ends[0]===B.ends[1]&&A.ends[1]===B.ends[0]);
+    if(same&&A.el.length===1&&B.el.length===1&&A.ends[0]!==A.ends[1])return 'paralelno';return 'ni serijski ni paralelno'},chOf}}
+function srcWhy(c,a,b,ans){const R=srcRel(c),A=R.chOf(a),B=R.chOf(b),oth=ch=>ch.el.filter(x=>x!==a&&x!==b),nm=x=>sub(x);
+  if(ans==='serijski')return `${nm(a)} i ${nm(b)} su u istoj grani${oth(A).length?` (zajedno s ${oth(A).map(nm).join(', ')})`:''}: kroz njih teče ista struja, pa su spojeni serijski. Izvor u istoj grani to ne mijenja.`;
+  if(ans==='paralelno')return `${nm(a)} i ${nm(b)} su svaki sam u svojoj grani i spajaju ista dva čvora, pa su na istom naponu, dakle paralelno. Grane s izvorima između tih čvorova to ne mijenjaju.`;
+  const sameEnds=(A.ends[0]===B.ends[0]&&A.ends[1]===B.ends[1])||(A.ends[0]===B.ends[1]&&A.ends[1]===B.ends[0]);
+  if(sameEnds){const x=[A,B].find(ch=>ch.el.length>1),o=oth(x).filter(y=>/^[EI]/.test(y)),r=oth(x).filter(y=>/^R/.test(y));
+    return `Obje grane spajaju ista dva čvora, ali s ${nm(x.el.includes(a)?a:b)} je u istoj grani (u seriji) i ${[...o,...r].map(nm).join(', ')}. Zato ${nm(a)} i ${nm(b)} nisu na istom naponu (nisu paralelno), a kroz njih ne teče ni ista struja (nisu serijski).`}
+  return `${nm(a)} i ${nm(b)} nisu u istoj grani, pa kroz njih ne teče ista struja, a ne spajaju ni ista dva čvora, pa nisu na istom naponu. Dakle, ni serijski ni paralelno.`}
+function srcLadder(seed){let x=seed*9301+49297;const rnd=()=>{x=(x*9301+49297)%233280;return x/233280},pk=a=>a[Math.floor(rnd()*a.length)];
+  const W=pk([2,2,3]),br=[];let nR=0,nE=0,nI=0;const R=()=>'R'+(++nR),Ee=()=>'E'+(++nE),Ii=()=>'I'+(++nI);
+  const vt=[];for(let k=0;k<=W;k++)vt.push(pk(k===0?['ER','ER','R']:['R','R','ER','ER','I']));if(!vt.some(t=>t!=='R'))vt[0]='ER';if(!vt.filter(t=>t==='R').length)vt[W]='R';
+  const tt=[];for(let k=0;k<W;k++)tt.push(pk(['W','W','R']));
+  for(let k=0;k<=W;k++){const t=vt[k],b={id:'V'+k,p1:[k,1],p2:[k,0],t,pol:pk([1,-1]),ip:1,R:null,E:null,I:null};if(t==='R'||t==='ER')b.R=R();if(t==='ER')b.E=Ee();if(t==='I')b.I=Ii();br.push(b);
+    if(k<W){const t2=tt[k],c2={id:'T'+k,p1:[k,0],p2:[k+1,0],t:t2,pol:1,ip:1,R:t2==='R'?R():null,E:null,I:null};br.push(c2)}}
+  return{W,br,V:br.filter(b=>b.id[0]==='V'),T:br.filter(b=>b.id[0]==='T'),U:null,meshes:[]}}
+(function(){const OPTS=['serijski','paralelno','ni serijski ni paralelno'],seen=new Set(),add=[];let n=0;
+  for(const q of QS.filter(x=>(x.topic==='kont'||x.topic==='cvor')&&!x.type&&x.c&&!x.c.U)){const sig=JSON.stringify(q.c.br.map(b=>[b.p1,b.p2,b.t]));if(seen.has(sig))continue;seen.add(sig);
+    const R=srcRel(q.c),rs=q.c.br.filter(b=>b.R).map(b=>b.R);const pairs=[];for(let i=0;i<rs.length;i++)for(let j=i+1;j<rs.length;j++){const a=R.rel(rs[i],rs[j]);if(a)pairs.push([rs[i],rs[j],a])}
+    if(!pairs.length)continue;
+    const pick=pairs.find(p=>p[2]==='paralelno')||pairs.find(p=>p[2]==='serijski')||pairs[Math.floor(pairs.length/2)];
+    const more=pairs.filter(p=>p!==pick&&p[2]==='ni serijski ni paralelno').slice(0,1);
+    [pick,...more].forEach(([a,b,ans],k)=>{n++;add.push({id:'SI'+String(n).padStart(3,'0'),topic:'serpar',type:'S',c:q.c,x:null,r1:a,r2:b,ans,opts:OPTS,tags:['izvori'],src:q.id,diff:3.6+(ans==='ni serijski ni paralelno'?0.8:0)+(ans==='serijski'&&R.chOf(a).el.some(y=>/^[EI]/.test(y))?0.6:0)+Math.min(1.2,q.c.br.filter(b=>b.t!=='W').length*0.12)})})}
+  for(let sd=1;sd<400&&add.filter(q=>q.ans==='paralelno').length<40;sd++){const c=srcLadder(sd),R=srcRel(c),rs=c.br.filter(b=>b.R).map(b=>b.R);const sig=JSON.stringify(c.br.map(b=>[b.p1,b.t]));if(seen.has(sig))continue;seen.add(sig);
+    const pairs=[];for(let i=0;i<rs.length;i++)for(let j=i+1;j<rs.length;j++){const a=R.rel(rs[i],rs[j]);if(a)pairs.push([rs[i],rs[j],a])}
+    const pl=pairs.filter(p=>p[2]==='paralelno');if(!pl.length)continue;const ns=pairs.filter(p=>p[2]!=='paralelno');
+    [pl[0],...(ns.length?[ns[sd%ns.length]]:[])].forEach(([a,b,ans])=>{n++;add.push({id:'SI'+String(n).padStart(3,'0'),topic:'serpar',type:'S',c,x:null,r1:a,r2:b,ans,opts:OPTS,tags:['izvori'],src:'L'+sd,diff:3.4+(ans==='ni serijski ni paralelno'?0.8:0)+(ans==='paralelno'&&(()=>{const xs=[a,b].map(r=>c.br.find(y=>y.R===r).p1[0]);return c.br.some(z=>z.t!=='W'&&z.t!=='R'&&z.p1[0]>Math.min(...xs)&&z.p1[0]<Math.max(...xs))})()?0.8:0)+c.br.filter(b=>b.t!=='W').length*0.1})})}
+  QS.push(...add)})();
+TYPENAME.S='Mreža s izvorima';TAGNAMES.izvori='Mreža s izvorima (izvori u granama)';
+SPQ.S=q=>`Kako su spojeni otpornici <strong>${sub(q.r1)}</strong> i <strong>${sub(q.r2)}</strong> u ovoj mreži s izvorima?`;
+{const _se=spExplain;spExplain=function(q){if(q&&q.type==='S')return srcWhy(q.c,q.r1,q.r2,q.ans);return _se.apply(this,arguments)}}
 
 view='home';
 boot();
