@@ -2739,6 +2739,16 @@ new MutationObserver(()=>{try{if(view!=='practice')return;const p=prof(),t=ZFROM
 
 document.addEventListener('click',e=>{const b=e.target.closest('#zrecgo');if(!b)return;e.preventDefault();goZad(b.dataset.zr)});
 
+/* ---------- Preskakanje usred zadatka s koracima ---------- */
+function midState(){const m=prof().module;if(exam&&exam.running)return null;
+  if((m==='kont'||m==='cvor')&&mt&&!mt.done&&(mt.i>0||mt.mistakes>0||mt.sel.size>0))return{step:()=>{mt.mistakes++;mt.wait=false;metAdvance()},task:()=>{mt=null}};
+  if((m==='thev'||m==='nort')&&ths&&!ths.done&&!ths.exam&&(ths.i>0||ths.mistakes>0||ths.sel.size>0))return{step:()=>{ths.mistakes++;ths.wait=false;thAdv()},task:()=>{ths=null}};
+  if((m==='ruk'||m==='rukC')&&rk&&!rk.done&&(rk.steps.length>0||rk.mistakes>0||rk.sel.length>0))return{task:()=>{rk=null}};return null}
+new MutationObserver(()=>{try{if(view!=='practice')return;const s=main.querySelector('.side');if(!s||s.querySelector('[data-midskip]')||s.querySelector('#skipbtn'))return;const M=midState();if(!M)return;
+  s.insertAdjacentHTML('beforeend',`<div data-midskip style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)">${M.step?'<a href="#" data-ms="step" style="color:inherit">Preskoči korak</a> · ':''}<a href="#" data-ms="task" style="color:inherit">Preskoči zadatak</a>${M.step?'<div style="font-size:12px;margin-top:2px">Preskočeni korak računa se kao pogreška.</div>':''}</div>`);
+  s.querySelectorAll('[data-ms]').forEach(a=>a.onclick=e=>{e.preventDefault();const X=midState();if(!X)return;const p=prof(),old=curQ()||(ths&&ths.q);if(a.dataset.ms==='step'){X.step();return}
+    if(old&&old.id){(p.wrong||[]).forEach(w=>{if(w.id===old.id)w.due=(p.answered||0)+5});p.recent=[old.id,...(p.recent||[]).filter(x=>x!==old.id)].slice(0,40);save()}X.task();renderPractice();window.scrollTo(0,0)})}catch(e){}}).observe(main,{childList:true,subtree:true});
+
 view='home';
 boot();
 
