@@ -2228,7 +2228,7 @@ const KZRULES=`<ul style="margin:6px 0 0 18px;padding:0"><li>Kontrolna zadaća i
 let kzSim=null,kzShowRules=false;
 function kzPickTask(i,stage){const r=Math.random(),pk=a=>a[Math.floor(Math.random()*a.length)],d=pk([3,3,4]);let z;
   const keep=zTestKind;try{
-  if(i===0)z=r<0.7?nabGen(d):zGen('capu',d);
+  if(i===0){if(r<0.9){zTestKind=Math.random()<0.5?'kut':'';z=nabGen(d)}else z=zGen('capu',d)}
   else if(i===1){for(let t=0;t<30;t++){z=zGen(pk(['kont','cvor']),d);if(z&&z.q.c.br.filter(b=>b.R).every(b=>Math.abs(z.res.br[b.id])>1e-9))break}if(z){const br=z.q.c.br.filter(b=>b.R&&Math.abs(z.res.br[b.id])>1e-9).sort(()=>Math.random()-0.5).slice(0,3);z.fields=br.map(b=>({lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(z.res.br[b.id]),w:1,desc:'iznos'}));z.kzFree=true}}
   else if(i===2)z=zGen(r<0.6?'pril':r<0.9?'thev':'nort',d);
   else{const pm=0.4+0.15*(stage||0);if(r<pm){zTestKind=pk(['jedan','jedan','sila','naboj']);z=magGen(2)}else if(r<pm+0.3){zTestKind=pk(['jedan','ploce']);z=nabGen(1)}else z=zGen('ruk',2)}
