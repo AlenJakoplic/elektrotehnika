@@ -123,6 +123,9 @@ td{overflow-wrap:normal;word-break:normal}
  .num{font-size:15px}
  .kzrow td:nth-child(2){font-size:13px}
  .modbar{flex-wrap:wrap}
+ .board{grid-template-columns:minmax(0,1fr)!important}
+ .board>*{min-width:0}
+ .schem svg{max-width:100%;height:auto}
 }
 </style></head>
 <body>
@@ -472,7 +475,7 @@ function renderHelp(){
   <p><b>Serija ili paralela.</b> Za dva označena otpornika odlučiš jesu li spojeni serijski, paralelno ili ništa od toga. U pitanjima „Mreža s izvorima” mreža ima i naponske ili strujne izvore: paralelni su samo otpornici koji su sami u granama između ista dva čvora, a serijski oni u istoj grani. Zapamti: elementi su u <b>seriji</b> ako kroz njih teče <b>ista struja</b>, a u <b>paraleli</b> ako su na <b>istom naponu</b>, odnosno između ista dva potencijala.</p>
   <p><b>Ukupni otpor.</b> Klikneš dva otpornika i odabereš formulu: zbroj za seriju ili „puta kroz plus” za paralelu. Ako je korak točan, otpornici se zamijene jednim (npr. R<sub>12</sub>). Ponavljaš dok ne ostane samo jedan otpor između A i B. Uz prekidač <b>Kondenzatori</b> isto radiš za ukupni kapacitet, ali su formule obrnute: paralela je zbroj, a serija „puta kroz plus”.</p>
   <p><b>Metode rješavanja.</b> Korak po korak postavljaš jednadžbe <b>konturnih struja</b> ili <b>napona čvorova</b>: koliko jednadžbi treba, vlastiti otpori ili vodljivosti, predznaci susjednih petlji ili čvorova te izvori na desnoj strani. Strujni izvor u vanjskoj grani odmah određuje struju petlje, a naponski izvor u seriji s otporom kod čvorova pretvaraš u strujni izvor.</p>
-  <p><b>Teoremi mreža.</b> Theveninov i Nortonov teorem korak po korak: gašenje izvora, otpornici koji utječu na R<sub>T</sub>, izraz za R<sub>T</sub> i nadomjesna shema. Mrežu gledamo sa stezaljki a i b.</p>
+  <p><b>Teoremi mreža.</b> Theveninov i Nortonov teorem korak po korak: gašenje izvora, otpornici koji utječu na R<sub>T</sub>, izraz za R<sub>T</sub>, prazni hod ili kratki spoj, E<sub>T</sub> pomoću konturne struje i nadomjesna shema. Mrežu gledamo sa stezaljki a i b.</p>
   <p><b>Vrste pitanja.</b> Osim osnovnih zadataka, u Vježbi se pojavljuju i kratka pitanja: ista struja ili isti napon, pronađi uljeza, koji par možeš odmah spojiti, zapis ukupnog otpora, točna jednadžba, pronađi grešku, koja metoda daje manje jednadžbi, prilagođenje i druga. Izbornikom <b>Vrsta pitanja</b> možeš se usredotočiti na jednu vrstu. Svaki put kad promijeniš gradivo, izbor se vraća na sve.</p>
   <p><b>Magnetsko polje ravnih vodiča.</b> Lekcija o polju oko ravnog vodiča, pravilu desne ruke, zbrajanju polja više vodiča i silama, uz zadatke s brojevima. U zadacima prijeđi mišem preko vodiča pa ćeš vidjeti njegove silnice.</p>
   <h3>Razina</h3>
@@ -480,7 +483,7 @@ function renderHelp(){
   <h3>Bojice potencijala</h3>
   <p>Svi vodiči na istom potencijalu oboje se istom bojom, pa se lakše vidi što je spojeno na što. Viša stezaljka (A) je crvena, niža (B) plava, a čvorovi između idu od toplijih prema hladnijim bojama. Pomažu, ali točan odgovor uz bojice donosi manje napretka. Pokušaj ih koristiti samo kad zapneš.</p>
   <h3>Lakši ili teži?</h3>
-  <p>Ispod zadatka u vježbi su gumbi <b>Lakši</b>, <b>Novi zadatak</b> i <b>Teži</b>. Zadatak se preskače bez utjecaja na razinu, a idući je lakši ili teži.</p>
+  <p>Ispod zadatka u vježbi su gumbi <b>Lakši</b>, <b>Novi zadatak</b> i <b>Teži</b>. Zadatak se preskače bez utjecaja na razinu, a idući je lakši ili teži. Kad u zadatku s više koraka već kreneš, možeš <b>preskočiti korak</b> (računa se kao pogreška) ili <b>preskočiti zadatak</b>.</p>
   <h3>Zadaci</h3>
   <p>Zadaci s brojevima koje rješavaš na papiru: elektrostatika (naboji i kondenzatori), magnetsko polje, ukupni otpor i kapacitet, struje i naponi, metode rješavanja, teoremi i prilagođenje. Kod naboja i magnetskog polja možeš odabrati vrstu zadatka. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti. Na Ljestvici i Početnoj vidiš bodove i ukupno i po gradivima.</p>
   <h3>Baza zadataka</h3>
@@ -496,7 +499,7 @@ function renderHelp(){
   <h3>Gdje se sprema napredak</h3>
   <p>Napredak se sprema uz tvoj nadimak i PIN, pa ga imaš na svakom uređaju. Na ljestvici se vidi samo nadimak. Točnost i ime su skriveni dok ih sam ne uključiš na Napretku. Nastavnik može vidjeti rezultate u bazi i koristi ih samo za poboljšanje nastave i aplikacije, nikad za ocjenjivanje.</p>
   <h3>Niz dana, značke i tjedna liga</h3>
-  <p>Dan se računa kad riješiš barem jedan zadatak. Za 10 točnih odgovora zaredom dobiješ slobodan dan (najviše 3), koji čuva niz kad propustiš dan. Značke se dobivaju za niz dana, točne odgovore zaredom i svladane zamke. U tjednoj ligi na Ljestvici se broje bodovi ovog tjedna, a svaki ponedjeljak kreće ispočetka. U gradivu koje je već svladano (razina 7+) točan odgovor donosi manje bodova. Na kraju tjedna prvih 10 % dobiva značku Tjedni vrh, a prijašnji tjedni mogu se pogledati na ljestvici.</p>
+  <p>Dan se računa kad riješiš barem jedan zadatak. Za 10 točnih odgovora zaredom dobiješ slobodan dan (najviše 3), koji čuva niz kad propustiš dan. Značke se dobivaju za niz dana, točne odgovore zaredom i svladane zamke. U tjednoj ligi na Ljestvici se broje bodovi ovog tjedna, a svaki ponedjeljak kreće ispočetka. U gradivu koje je već svladano (razina 7+) točan odgovor donosi manje bodova. Na kraju tjedna prvih 10 % dobiva značku Tjedni vrh, a prijašnji tjedni mogu se pogledati na ljestvici. Na vrhu Ljestvice vidiš svoja mjesta na svim ljestvicama, a kartica <b>Redovitost</b> pokazuje tko uči najviše dana zaredom.</p>
   <h3>Zadaci dana</h3>
   <p>Na Početnoj su svaki dan novi zadaci: miks gradiva, slabije gradivo, gradivo koje je na redu i zadatak s brojevima. Ispunjeni zadaci donose bonus bodove za tjednu ljestvicu.</p>
   <p class="note" style="margin-top:24px;padding-top:14px;border-top:1px solid var(--line)">Aplikaciju je izradio dr. sc. Alen Jakoplić, 7. listopada 2026., uz pomoć velikog jezičnog modela Claude Opus 5.5 tvrtke Anthropic. Kao podloga korištena je literatura prof. dr. sc. Nina Stojkovića.</p>${verHtml()}</div>`;setTimeout(verBind,0);
