@@ -616,3 +616,15 @@ language sql security definer set search_path = public as $$
   select topic, count(distinct profile_id)::int, (select count(distinct profile_id)::int from a) from a group by topic;
 $$;
 grant execute on function public.topic_recent() to anon, authenticated;
+
+-- Prosjek bodova po pitanju (prvi pokušaji) za dnevni izazov
+create or replace function public.daily_avg(p_token uuid, p_day text)
+returns table(i integer, avg real, n integer)
+language plpgsql security definer set search_path = public as $$
+begin
+  if not daily_ok(p_token) then return; end if;
+  return query select (e.ord-1)::int, avg(e.v::real)::real, count(*)::int
+    from daily_results r, jsonb_array_elements_text(r.detail->'res') with ordinality as e(v, ord)
+    where r.day = p_day group by e.ord order by e.ord;
+end $$;
+grant execute on function public.daily_avg(uuid, text) to anon, authenticated;
