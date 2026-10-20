@@ -2228,10 +2228,10 @@ const KZRULES=`<ul style="margin:6px 0 0 18px;padding:0"><li>Kontrolna zadaća i
 let kzSim=null,kzShowRules=false;
 function kzPickTask(i,stage){const r=Math.random(),pk=a=>a[Math.floor(Math.random()*a.length)],d=pk([3,3,4]);let z;
   const keep=zTestKind;try{
-  if(i===0)z=r<0.7?nabGen(d):zGen('capu',d);
-  else if(i===1){for(let t=0;t<30;t++){z=zGen(pk(['kont','cvor']),d);if(z&&z.q.c.br.filter(b=>b.R).every(b=>Math.abs(z.res.br[b.id])>1e-9))break}if(z){const br=z.q.c.br.filter(b=>b.R&&Math.abs(z.res.br[b.id])>1e-9).sort(()=>Math.random()-0.5).slice(0,3);z.fields=br.map(b=>({lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(z.res.br[b.id]),w:1,desc:'iznos'}));z.kzFree=true}}
-  else if(i===2)z=zGen(r<0.7?'pril':pk(['thev','nort']),d);
-  else{const pm=0.4+0.15*(stage||0);if(r<pm){zTestKind=pk(['jedan','jedan','sila','naboj']);z=magGen(2)}else if(r<pm+0.3){zTestKind=pk(['jedan','ploce']);z=nabGen(1)}else z=zGen('ruk',2)}
+  if(i===0){if(r<0.9){zTestKind=Math.random()<0.5?'kut':'';z=nabGen(d)}else z=zGen('capu',d)}
+  else if(i===1){for(let t=0;t<30;t++){z=zGen(pk(['kont','cvor']),d);if(z&&z.q.c.br.filter(b=>b.R).every(b=>Math.abs(z.res.br[b.id])>1e-9))break}if(z){const br=z.q.c.br.filter(b=>b.R&&Math.abs(z.res.br[b.id])>1e-9).sort(()=>Math.random()-0.5).slice(0,3);z.fields=br.map((b,k)=>k<2||br.length<3?{lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(z.res.br[b.id]),w:1,desc:'iznos'}:{lab:`U<sub>R${b.R.slice(1)}</sub>`,unit:'V',val:Math.abs(z.res.br[b.id])*z.val[b.R],w:1,desc:'iznos'});z.kzFree=true}}
+  else if(i===2)z=zGen(r<0.6?'pril':r<0.9?'thev':'nort',d);
+  else{if(r<0.9){zTestKind=r<0.5?'sredina':r<0.7?'jedan':r<0.8?'sila':'naboj';z=magGen(2)}else{zTestKind=pk(['jedan','ploce']);z=nabGen(1)}}
   }finally{zTestKind=keep}
   if(!z)return kzPickTask(i,stage);zFields(z);z.ans={v:z.fields.map(()=>''),ok:z.fields.map(()=>null),tries:0,done:false,pts:0};return z}
 function kzStart(){kzSim={t0:Date.now(),zs:[0,1,2,3].map(i=>kzPickTask(i,2)),max:[6,6,6,2],i:0,done:false};view='kz';render();window.scrollTo(0,0)}
@@ -2240,7 +2240,7 @@ function kzFinish(){const S=kzSim;S.done=true;S.t1=Date.now();S.parts=S.zs.map((
   try{gcSend&&gcSend('kz/simulacija/'+(S.pts>=6?'prolaz':'pad'))}catch(e){}}
 function kzTick(){const el=$('#kztm');if(!el||!kzSim||kzSim.done)return;const left=Math.max(0,65*60-Math.floor((Date.now()-kzSim.t0)/1000));el.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;el.style.color=left<300?'var(--bad)':'';if(left<=0){kzSave();kzFinish();renderKZ();return}clearTimeout(kzSim.tt);kzSim.tt=setTimeout(kzTick,500)}
 function kzSave(){if(!kzSim)return;const z=kzSim.zs[kzSim.i];main.querySelectorAll('[data-kf]').forEach(i=>z.ans.v[+i.dataset.kf]=i.value)}
-function kzTxt(zz){return zz.kzFree?zText(zz).replace(/^Metodom konturnih struja odredite struje kroz sve otpornike\. Smjerovi konturnih struja zadani su na slici\.|^Metodom napona čvorova odredite napone čvorova i struje kroz sve otpornike\. Donji čvor je referentni \(uzemljen\)\./,'Bilo kojom metodom odredite iznose struja kroz označene otpornike.'):zText(zz)}
+function kzTxt(zz){return zz.kzFree?zText(zz).replace(/^Metodom konturnih struja odredite struje kroz sve otpornike\. Smjerovi konturnih struja zadani su na slici\.|^Metodom napona čvorova odredite napone čvorova i struje kroz sve otpornike\. Donji čvor je referentni \(uzemljen\)\./,'Bilo kojom metodom odredite iznose traženih struja i napona na otpornicima.'):zText(zz)}
 function renderKZSim(){const S=kzSim,z=S.zs[S.i],done=S.done;
   if(done){const pass=S.pts>=6,osl=S.pts>=12;
     main.innerHTML=`<div class="sheet panel" style="max-width:980px"><h2>Probna KZ1: ${zN(S.pts)} od 20 bodova</h2><p style="font-size:18px;margin:0 0 6px;color:${pass?'var(--ok)':'var(--bad)'};font-weight:700">${osl?'Odlično, na pravoj KZ to bi bilo pravo na oslobođenje završnog ispita (12+).':pass?'Prolaz (6+ bodova).':'Ispod praga za prolaz (6 bodova).'}</p><p class="note">Vrijeme: ${Math.round((S.t1-S.t0)/60000)} min. Probna KZ1 služi samo za vježbu. Bodovanje probne KZ1, i ukupno i parcijalno po rezultatima, može biti drukčije od stvarnog bodovanja na KZ-u: ovdje se gledaju samo konačni rezultati, a na KZ-u se ponekad boduje i postupak.</p>
@@ -2250,7 +2250,7 @@ function renderKZSim(){const S=kzSim,z=S.zs[S.i],done=S.done;
     main.querySelectorAll('[data-kr]').forEach(b=>b.onclick=()=>{const zz=S.zs[+b.dataset.kr],sol=zSol(zz);const F=zz.fields,all=F.reduce((a,f)=>a+f.w,0),mx=S.max[+b.dataset.kr];$('#kzrev').innerHTML=`<div class="board"><div class="sheet"><div class="schem">${zDraw(zz,null)}</div></div><div class="sheet side"><p>${kzTxt(zz)}</p><table><tr><th>Veličina</th><th>Tvoj</th><th>Točno</th><th>Bodovi</th></tr>${F.map((f,j)=>`<tr><td>${f.lab}</td><td style="color:${zz.ans.ok[j]?'var(--ok)':'var(--bad)'}">${zz.ans.v[j]||'–'}</td><td>${zN(f.val)} ${f.unit}</td><td style="white-space:nowrap;font-weight:700">${zN(zz.ans.ok[j]?mx*f.w/all:0)} / ${zN(mx*f.w/all)}</td></tr>`).join('')}</table><h3 style="margin:12px 0 6px">Rješenje</h3><ol class="steps">${sol.steps.map(s=>`<li>${s[1]}</li>`).join('')}</ol>${sol.table||''}</div></div>`});
     main.querySelectorAll('[data-kr]').forEach(b=>b.addEventListener('click',()=>main.querySelectorAll('[data-kr]').forEach(x=>x.setAttribute('aria-current',x===b))));{const f=main.querySelector('[data-kr="0"]');if(f)f.click()}
     $('#kznew').onclick=kzStart;$('#kzback').onclick=()=>{kzSim=null;kzShowRules=false;renderKZ()};return}
-  const txt=kzTxt;const _unused=zz=>zz.kzFree?zText(zz).replace(/^Metodom konturnih struja odredite struje kroz sve otpornike\. Smjerovi konturnih struja zadani su na slici\.|^Metodom napona čvorova odredite napone čvorova i struje kroz sve otpornike\. Donji čvor je referentni \(uzemljen\)\./,'Bilo kojom metodom odredite iznose struja kroz označene otpornike.'):zText(zz);
+  const txt=kzTxt;const _unused=zz=>zz.kzFree?zText(zz).replace(/^Metodom konturnih struja odredite struje kroz sve otpornike\. Smjerovi konturnih struja zadani su na slici\.|^Metodom napona čvorova odredite napone čvorova i struje kroz sve otpornike\. Donji čvor je referentni \(uzemljen\)\./,'Bilo kojom metodom odredite iznose traženih struja i napona na otpornicima.'):zText(zz);
   main.innerHTML=`<div class="modwrap"><div class="modbar">${S.zs.map((_,i)=>`<button data-kt="${i}" aria-current="${i===S.i}">${i+1}. zadatak (${S.max[i]} b.)</button>`).join('')}</div><span class="modlvl">Preostalo: <b id="kztm"></b> · <a href="EtR_f1.pdf" data-fml="EtR_f1" style="color:var(--ok)">formule EtR_f1</a></span></div>
   <div class="board"><div class="sheet"><div class="meta"><span>Probna KZ1 · ${S.i+1}. zadatak</span><span>riješi na papiru</span></div><div class="schem">${zDraw(z,null)}</div></div>
   <div class="sheet side"><p style="margin:0 0 14px">${txt(z)}</p><p style="margin:0 0 4px;font-weight:600">Upiši rezultate:</p>${z.fields.map((f,j)=>`<div style="display:flex;align-items:center;gap:8px;margin:6px 0"><span style="min-width:44px;text-align:right;font-weight:600">${f.lab} =</span><input type="text" inputmode="decimal" data-kf="${j}" value="${String(z.ans.v[j]).replace(/"/g,'')}" style="max-width:120px;padding:6px 10px"><span>${f.unit}</span>${f.desc?`<span class="note" style="margin:0;white-space:nowrap">(${f.desc})</span>`:''}</div>`).join('')}
@@ -2863,6 +2863,44 @@ Object.assign(TYPENAME,{TD:'Što je E_T / I_N',TO:'Prazni hod / kratki spoj',TE:
 
 for(const k in TYPENAME)TYPENAME[k]=String(TYPENAME[k]).replace(/\b([REIGU])_([A-Z]+)\b/g,'$1<sub>$2</sub>').replace(/\bRuk\b/g,'R<sub>uk</sub>');
 for(const k in TAGNAMES)if(typeof TAGNAMES[k]==='string')TAGNAMES[k]=TAGNAMES[k].replace(/\b([REIGU])_([A-Z]+)\b/g,'$1<sub>$2</sub>');
+
+/* ---------- Prilagođenje u mreži s naponskim izvorima: snaga/struja na drugom otporniku ---------- */
+function zthGenV(d){const lv=Math.max(2,Math.min(6,Math.round(d))),pk=a=>a[Math.floor(Math.random()*a.length)],big=Math.random()<0.3;
+  const pool=QS.filter(q=>q.topic==='kont'&&!q.type&&q.c&&!q.c.U&&!q.c.br.some(b=>b.t==='I')&&q.c.br.some(b=>b.E)).sort((a,b)=>a.diff-b.diff),n=pool.length,lo=Math.floor(Math.max(0,lv-2)/5*n*0.6),cand=pool.slice(lo,Math.max(lo+3,Math.floor(lo+n*0.5)));
+  for(let t=0;t<6000;t++){const q=pk(cand),val={};q.c.br.forEach(b=>{if(b.R)val[b.R]=pk(ZR);if(b.E)val[b.E]=pk(ZE)});
+    const loads=q.c.br.filter(b=>b.t==='R');if(!loads.length)continue;const L0=pk(loads),r=thCalc(q,val,L0.id);if(!r)continue;
+    if(Math.abs(r.ET)<1e-9||!niceS(r.RT,10)||!niceS(r.Pmax,10)||Math.abs(r.ET)>200)continue;
+    const v2=Object.assign({},val,{[L0.R]:r.RT}),o=mnaSolve(q.c,v2,{});if(!o)continue;
+    const oth=q.c.br.filter(b=>b.R&&b.id!==L0.id).map(b=>({b,I:etI12(q.c,b,o,v2)})).filter(x=>Math.abs(x.I)>1e-6);if(!oth.length)continue;
+    const x=pk(oth),ask=pk(['P','P','I']),P=x.I*x.I*v2[x.b.R];if(ask==='P'?!niceS(P,10):!niceS(Math.abs(x.I),100))continue;
+    return{th:true,type:'pril',v2:ask,q,val,load:L0.id,R:L0.R,r,x:x.b.R,xI:Math.abs(x.I),xP:P,d:lv,unit:big?'kΩ':'Ω',iu:big?'mA':'A',pu:big?'mW':'W',net:{id:q.id}}}
+  return null}
+{const _zg=zthGen;zthGen=function(type,d){if(type==='pril'&&(d>=3||Math.random()<0.3)&&Math.random()<0.55){const z=zthGenV(d);if(z)return z}return _zg.apply(this,arguments)}}
+{const _zt=zthText;zthText=function(z){if(!z.v2)return _zt.apply(this,arguments);const giv=Object.keys(z.val).filter(k=>k!==z.R).sort((a,b)=>a[0]===b[0]?+a.slice(1)-+b.slice(1):'REI'.indexOf(a[0])-'REI'.indexOf(b[0])).map(k=>`${sub(k)} = ${zmVals(z)[k]}`).join(', '),R=sub(z.R),X=sub(z.x);
+  return `Otpornik ${R} (označen) je trošilo. Koliki mora biti otpor ${R} da bi na njemu bila <b>maksimalna snaga</b> i kolika je ta snaga? ${z.v2==='P'?`Kolika je tada <b>snaga na otporniku ${X}</b>?`:`Kolika je tada <b>struja kroz otpornik ${X}</b>?`}<br><br>Zadano je: ${giv}.`}}
+{const _zf=zthFields;zthFields=function(z){if(!z.v2)return _zf.apply(this,arguments);const r=z.r;return[{lab:sub(z.R),unit:z.unit,val:r.RT,w:1},{lab:'P<sub>max</sub>',unit:z.pu,val:r.Pmax,w:1},z.v2==='P'?{lab:`P<sub>${z.x}</sub>`,unit:z.pu,val:z.xP,w:2}:{lab:`I<sub>${z.x}</sub>`,unit:z.iu,val:z.xI,w:2,desc:'iznos'}]}}
+{const _zs=zthSol;zthSol=function(z){const S=_zs.apply(this,arguments);if(!z.v2)return S;const X=sub(z.x),R=sub(z.R),f=v=>zN(Math.abs(v));
+  S.steps.push([[z.R,z.x],`<b>5. Mreža s prilagođenim trošilom:</b> stavi ${R} = R<sub>T</sub> = ${zN(z.r.RT)} ${z.unit} i riješi cijelu mrežu (npr. konturnim strujama ili naponima čvorova). Struja kroz ${X}: I<sub>${z.x}</sub> = <b>${f(z.xI)} ${z.iu}</b>.`]);
+  if(z.v2==='P')S.steps.push([[z.x],`Snaga na ${X}: P = I² · ${X} = ${f(z.xI)}² · ${z.val[z.x]} = <b>${zN(z.xP)} ${z.pu}</b>.`]);return S}}
+
+/* ---------- Magnetsko polje: točka na sredini između dva vodiča ---------- */
+ZKINDS.mag.splice(2,0,['sredina','Dva vodiča, P na sredini']);
+function magSredina(){const pk=a=>a[Math.floor(Math.random()*a.length)],mA=Math.random()<0.6,same=Math.random()<0.65,askH=Math.random()<0.25;
+  let I1,I2;do{I1=pk(mA?[5,10,15,20,25,30,40,50]:[1,2,3,4,5,6,8,10]);I2=pk(mA?[5,10,15,20,25,30,40,50]:[1,2,3,4,5,6,8,10])}while(same&&I1===I2);
+  const dmm=pk(mA?[1,2,4,5,10]:[10,20,40,50,100]),r=dmm/2/1000,i1=mA?I1/1000:I1,i2=mA?I2/1000:I2,iu=mA?'mA':'A',du=dmm>=10&&!mA?`${dmm/10} cm`:`${dmm} mm`;
+  const H1=i1/(2*Math.PI*r),H2=i2/(2*Math.PI*r),H=same?Math.abs(H1-H2):H1+H2,B=MU0*H;
+  const z={type:'mag',cst:true,d:2,net:{id:'Magnetizam'},kind:'sredina'},F=(lab,v,u,w)=>{const[s,uu]=pfx(v,u);return{lab,val:s,unit:uu,w:w||1}};
+  const T=[`Dva paralelna vrlo duga vodiča u zraku razmaknuta su ${du}. Kroz jedan teče struja ${I1} ${iu}, a kroz drugi ${I2} ${iu}, ${same?'u istom smjeru':'u suprotnim smjerovima'}. Odredite ${askH?'jakost magnetskog polja H':'gustoću magnetskog toka (magnetsku indukciju) B'} u točki P na sredini između vodiča.`,
+    `Paralelnim vodovima u zraku međusobno udaljenima ${du} teku struje I<sub>1</sub> = ${I1} ${iu} i I<sub>2</sub> = ${I2} ${iu} ${same?'istog':'suprotnog'} smjera. Kolika je ${askH?'jakost magnetskog polja H':'magnetska indukcija B'} točno na polovini razmaka između vodova?`,
+    `Dva duga ravna voda postavljena su u zraku paralelno na razmaku ${du}. Vodom 1 teče ${I1} ${iu}, a vodom 2 ${I2} ${iu}${same?', obje struje u istom smjeru':', struje su suprotnog smjera'}. Odredite ${askH?'H':'B'} u točki P koja je jednako udaljena od oba voda i leži između njih.`];
+  z.text=pk(T);const X=v=>80+v*190,s1=1,s2=same?1:-1;
+  z.svg=magSvg([{t:'l',x1:20,y1:120,x2:500,y2:120},{t:'w',x:X(0),y:120,v:s1,lab:'I<tspan font-size="0.72em" dy="4">1</tspan>'},{t:'w',x:X(2),y:120,v:s2,lab:'I<tspan font-size="0.72em" dy="4">2</tspan>'},{t:'p',x:X(1),y:120,lab:'P'},{t:'d',x1:X(0),y1:170,x2:X(2),y2:170,lab:du,s:-8}]);z.mg={...magSvg.last,P:{x:X(1),y:120},Hs:[H1,H2]};
+  z.fields=[askH?F('H',H,'A/m',2):F('B',B,'T',2)];
+  z.sol=[`Točka P je na sredini: r = d/2 = ${sci(r)} m od oba vodiča.`,`H<sub>1</sub> = <span class="frac"><span>I<sub>1</sub></span><span>2π·r</span></span> = <span class="frac"><span>${sci(i1)}</span><span>2π·${sci(r)}</span></span> = ${sci(H1)} A/m, H<sub>2</sub> = <span class="frac"><span>${sci(i2)}</span><span>2π·${sci(r)}</span></span> = ${sci(H2)} A/m`,
+    same?`Struje su istog smjera, pa su polja na sredini između vodiča <b>suprotnog smjera</b> (pravilo desne ruke) i oduzimaju se: H = |H<sub>1</sub> − H<sub>2</sub>| = <b>${sci(H)} A/m</b>`:`Struje su suprotnog smjera, pa su polja na sredini između vodiča <b>istog smjera</b> (pravilo desne ruke) i zbrajaju se: H = H<sub>1</sub> + H<sub>2</sub> = <b>${sci(H)} A/m</b>`,
+    askH?'':`B = μ<sub>0</sub>·μ<sub>r</sub>·H = 4π·10<sup>−7</sup>·1·${sci(H)} = <b>${sci(B)} T</b>`].filter(Boolean);
+  return z}
+{const _mg=magGen;magGen=function(d){const z=zTestKind==='sredina'?magSredina():_mg.apply(this,arguments);if(z&&z.text&&!/μ<sub>r<\/sub>/.test(z.text))z.text=z.text.replace(/u zraku/,'u zraku (μ<sub>r</sub> = 1)');return z}}
 
 view='home';
 boot();
