@@ -2891,16 +2891,16 @@ function magSredina(){const pk=a=>a[Math.floor(Math.random()*a.length)],mA=Math.
   const H1=i1/(2*Math.PI*r),H2=i2/(2*Math.PI*r),H=same?Math.abs(H1-H2):H1+H2,B=MU0*H;
   const z={type:'mag',cst:true,d:2,net:{id:'Magnetizam'},kind:'sredina'},F=(lab,v,u,w)=>{const[s,uu]=pfx(v,u);return{lab,val:s,unit:uu,w:w||1}};
   const T=[`Dva paralelna vrlo duga vodiča u zraku razmaknuta su ${du}. Kroz jedan teče struja ${I1} ${iu}, a kroz drugi ${I2} ${iu}, ${same?'u istom smjeru':'u suprotnim smjerovima'}. Odredite ${askH?'jakost magnetskog polja H':'gustoću magnetskog toka (magnetsku indukciju) B'} u točki P na sredini između vodiča.`,
-    `Paralelnim vodovima međusobno udaljenima ${du} teku struje I<sub>1</sub> = ${I1} ${iu} i I<sub>2</sub> = ${I2} ${iu} ${same?'istog':'suprotnog'} smjera. Kolika je ${askH?'jakost magnetskog polja H':'magnetska indukcija B'} točno na polovini razmaka između vodova?`,
-    `Dva duga ravna voda postavljena su paralelno na razmaku ${du}. Vodom 1 teče ${I1} ${iu}, a vodom 2 ${I2} ${iu}${same?', obje struje u istom smjeru':', struje su suprotnog smjera'}. Odredite ${askH?'H':'B'} u točki P koja je jednako udaljena od oba voda i leži između njih.`];
+    `Paralelnim vodovima u zraku međusobno udaljenima ${du} teku struje I<sub>1</sub> = ${I1} ${iu} i I<sub>2</sub> = ${I2} ${iu} ${same?'istog':'suprotnog'} smjera. Kolika je ${askH?'jakost magnetskog polja H':'magnetska indukcija B'} točno na polovini razmaka između vodova?`,
+    `Dva duga ravna voda postavljena su u zraku paralelno na razmaku ${du}. Vodom 1 teče ${I1} ${iu}, a vodom 2 ${I2} ${iu}${same?', obje struje u istom smjeru':', struje su suprotnog smjera'}. Odredite ${askH?'H':'B'} u točki P koja je jednako udaljena od oba voda i leži između njih.`];
   z.text=pk(T);const X=v=>80+v*190,s1=1,s2=same?1:-1;
   z.svg=magSvg([{t:'l',x1:20,y1:120,x2:500,y2:120},{t:'w',x:X(0),y:120,v:s1,lab:'I<tspan font-size="0.72em" dy="4">1</tspan>'},{t:'w',x:X(2),y:120,v:s2,lab:'I<tspan font-size="0.72em" dy="4">2</tspan>'},{t:'p',x:X(1),y:120,lab:'P'},{t:'d',x1:X(0),y1:170,x2:X(2),y2:170,lab:du,s:-8}]);z.mg={...magSvg.last,P:{x:X(1),y:120},Hs:[H1,H2]};
   z.fields=[askH?F('H',H,'A/m',2):F('B',B,'T',2)];
   z.sol=[`Točka P je na sredini: r = d/2 = ${sci(r)} m od oba vodiča.`,`H<sub>1</sub> = <span class="frac"><span>I<sub>1</sub></span><span>2π·r</span></span> = <span class="frac"><span>${sci(i1)}</span><span>2π·${sci(r)}</span></span> = ${sci(H1)} A/m, H<sub>2</sub> = <span class="frac"><span>${sci(i2)}</span><span>2π·${sci(r)}</span></span> = ${sci(H2)} A/m`,
     same?`Struje su istog smjera, pa su polja na sredini između vodiča <b>suprotnog smjera</b> (pravilo desne ruke) i oduzimaju se: H = |H<sub>1</sub> − H<sub>2</sub>| = <b>${sci(H)} A/m</b>`:`Struje su suprotnog smjera, pa su polja na sredini između vodiča <b>istog smjera</b> (pravilo desne ruke) i zbrajaju se: H = H<sub>1</sub> + H<sub>2</sub> = <b>${sci(H)} A/m</b>`,
-    askH?'':`B = μ<sub>0</sub>·H = 4π·10<sup>−7</sup>·${sci(H)} = <b>${sci(B)} T</b>`].filter(Boolean);
+    askH?'':`B = μ<sub>0</sub>·μ<sub>r</sub>·H = 4π·10<sup>−7</sup>·1·${sci(H)} = <b>${sci(B)} T</b>`].filter(Boolean);
   return z}
-{const _mg=magGen;magGen=function(d){if(zTestKind==='sredina')return magSredina();return _mg.apply(this,arguments)}}
+{const _mg=magGen;magGen=function(d){const z=zTestKind==='sredina'?magSredina():_mg.apply(this,arguments);if(z&&z.text&&!/μ<sub>r<\/sub>/.test(z.text))z.text=z.text.replace(/u zraku/,'u zraku (μ<sub>r</sub> = 1)');return z}}
 
 view='home';
 boot();
