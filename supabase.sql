@@ -607,3 +607,12 @@ grant execute on function public.daily_get(uuid, text) to anon, authenticated;
 grant execute on function public.daily_set(uuid, text, jsonb, jsonb) to anon, authenticated;
 grant execute on function public.daily_submit(uuid, text, real, integer, jsonb) to anon, authenticated;
 grant execute on function public.daily_board(uuid, text) to anon, authenticated;
+
+-- Aktivnost po gradivu u zadnjih 7 dana (za izbor gradiva u dnevnom izazovu)
+create or replace function public.topic_recent()
+returns table(topic text, users integer, total integer)
+language sql security definer set search_path = public as $$
+  with a as (select profile_id, topic from answers where created_at > now() - interval '7 days' and mode <> 'zadaci')
+  select topic, count(distinct profile_id)::int, (select count(distinct profile_id)::int from a) from a group by topic;
+$$;
+grant execute on function public.topic_recent() to anon, authenticated;
