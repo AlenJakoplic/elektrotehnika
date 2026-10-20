@@ -2230,7 +2230,7 @@ function kzPickTask(i,stage){const r=Math.random(),pk=a=>a[Math.floor(Math.rando
   const keep=zTestKind;try{
   if(i===0)z=r<0.7?nabGen(d):zGen('capu',d);
   else if(i===1){for(let t=0;t<30;t++){z=zGen(pk(['kont','cvor']),d);if(z&&z.q.c.br.filter(b=>b.R).every(b=>Math.abs(z.res.br[b.id])>1e-9))break}if(z){const br=z.q.c.br.filter(b=>b.R&&Math.abs(z.res.br[b.id])>1e-9).sort(()=>Math.random()-0.5).slice(0,3);z.fields=br.map(b=>({lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(z.res.br[b.id]),w:1,desc:'iznos'}));z.kzFree=true}}
-  else if(i===2)z=zGen(r<0.7?'pril':pk(['thev','nort']),d);
+  else if(i===2)z=zGen(r<0.6?'pril':r<0.9?'thev':'nort',d);
   else{const pm=0.4+0.15*(stage||0);if(r<pm){zTestKind=pk(['jedan','jedan','sila','naboj']);z=magGen(2)}else if(r<pm+0.3){zTestKind=pk(['jedan','ploce']);z=nabGen(1)}else z=zGen('ruk',2)}
   }finally{zTestKind=keep}
   if(!z)return kzPickTask(i,stage);zFields(z);z.ans={v:z.fields.map(()=>''),ok:z.fields.map(()=>null),tries:0,done:false,pts:0};return z}
@@ -2863,6 +2863,25 @@ Object.assign(TYPENAME,{TD:'Što je E_T / I_N',TO:'Prazni hod / kratki spoj',TE:
 
 for(const k in TYPENAME)TYPENAME[k]=String(TYPENAME[k]).replace(/\b([REIGU])_([A-Z]+)\b/g,'$1<sub>$2</sub>').replace(/\bRuk\b/g,'R<sub>uk</sub>');
 for(const k in TAGNAMES)if(typeof TAGNAMES[k]==='string')TAGNAMES[k]=TAGNAMES[k].replace(/\b([REIGU])_([A-Z]+)\b/g,'$1<sub>$2</sub>');
+
+/* ---------- Prilagođenje u mreži s naponskim izvorima: snaga/struja na drugom otporniku ---------- */
+function zthGenV(d){const lv=Math.max(2,Math.min(6,Math.round(d))),pk=a=>a[Math.floor(Math.random()*a.length)],big=Math.random()<0.3;
+  const pool=QS.filter(q=>q.topic==='kont'&&!q.type&&q.c&&!q.c.U&&!q.c.br.some(b=>b.t==='I')&&q.c.br.some(b=>b.E)).sort((a,b)=>a.diff-b.diff),n=pool.length,lo=Math.floor(Math.max(0,lv-2)/5*n*0.6),cand=pool.slice(lo,Math.max(lo+3,Math.floor(lo+n*0.5)));
+  for(let t=0;t<6000;t++){const q=pk(cand),val={};q.c.br.forEach(b=>{if(b.R)val[b.R]=pk(ZR);if(b.E)val[b.E]=pk(ZE)});
+    const loads=q.c.br.filter(b=>b.t==='R');if(!loads.length)continue;const L0=pk(loads),r=thCalc(q,val,L0.id);if(!r)continue;
+    if(Math.abs(r.ET)<1e-9||!niceS(r.RT,10)||!niceS(r.Pmax,10)||Math.abs(r.ET)>200)continue;
+    const v2=Object.assign({},val,{[L0.R]:r.RT}),o=mnaSolve(q.c,v2,{});if(!o)continue;
+    const oth=q.c.br.filter(b=>b.R&&b.id!==L0.id).map(b=>({b,I:etI12(q.c,b,o,v2)})).filter(x=>Math.abs(x.I)>1e-6);if(!oth.length)continue;
+    const x=pk(oth),ask=pk(['P','P','I']),P=x.I*x.I*v2[x.b.R];if(ask==='P'?!niceS(P,10):!niceS(Math.abs(x.I),100))continue;
+    return{th:true,type:'pril',v2:ask,q,val,load:L0.id,R:L0.R,r,x:x.b.R,xI:Math.abs(x.I),xP:P,d:lv,unit:big?'kΩ':'Ω',iu:big?'mA':'A',pu:big?'mW':'W',net:{id:q.id}}}
+  return null}
+{const _zg=zthGen;zthGen=function(type,d){if(type==='pril'&&(d>=3||Math.random()<0.3)&&Math.random()<0.55){const z=zthGenV(d);if(z)return z}return _zg.apply(this,arguments)}}
+{const _zt=zthText;zthText=function(z){if(!z.v2)return _zt.apply(this,arguments);const giv=Object.keys(z.val).filter(k=>k!==z.R).sort((a,b)=>a[0]===b[0]?+a.slice(1)-+b.slice(1):'REI'.indexOf(a[0])-'REI'.indexOf(b[0])).map(k=>`${sub(k)} = ${zmVals(z)[k]}`).join(', '),R=sub(z.R),X=sub(z.x);
+  return `Otpornik ${R} (označen) je trošilo. Koliki mora biti otpor ${R} da bi na njemu bila <b>maksimalna snaga</b> i kolika je ta snaga? ${z.v2==='P'?`Kolika je tada <b>snaga na otporniku ${X}</b>?`:`Kolika je tada <b>struja kroz otpornik ${X}</b>?`}<br><br>Zadano je: ${giv}.`}}
+{const _zf=zthFields;zthFields=function(z){if(!z.v2)return _zf.apply(this,arguments);const r=z.r;return[{lab:sub(z.R),unit:z.unit,val:r.RT,w:1},{lab:'P<sub>max</sub>',unit:z.pu,val:r.Pmax,w:1},z.v2==='P'?{lab:`P<sub>${z.x}</sub>`,unit:z.pu,val:z.xP,w:2}:{lab:`I<sub>${z.x}</sub>`,unit:z.iu,val:z.xI,w:2,desc:'iznos'}]}}
+{const _zs=zthSol;zthSol=function(z){const S=_zs.apply(this,arguments);if(!z.v2)return S;const X=sub(z.x),R=sub(z.R),f=v=>zN(Math.abs(v));
+  S.steps.push([[z.R,z.x],`<b>5. Mreža s prilagođenim trošilom:</b> stavi ${R} = R<sub>T</sub> = ${zN(z.r.RT)} ${z.unit} i riješi cijelu mrežu (npr. konturnim strujama ili naponima čvorova). Struja kroz ${X}: I<sub>${z.x}</sub> = <b>${f(z.xI)} ${z.iu}</b>.`]);
+  if(z.v2==='P')S.steps.push([[z.x],`Snaga na ${X}: P = I² · ${X} = ${f(z.xI)}² · ${z.val[z.x]} = <b>${zN(z.xP)} ${z.pu}</b>.`]);return S}}
 
 view='home';
 boot();
