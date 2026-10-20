@@ -113,7 +113,7 @@ svg.es [data-g].on circle{stroke-width:4;stroke:var(--mark)}svg.es [data-g].on l
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<style>#ancrs,#andays,#anmin{background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:14px;width:auto;max-width:260px;cursor:pointer}#ancrs:focus,#andays:focus,#anmin:focus{outline:2px solid var(--ok);outline-offset:1px}#ancrs option,#andays option,#anmin option{background:var(--sheet);color:var(--ink)}</style><style id="mobfix">
+<style>#ancrs,#andays,#anmin{background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;font-size:14px;width:auto;max-width:260px;cursor:pointer}#ancrs:focus,#andays:focus,#anmin:focus{outline:2px solid var(--ok);outline-offset:1px}#ancrs option,#andays option,#anmin option{background:var(--sheet);color:var(--ink)}</style><style>body.chal #next,body.chal #tnext2,body.chal #tnext,body.chal #mnext,body.chal #mgnext,body.chal #enext,body.chal #rnext,body.chal #skipbtn,body.chal #skipbtn+p,body.chal #testbar,body.chal [data-midskip],body.chal [data-lestop],body.chal [data-zfromv],body.chal #qnudge,body.chal .modwrap,body.chal #nav{display:none!important}body.chal main{padding-bottom:80px}</style><style id="mobfix">
 td.num,th{white-space:nowrap}
 td{overflow-wrap:normal;word-break:normal}
 @media (max-width:700px){
@@ -2962,6 +2962,64 @@ try{const ql=QS.find(q=>q.topic==='thev'&&!q.type&&etLoop(q)&&etLoop(q).terms.le
     LESSONS.thev.splice(i<0?2:i,0,
       {svg:etDraw(ql),t:'E<sub>T</sub>: konturna struja',h:`<p>Kad ukloniš ${R}, često u mreži teče samo <b>jedna</b> konturna struja. Na slici je to I<sub>1</sub> (strelica). Otpornici izvan te konture nemaju struju, pa na njima nema pada napona.</p><p>Jednadžba konture, kao kod metode konturnih struja:</p><div class="rule">I<sub>1</sub>·(zbroj otpora u konturi) = zbroj napona izvora u konturi<br><small>izvor ima + ako tjera struju u smjeru I<sub>1</sub>, a − ako protiv</small></div><div class="rule">${etIExpr(L,-1)}</div>`},
       {svg:etDraw(ql),t:'E<sub>T</sub>: od a do b',h:`<p>Struja I<sub>1</sub> ulazi u otpornik na kraju označenom s <b style="color:var(--bad)">+</b>, pa je napon na otporniku I<sub>1</sub>·R s tim polaritetom.</p><p>Idi bilo kojim putem od <b>a</b> do <b>b</b> i zbrajaj napone:</p><div class="rule">ulaziš na + otpornika: +I<sub>1</sub>·R &nbsp;·&nbsp; ulaziš na −: −I<sub>1</sub>·R<br>ulaziš na + izvora: +E &nbsp;·&nbsp; ulaziš na −: −E<br>otpornik bez struje: 0</div><div class="rule">E<sub>T</sub> = U<sub>ab</sub> = ${etJoin(L.terms)}</div>`})}}catch(e){}
+
+/* ---------- Dnevni izazov ---------- */
+let CH=null,CHday=null,CHinfo=null;
+const CHG=[['estat','Elektrostatika',['estat']],['serpar','Serija ili paralela',['serpar']],['ruk','Ukupni otpor',['ruk']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi mreža',['thev','nort']],['mag','Magnetsko polje',['mag']]];
+function chAll(){return [...QS,...(typeof EQ!=='undefined'?EQ:[]),...(typeof MGQ!=='undefined'?MGQ:[])]}
+function chFind(id){return chAll().find(q=>q.id===id)}
+function chPool(ts){return chAll().filter(q=>ts.includes(q.topic)&&!(q.topic==='ruk'&&q.type)&&!(q.topic==='serpar'&&q.type==='S'&&false))}
+function chRng(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return()=>{h=(h*1103515245+12345)>>>0;return h/4294967296}}
+async function chTopics(){try{const [t,...L]=await Promise.all([Remote.rpc('leaderboard_total'),...CHG.map(g=>Promise.all(g[2].map(k=>Remote.rpc('leaderboard',{p_topic:k}))))]);const N=(t.data||[]).length||1;
+  return CHG.filter((g,i)=>{const s=new Set();L[i].forEach(r=>(r.data||[]).forEach(x=>{if((x.n||0)>=10)s.add(x.nick)}));return s.size>=Math.max(2,0.4*N)}).map(g=>g[0])}catch(e){return ['estat','serpar','ruk']}}
+function chBuild(day,topics){const rnd=chRng('izazov'+day),G=CHG.filter(g=>topics.includes(g[0]));if(!G.length)return null;const out=[];let k=Math.floor(rnd()*G.length),guard=0;
+  while(out.length<10&&guard++<200){const g=G[k%G.length];k++;const pool=chPool(g[2]).filter(q=>!out.includes(q.id)).sort((a,b)=>qRating(b)-qRating(a));const hard=pool.slice(0,Math.max(5,Math.floor(pool.length*0.35)));if(!hard.length)continue;out.push(hard[Math.floor(rnd()*hard.length)].id)}
+  return out.length===10?out:null}
+async function chLoad(force){const day=zgDate();if(CHinfo&&CHinfo.day===day&&!force)return CHinfo;if(!Remote||!session)return CHinfo={day,off:true};
+  try{let {data}=await Remote.rpc('daily_get',{p_token:session.token,p_day:day});if(data&&data.locked)return CHinfo={day,locked:true};
+    if(!data||!data.qids){const tp=await chTopics(),q=chBuild(day,tp);if(!q)return CHinfo={day,off:true};const r=await Remote.rpc('daily_set',{p_token:session.token,p_day:day,p_qids:q,p_topics:tp});data=r.data}
+    const b=await Remote.rpc('daily_board',{p_token:session.token,p_day:day});return CHinfo={day,qids:data.qids,topics:data.topics||[],board:b.data||[]}}catch(e){return CHinfo={day,off:true}}}
+function chMine(){const p=prof();return(p.chal&&p.chal[zgDate()])||null}
+function chStartQ(){const id=CH.qs[CH.i],q=chFind(id),p=prof();if(!q){CH.res.push(0);CH.i++;return chNext()}
+  p.module=q.topic;testType='';answered=null;cur=null;rk=null;eq=null;mt=null;ths=null;if(typeof mgq!=='undefined')mgq=null;
+  if(q.topic==='mag'){mgq=q;mgA=null}else if(q.topic==='thev'||q.topic==='nort'){thStart(q)}else if(q.topic==='serpar'){cur=q;answered=false}else if(q.topic==='ruk'||q.topic==='rukC'){startRuk(q)}else if(q.topic==='estat'){eq=q;eAns=null}else if(q.topic==='kont'||q.topic==='cvor'){metStart(q)}
+  view='practice';document.body.classList.add('chal');render();window.scrollTo(0,0);chBar()}
+function chBar(){document.getElementById('chbar')?.remove();if(!CH)return;const done=CH.res.length>CH.i;
+  document.body.insertAdjacentHTML('beforeend',`<div id="chbar" style="position:fixed;left:0;right:0;bottom:0;z-index:9996;background:var(--ink);color:var(--sheet);padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.25)"><b>Dnevni izazov</b><span>Pitanje ${Math.min(CH.i+1,10)} od 10 · bodovi ${zN(Math.round(CH.res.reduce((a,b)=>a+b,0)*10))}</span><span id="chtm"></span>${done?`<button class="primary" id="chnx" style="margin:0;background:var(--ok);color:#fff">${CH.i>=9?'Završi izazov':'Sljedeće pitanje →'}</button>`:''}<button class="ghost" id="chq" style="margin:0;color:var(--sheet);border:1px solid rgba(255,255,255,.4);background:transparent">Prekini</button></div>`);
+  if($('#chnx'))$('#chnx').onclick=()=>{CH.i++;chNext()};$('#chq').onclick=()=>{if(confirm('Prekinuti izazov? Ako je ovo prvi pokušaj danas, rezultat se neće računati.')){CH=null;document.body.classList.remove('chal');document.getElementById('chbar')?.remove();view='home';render()}};chTick()}
+function chTick(){const e=document.getElementById('chtm');if(!e||!CH)return;const s=Math.floor((Date.now()-CH.t0)/1000);e.textContent=`⏱ ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;clearTimeout(CH.tt);CH.tt=setTimeout(chTick,500)}
+async function chNext(){if(CH.i<10)return chStartQ();const p=prof(),ms=Date.now()-CH.t0,sc=CH.res.reduce((a,b)=>a+b,0),pts=Math.round(sc*10),first=CH.first;document.getElementById('chbar')?.remove();document.body.classList.remove('chal');
+  let saved=false;if(first){p.chal=p.chal||{};p.chal[zgDate()]={pts,ms,res:CH.res};gWeek(p).pts+=sc;save();try{const r=await Remote.rpc('daily_submit',{p_token:session.token,p_day:zgDate(),p_pts:pts,p_ms:ms,p_detail:{res:CH.res}});saved=!!r.data}catch(e){}}
+  const R=CH;CH=null;await chLoad(true);chResult(R,pts,ms,first)}
+function chFmt(ms){const s=Math.round(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
+function chBoardHtml(){const B=(CHinfo&&CHinfo.board)||[],me=prof().nick,esc=s=>String(s).replace(/[<>&"]/g,''),MC={1:'#D4A017',2:'#A8B2BD',3:'#C07A3A'};
+  return `<table><tr><th></th><th>Nadimak</th><th>Bodovi</th><th>Vrijeme</th></tr>${B.map((r,i)=>`<tr${r.nick===me?' style="font-weight:700"':''}><td style="${MC[i+1]?'color:'+MC[i+1]+';font-weight:800':''}">${i+1}.</td><td><a href="#" data-nick="${esc(r.nick)}">${esc(r.nick)}</a></td><td class="num">${zN(r.pts)}</td><td class="num">${chFmt(r.ms)}</td></tr>`).join('')||'<tr><td colspan="4">Danas još nitko nije riješio izazov.</td></tr>'}</table>`}
+function chResult(R,pts,ms,first){const qs=R.qs.map(chFind);
+  main.innerHTML=`<div class="sheet panel"><h2>Dnevni izazov: ${pts} / 100</h2><p class="note">Vrijeme ${chFmt(ms)}. ${first?'Ovo je tvoj prvi pokušaj danas i ulazi na ljestvicu izazova i u tjedne bodove.':'Ovo je bio pokušaj za vježbu: na ljestvicu ide samo prvi pokušaj u danu.'}</p>
+  <table><tr><th>#</th><th>Gradivo</th><th>Rezultat</th></tr>${R.res.map((s,i)=>`<tr><td>${i+1}.</td><td>${qs[i]?(TOPICS[qs[i].topic]||qs[i].topic):''}</td><td style="font-weight:700;color:${s>=1?'var(--ok)':s>0?'var(--mark)':'var(--bad)'}">${s>=1?'✓ 10':s>0?zN(Math.round(s*10))+' / 10':'✗ 0'}</td></tr>`).join('')}</table>
+  <h3 style="margin:18px 0 6px">Ljestvica izazova danas</h3>${chBoardHtml()}<p class="note">Poredak po bodovima, a pri jednakim bodovima brže vrijeme je bolje. Novi izazov sutra.</p>
+  <div class="row" style="gap:8px;margin-top:10px"><button class="primary" id="chhome" style="margin:0">Na početnu</button></div></div>`;$('#chhome').onclick=()=>{view='home';render()}}
+async function chStart(){const I=await chLoad();if(!I.qids)return;CH={qs:I.qids,i:0,res:[],t0:Date.now(),first:!chMine()};chStartQ()}
+{const _fs=fbSurvey;fbSurvey=function(){if(CH)return;return _fs.apply(this,arguments)}}
+/* bilježenje rezultata */
+{const _arC=applyResult;applyResult=function(q,correct){const d=_arC.apply(this,arguments);try{if(CH&&q&&q.id===CH.qs[CH.i]&&CH.res.length===CH.i){CH.res.push(typeof correct==='number'?Math.max(0,Math.min(1,correct)):(correct?1:0));setTimeout(chBar,30)}}catch(e){}return d}}
+/* Početna: kartica izazova */
+{const _rh4=renderHome;renderHome=function(){const r=_rh4.apply(this,arguments);try{const p=prof(),qb=document.getElementById('qbox');if(!qb||document.getElementById('chbox'))return r;const ans=Object.values(p.ratings||{}).reduce((a,x)=>a+(x.n||0),0);
+  qb.insertAdjacentHTML('afterend',`<div id="chbox" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:12px 16px;margin:0 0 22px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Dnevni izazov</h3><div class="note" style="margin:2px 0 0" id="chtxt">Učitavam…</div></div><div id="chbtns"></div></div></div>`);
+  chLoad().then(I=>{const t=document.getElementById('chtxt'),bt=document.getElementById('chbtns');if(!t)return;const m=chMine();
+    if(I.locked||ans<100&&!I.qids){t.innerHTML=`10 težih pitanja iz gradiva koja ste već vježbali, isti za sve. Otključava se nakon 100 riješenih pitanja (još ${Math.max(0,100-ans)}).`;return}
+    if(I.off||!I.qids){t.textContent='Izazov danas nije dostupan.';return}
+    const B=I.board||[],pos=B.findIndex(x=>x.nick===p.nick);
+    t.innerHTML=m?`Danas: <b>${m.pts} / 100</b> u ${chFmt(m.ms)}${pos>=0?` · <b>${pos+1}.</b> mjesto od ${B.length}`:''}. Novi izazov sutra.`:`10 težih pitanja iz gradiva koja ste već vježbali. Isti set za sve, broje se bodovi pa vrijeme. Na ljestvicu ide prvi pokušaj. ${B.length?`Danas je riješilo ${B.length}.`:''}`;
+    bt.innerHTML=`${m?'<button class="ghost" id="chgo" style="margin:0">Ponovi za vježbu</button>':'<button class="primary" id="chgo" style="margin:0">Kreni</button>'} <button class="ghost" id="chlb" style="margin:0">Ljestvica</button>`;
+    $('#chgo').onclick=chStart;$('#chlb').onclick=()=>{view='board';boardAll='daily';render()}})}catch(e){}return r}}
+/* Ljestvica: kartica Dnevni izazov */
+{const _mb2=modbar;modbar=function(){_mb2();if(view!=='board')return;const bar=main.querySelector('.modbar');if(!bar||bar.querySelector('[data-dl]'))return;const kb=bar.querySelector('[data-kzb]')||bar.querySelector('[data-zl]');
+  const btn=`<button data-all="1" data-dl="1" aria-current="${boardAll==='daily'}">Dnevni izazov</button>`;if(kb)kb.insertAdjacentHTML('afterend',btn);else bar.insertAdjacentHTML('beforeend',btn);
+  bar.querySelector('[data-dl]').onclick=()=>{boardAll='daily';render()};if(boardAll==='daily'){bar.querySelectorAll('[data-m],[data-all]:not([data-dl])').forEach(b=>b.setAttribute('aria-current','false'))}}}
+{const _rb2=renderBoard;renderBoard=function(){if(boardAll==='daily')return renderBoardDaily();return _rb2.apply(this,arguments)}}
+async function renderBoardDaily(){main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: dnevni izazov</h2><p class="note">Učitavam…</p></div>`;modbar();const I=await chLoad(true);if(view!=='board'||boardAll!=='daily')return;
+  main.innerHTML=`<div class="sheet panel"><h2>Ljestvica: dnevni izazov</h2>${I.locked?'<p>Ljestvica i izazov otključavaju se nakon 100 riješenih pitanja.</p>':`<p class="note" style="margin-top:-6px">Danas, ${zgDate().split('-').reverse().join('. ')}. Poredak po bodovima, a pri jednakim bodovima brže vrijeme je bolje. Broji se prvi pokušaj.</p>${chBoardHtml()}`}</div>`;modbar()}
 
 view='home';
 boot();
