@@ -2231,7 +2231,7 @@ function kzPickTask(i,stage){const r=Math.random(),pk=a=>a[Math.floor(Math.rando
   if(i===0){if(r<0.9){zTestKind=Math.random()<0.5?'kut':'';z=nabGen(d)}else z=zGen('capu',d)}
   else if(i===1){for(let t=0;t<30;t++){z=zGen(pk(['kont','cvor']),d);if(z&&z.q.c.br.filter(b=>b.R).every(b=>Math.abs(z.res.br[b.id])>1e-9))break}if(z){const br=z.q.c.br.filter(b=>b.R&&Math.abs(z.res.br[b.id])>1e-9).sort(()=>Math.random()-0.5).slice(0,3);z.fields=br.map((b,k)=>k<2||br.length<3?{lab:`I<sub>R${b.R.slice(1)}</sub>`,unit:z.iu,val:Math.abs(z.res.br[b.id]),w:1,desc:'iznos'}:{lab:`U<sub>R${b.R.slice(1)}</sub>`,unit:'V',val:Math.abs(z.res.br[b.id])*z.val[b.R],w:1,desc:'iznos'});z.kzFree=true}}
   else if(i===2)z=zGen(r<0.6?'pril':r<0.9?'thev':'nort',d);
-  else{const pm=0.4+0.15*(stage||0);if(r<pm){zTestKind=pk(['sredina','sredina','sredina','jedan','jedan','sila','naboj']);z=magGen(2)}else if(r<pm+0.3){zTestKind=pk(['jedan','ploce']);z=nabGen(1)}else z=zGen('ruk',2)}
+  else{if(r<0.9){zTestKind=r<0.5?'sredina':r<0.7?'jedan':r<0.8?'sila':'naboj';z=magGen(2)}else{zTestKind=pk(['jedan','ploce']);z=nabGen(1)}}
   }finally{zTestKind=keep}
   if(!z)return kzPickTask(i,stage);zFields(z);z.ans={v:z.fields.map(()=>''),ok:z.fields.map(()=>null),tries:0,done:false,pts:0};return z}
 function kzStart(){kzSim={t0:Date.now(),zs:[0,1,2,3].map(i=>kzPickTask(i,2)),max:[6,6,6,2],i:0,done:false};view='kz';render();window.scrollTo(0,0)}
