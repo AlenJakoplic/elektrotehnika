@@ -495,7 +495,7 @@ function renderHelp(){
   <h3>Kolegij</h3>
   <p>Aplikaciju koriste studenti više kolegija. Svoj kolegij odabereš pri prvoj prijavi, a možeš ga promijeniti na Napretku ili klikom na napomenu na Početnoj.</p>
   <h3>Pitaj nastavnika i povratne informacije</h3>
-  <p>Uz svaki zadatak su poveznice <b>Prijavi grešku</b> i <b>Pitaj nastavnika</b>. Odgovor nastavnika vidiš na Napretku pod „Moja pitanja nastavniku”, a ako ostaviš e-mail, može stići i mailom. Pitanje i odgovor možeš obrisati. Na dnu stranice je poveznica za povratnu informaciju o aplikaciji, koja može biti i anonimna. Povremeno se pojavi i kratka anketa: nakon 100 riješenih zadataka, nakon prve probne KZ1 i nakon 100 pitanja iz pojedinog gradiva (najviše jedna tjedno). Ankete su anonimne ako to odabereš, a „Ne sada” ih odgađa.</p>
+  <p>Uz svaki zadatak su poveznice <b>Prijavi grešku</b> i <b>Pitaj nastavnika</b>. Odgovor nastavnika vidiš na Napretku pod „Moja pitanja nastavniku”, a ako ostaviš e-mail, može stići i mailom. Pitanje i odgovor možeš obrisati. Na dnu stranice je poveznica za povratnu informaciju o aplikaciji, koja može biti i anonimna. Povremeno se pojavi i kratka anketa: nakon 100 riješenih zadataka, nakon prve probne KZ1 i nakon 100 pitanja iz pojedinog gradiva (nikad dvije zaredom). Ankete su anonimne ako to odabereš, a „Ne sada” ih odgađa.</p>
   <h3>Gdje se sprema napredak</h3>
   <p>Napredak se sprema uz tvoj nadimak i PIN, pa ga imaš na svakom uređaju. Na ljestvici se vidi samo nadimak. Točnost i ime su skriveni dok ih sam ne uključiš na Napretku. Nastavnik može vidjeti rezultate u bazi i koristi ih samo za poboljšanje nastave i aplikacije, nikad za ocjenjivanje.</p>
   <h3>Niz dana, značke i tjedna liga</h3>
@@ -3037,7 +3037,7 @@ function ringSvg(P,sz){sz=sz||64;const parts=[['les',P.les,'#5B9BD5'],['vj',P.vj
 
 /* ===== anketa po gradivu (nakon 100 pitanja iz jednog gradiva) ===== */
 function svLabel(a){a=String(a||'');if(a==='kz')return 'nakon KZ';if(a.startsWith('g:'))return 'gradivo: '+(TOPICS[a.slice(2)]||a.slice(2));return '100 zadataka'}
-const SV_GAP=7*864e5;let SV_PREVIEW=false;
+const SV_GAP=30*6e4;let SV_PREVIEW=false;
 {const _fsd=fbSend;fbSend=function(o){if(SV_PREVIEW)return Promise.resolve();return _fsd.apply(this,arguments)}}
 function gTopicDue(p){const fs=p.fbs||{},r=p.ratings||{};let best=null;
   for(const k in r){if(!TOPICS[k]||fs['g:'+k])continue;const n=r[k].n||0;if(n>=(fs['gn:'+k]||100)&&(!best||n>best.n))best={k,n}}return best}
