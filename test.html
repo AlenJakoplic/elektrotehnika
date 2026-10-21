@@ -502,6 +502,8 @@ function renderHelp(){
   <p>Dan se računa kad riješiš barem jedan zadatak. Za 10 točnih odgovora zaredom dobiješ slobodan dan (najviše 3), koji čuva niz kad propustiš dan. Značke se dobivaju za niz dana, točne odgovore zaredom i svladane zamke. U tjednoj ligi na Ljestvici se broje bodovi ovog tjedna, a svaki ponedjeljak kreće ispočetka. U gradivu koje je već svladano (razina 7+) točan odgovor donosi manje bodova. Na kraju tjedna prvih 10 % dobiva značku Tjedni vrh, a prijašnji tjedni mogu se pogledati na ljestvici. Na vrhu Ljestvice vidiš svoja mjesta na svim ljestvicama, a kartica <b>Redovitost</b> pokazuje tko uči najviše dana zaredom.</p>
   <h3>Zadaci dana</h3>
   <p>Na Početnoj su svaki dan novi zadaci: miks gradiva, slabije gradivo, gradivo koje je na redu i zadatak s brojevima. Ispunjeni zadaci donose bonus bodove za tjednu ljestvicu.</p>
+  <h3>Dnevni izazov</h3>
+  <p>Svaki dan 10 težih pitanja iz gradiva koja ste ovaj tjedan najviše vježbali, isti za sve. Otključava se nakon 100 riješenih pitanja. Pitanje s jednim odgovorom nosi 10 bodova, a za svakih započetih 5 sekundi gubi se 1 bod (najmanje 1 za točan odgovor). Zadatak s koracima nosi 10 bodova, a svaka pogrešna odluka oduzima 3,5 boda. Nakon odgovora sljedeće pitanje dolazi samo od sebe, a pitanje možeš i preskočiti (0 bodova). Na kraju vidiš za svako pitanje odakle bodovi i usporedbu s prosjekom svih. Na ljestvicu izazova i u tjedne bodove ulazi samo prvi pokušaj u danu; pri jednakim bodovima bolje je kraće vrijeme.</p>
   <p class="note" style="margin-top:24px;padding-top:14px;border-top:1px solid var(--line)">Aplikaciju je izradio dr. sc. Alen Jakoplić, 7. listopada 2026., uz pomoć velikog jezičnog modela Claude Opus 5.5 tvrtke Anthropic. Kao podloga korištena je literatura prof. dr. sc. Nina Stojkovića.</p>${verHtml()}</div>`;setTimeout(verBind,0);
   $('#tourbtn').onclick=()=>tourStart();
 }
@@ -532,27 +534,28 @@ async function renderBoardRemote(mod){
 }
 
 /* ---------- Baza zadataka (provjera) ---------- */
+var bankKind='';
 function renderBank(){if(/^(kont|cvor|pretv)$/.test(prof().module))return metBank();if(prof().module==='estat')return estatBank();
   const mod=prof().module;
-  const qsMod=QS.filter(q=>q.topic===mod),netIds=new Set(qsMod.filter(q=>!(mod==='ruk'&&q.type)).map(q=>q.net));
-  const nets=BANK.nets.filter(n=>netIds.has(n.id)&&(!bankLevel||n.level===bankLevel));
-  const levels=[...new Set(BANK.nets.filter(n=>netIds.has(n.id)).map(n=>n.level))];
-  if(!nets.length){bankLevel=0;return renderBank()}
+  const qsMod=QS.filter(q=>q.topic===mod),netIds=new Set(qsMod.filter(q=>!(mod==='ruk'&&q.type&&!RKTR[q.type])&&(mod!=='ruk'||!bankKind||(bankKind==='-'?!q.type:q.type===bankKind))).map(q=>q.net));
+  const BN=mod==='ruk'?BANK.nets.concat(RK_DNETS):BANK.nets,nets=BN.filter(n=>netIds.has(n.id)&&(!bankLevel||n.level===bankLevel));
+  const levels=[...new Set(BN.filter(n=>netIds.has(n.id)).map(n=>n.level))].sort((a,b)=>a-b);
+  if(!nets.length){if(bankLevel){bankLevel=0;return renderBank()}if(bankKind){bankKind='';return renderBank()}}
   if(!bankSel||!nets.find(n=>n.id===bankSel))bankSel=nets[0].id;
   const n=NETS[bankSel],qs=qsMod.filter(q=>q.net===n.id);
   let right;
-  if((mod==='ruk'||mod==='rukC')){const t=qs[0];right=`<p><b>${n.id}</b>, razina ${n.level}</p><p class="note">Jedan mogući redoslijed svođenja:</p><ol class="steps">${solveSteps(n).map(x=>`<li>${x}</li>`).join('')}</ol><p class="note">Težina zadatka ${fmt(t.diff)}${state.qstats[t.id]?` → ${fmt(state.qstats[t.id].r)}`:''}</p>`;const xq=QS.filter(x=>x.type&&x.topic===mod&&x.net===n.id);if(xq.length)right+=`<p class="note" style="margin-top:12px"><b>Dodatna pitanja na ovoj mreži:</b></p><ul class="note">${xq.map(x=>`<li>${x.id}: ${x.type==='P'?'koji par odmah: '+x.ans.replace(',',' i '):x.type==='Z'?'zapis: R<sub>uk</sub> = '+x.ans:x.type==='V'?`${x.x} se ${x.up?'poveća':'smanji'} → R<sub>uk</sub> se ${x.up?'poveća':'smanji'}`:''}</li>`).join('')}</ul>`}
+  if((mod==='ruk'||mod==='rukC')){const t=qs[0];right=`<p><b>${n.id}</b>, razina ${n.level}</p>${rkBankNote(n)}<p class="note">Jedan mogući redoslijed svođenja:</p><ol class="steps">${(rkTrickNet(n)?rkSolveText(n):solveSteps(n)).map(x=>`<li>${x}</li>`).join('')}</ol><p class="note">Težina zadatka ${fmt(t.diff)}${state.qstats[t.id]?` → ${fmt(state.qstats[t.id].r)}`:''}</p>`;const xq=QS.filter(x=>x.type&&x.topic===mod&&x.net===n.id);if(xq.length)right+=`<p class="note" style="margin-top:12px"><b>Dodatna pitanja na ovoj mreži:</b></p><ul class="note">${xq.map(x=>`<li>${x.id}: ${x.type==='P'?'koji par odmah: '+x.ans.replace(',',' i '):x.type==='Z'?'zapis: R<sub>uk</sub> = '+x.ans:x.type==='V'?`${x.x} se ${x.up?'poveća':'smanji'} → R<sub>uk</sub> se ${x.up?'poveća':'smanji'}`:RKTR[x.type]?TYPENAME[x.type]:x.type==='D'?'ne utječe na R<sub>uk</sub>: '+x.ans:''}</li>`).join('')}</ul>`}
   else{const lbl=q=>mod==='formula'?FANS[{series:'ser',parallel:'par',none:'none'}[q.ans]]:ANS[q.ans];
     right=`<p><b>${n.id}</b>, razina ${n.level}</p><table><tr><th>Par</th><th>${mod==='formula'?'Točna formula':'Odgovor'}</th><th>Težina</th><th>Zamke</th></tr>
     ${qs.map(q=>{const s=state.qstats[q.id];return `<tr><td>${q.type?spShort(q):`${q.r1}, ${q.r2}`}</td><td>${q.type?q.ans:lbl(q)}</td><td>${fmt(q.diff)}${s?` → ${fmt(s.r)} (${s.c}/${s.n})`:''}</td><td class="note">${q.tags.map(t=>TAGNAMES[t]).join('; ')||'–'}</td></tr>`}).join('')}</table>
     <p class="note">${Object.entries(n.status).filter(([k,v])=>v!=='ok').map(([k,v])=>`${k}: ${v==='short'?'kratko spojen':'bez struje'}`).join(', ')}</p>`}
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Baza zadataka: ${MODNAME[mod]}</h2>
   <p class="note">${netIds.size} mreža, ${qsMod.length} ${(mod==='ruk'||mod==='rukC')?'zadataka':'pitanja'}. Za provjeru točnosti: bojice su uključene, a uz svaki zadatak je točan odgovor.</p>
-  <div class="row"><label>Razina mreže <select id="lv" class="ghost"><option value="0">Sve</option>${levels.map(l=>`<option value="${l}" ${bankLevel===l?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div class="row"><label>Razina mreže <select id="lv" class="ghost"><option value="0">Sve</option>${levels.map(l=>`<option value="${l}" ${bankLevel===l?'selected':''}>${l}</option>`).join('')}</select></label>${mod==='ruk'?`<label style="margin-left:14px">Vrsta <select id="bk" class="ghost"><option value="">Sve</option><option value="-" ${bankKind==='-'?'selected':''}>Osnovno svođenje</option><option value="KS" ${bankKind==='KS'?'selected':''}>Kratki spoj i slijepa grana</option><option value="AB" ${bankKind==='AB'?'selected':''}>Stezaljke na mjestu otpornika</option></select></label>`:''}</div>
   <div class="banklist">${nets.map(x=>`<button data-id="${x.id}" aria-current="${x.id===bankSel}">${x.id}</button>`).join('')}</div>
   <div class="board" style="grid-template-columns:minmax(0,1fr) 380px"><div class="schem">${drawNet(n,{colors:true,highlight:[],values:null})}</div><div>${right}</div></div></div>`;
   modbar();
-  $('#lv').onchange=e=>{bankLevel=+e.target.value;bankSel=null;renderBank()};
+  $('#lv').onchange=e=>{bankLevel=+e.target.value;bankSel=null;renderBank()};if($('#bk'))$('#bk').onchange=e=>{bankKind=e.target.value;bankSel=null;renderBank()};
   main.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{bankSel=b.dataset.id;renderBank()});
 }
 
@@ -2750,7 +2753,7 @@ function midState(){const m=prof().module;if(exam&&exam.running)return null;
   if((m==='thev'||m==='nort')&&ths&&!ths.done&&!ths.exam&&(ths.i>0||ths.mistakes>0||ths.sel.size>0))return{step:()=>{ths.mistakes++;ths.wait=false;thAdv()},task:()=>{ths=null}};
   if((m==='ruk'||m==='rukC')&&rk&&!rk.done&&(rk.steps.length>0||rk.mistakes>0||rk.sel.length>0))return{task:()=>{rk=null}};return null}
 new MutationObserver(()=>{try{if(view!=='practice')return;const s=main.querySelector('.side');if(!s||s.querySelector('[data-midskip]')||s.querySelector('#skipbtn'))return;const M=midState();if(!M)return;
-  s.insertAdjacentHTML('beforeend',`<div data-midskip style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)">${M.step?'<a href="#" data-ms="step" style="color:inherit">Preskoči korak</a> · ':''}<a href="#" data-ms="task" style="color:inherit">Preskoči zadatak</a>${M.step?'<div style="font-size:12px;margin-top:2px">Preskočeni korak računa se kao pogreška.</div>':''}</div>`);
+  s.insertAdjacentHTML('beforeend',`<div data-midskip style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)"><div class="mbtns" style="margin:0">${M.step?'<button class="ghost" data-ms="step">Preskoči korak</button>':''}<button class="ghost" data-ms="task">Novi zadatak</button></div>${M.step?'<div style="font-size:12px;margin-top:2px">Preskočeni korak računa se kao pogreška.</div>':''}</div>`);
   s.querySelectorAll('[data-ms]').forEach(a=>a.onclick=e=>{e.preventDefault();const X=midState();if(!X)return;const p=prof(),old=curQ()||(ths&&ths.q);if(a.dataset.ms==='step'){X.step();return}
     if(old&&old.id){(p.wrong||[]).forEach(w=>{if(w.id===old.id)w.due=(p.answered||0)+5});p.recent=[old.id,...(p.recent||[]).filter(x=>x!==old.id)].slice(0,40);save()}X.task();renderPractice();window.scrollTo(0,0)})}catch(e){}}).observe(main,{childList:true,subtree:true});
 
@@ -2987,9 +2990,10 @@ function chStartQ(){const id=CH.qs[CH.i],q=chFind(id),p=prof();if(!q){CH.res.pus
   if(q.topic==='mag'){mgq=q;mgA=null}else if(q.topic==='thev'||q.topic==='nort'){thStart(q)}else if(q.topic==='serpar'){cur=q;answered=false}else if(q.topic==='ruk'||q.topic==='rukC'){startRuk(q)}else if(q.topic==='estat'){eq=q;eAns=null}else if(q.topic==='kont'||q.topic==='cvor'){metStart(q)}
   CH.qt=Date.now();view='practice';document.body.classList.add('chal');render();window.scrollTo(0,0);chBar()}
 function chBar(){document.getElementById('chbar')?.remove();if(!CH||view!=='practice')return;const done=CH.res.length>CH.i,ok=done&&CH.res[CH.i]>=0.5,last=CH.i>=9;
-  main.insertAdjacentHTML('afterbegin',`<div id="chbar" style="position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--mark);padding:8px 14px;margin:0 0 12px;border-radius:10px;display:flex;gap:10px 14px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 4px 14px rgba(0,0,0,.2)"><div style="display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap"><b>Dnevni izazov</b><span>Pitanje ${Math.min(CH.i+1,10)} / 10</span><span>Bodovi ${zN(Math.round(CH.res.reduce((a,b)=>a+b,0)*10))}</span><span id="chtm" style="font-variant-numeric:tabular-nums"></span></div><div style="display:flex;gap:8px;align-items:center">${done?`<span style="font-weight:700;color:${ok?'var(--ok)':'var(--bad)'}">${ok?'Točno':'Netočno'} · ${last?'kraj':'sljedeće'} za <span id="chcd"></span></span><button class="primary" id="chnx" style="margin:0;padding:6px 12px;background:var(--ok);color:#fff">${last?'Završi':'Dalje →'}</button>`:''}<button class="ghost" id="chq" style="margin:0;padding:6px 12px">Prekini</button></div></div>`);
+  main.insertAdjacentHTML('afterbegin',`<div id="chbar" style="position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--mark);padding:8px 14px;margin:0 0 12px;border-radius:10px;display:flex;gap:10px 14px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 4px 14px rgba(0,0,0,.2)"><div style="display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap"><b>Dnevni izazov</b><span>Pitanje ${Math.min(CH.i+1,10)} / 10</span><span>Bodovi ${zN(Math.round(CH.res.reduce((a,b)=>a+b,0)*10))}</span><span id="chtm" style="font-variant-numeric:tabular-nums"></span></div><div style="display:flex;gap:8px;align-items:center">${done?`<span style="font-weight:700;color:${ok?'var(--ok)':'var(--bad)'}">${ok?'Točno':'Netočno'} · ${last?'kraj':'sljedeće'} za <span id="chcd"></span></span><button class="primary" id="chnx" style="margin:0;padding:6px 12px;background:var(--ok);color:#fff">${last?'Završi':'Dalje →'}</button>`:''}${done?'':'<button class="ghost" id="chsk" style="margin:0;padding:6px 12px">Preskoči</button>'}<button class="ghost" id="chq" style="margin:0;padding:6px 12px">Prekini</button></div></div>`);
   const go=()=>{if(!CH)return;clearTimeout(CH.auto);clearTimeout(CH.cdt);CH.autoFor=-1;CH.i++;chNext()};
   if($('#chnx'))$('#chnx').onclick=go;
+  if($('#chsk'))$('#chsk').onclick=()=>{if(!CH||CH.res.length>CH.i)return;CH.info=CH.info||[];CH.info[CH.i]={skip:true};CH.res.push(0);go()};
   if(done&&CH.autoFor!==CH.i){CH.autoFor=CH.i;CH.autoAt=Date.now()+(ok?1500:3000);clearTimeout(CH.auto);CH.auto=setTimeout(go,ok?1500:3000)}
   if(done){const cd=()=>{const e=document.getElementById('chcd');if(!e||!CH)return;e.textContent=Math.max(0,Math.ceil((CH.autoAt-Date.now())/1000))+' s';clearTimeout(CH.cdt);CH.cdt=setTimeout(cd,200)};cd()}
   $('#chq').onclick=()=>{clearTimeout(CH.auto);clearTimeout(CH.cdt);CH.autoFor=CH.i;if(confirm('Prekinuti izazov? Ako je ovo prvi pokušaj danas, rezultat se neće računati.')){CH=null;document.body.classList.remove('chal');document.getElementById('chbar')?.remove();view='home';render()}else if(done){CH.autoFor=-1;chBar()}};chTick()}
@@ -3003,13 +3007,13 @@ function chBoardHtml(){const B=(CHinfo&&CHinfo.board)||[],me=prof().nick,esc=s=>
   return `<table><tr><th></th><th>Nadimak</th><th>Bodovi</th><th>Vrijeme</th></tr>${B.map((r,i)=>`<tr${r.nick===me?' style="font-weight:700"':''}><td style="${MC[i+1]?'color:'+MC[i+1]+';font-weight:800':''}">${i+1}.</td><td><a href="#" data-nick="${esc(r.nick)}">${esc(r.nick)}</a></td><td class="num">${zN(r.pts)}</td><td class="num">${chFmt(r.ms)}</td></tr>`).join('')||'<tr><td colspan="4">Danas još nitko nije riješio izazov.</td></tr>'}</table>`}
 function chResult(R,pts,ms,first){const qs=R.qs.map(chFind);
   main.innerHTML=`<div class="sheet panel"><h2>Dnevni izazov: ${pts} / 100</h2><p class="note">Vrijeme ${chFmt(ms)}. ${first?'Ovo je tvoj prvi pokušaj danas i ulazi na ljestvicu izazova i u tjedne bodove.':'Ovo je bio pokušaj za vježbu: na ljestvicu ide samo prvi pokušaj u danu.'}</p>
-  <table><tr><th>#</th><th>Gradivo</th><th>Tvoji bodovi</th><th>Prosjek svih</th></tr>${R.res.map((s,i)=>{const A=((CHinfo&&CHinfo.avg)||[]).find(x=>x.i===i),av=A?A.avg*10:null;return `<tr><td>${i+1}.</td><td>${qs[i]?(TOPICS[qs[i].topic]||qs[i].topic):''}</td><td style="font-weight:700;color:${s>=1?'var(--ok)':s>0?'var(--mark)':'var(--bad)'}">${s>=1?'✓ 10':s>0?'✓ '+zN(Math.round(s*10))+' / 10':'✗ 0'}</td><td class="num" style="color:var(--muted)">${av==null?'–':zN(Math.round(av*10)/10)}${A?` <span style="font-size:12px">(${A.n})</span>`:''}${av!=null?(s*10>av+0.05?' <span style="color:var(--ok)">▲</span>':s*10<av-0.05?' <span style="color:var(--bad)">▼</span>':''):''}</td></tr>`}).join('')}<tr style="font-weight:700"><td></td><td>Ukupno</td><td class="num">${pts}</td><td class="num" style="color:var(--muted)">${(CHinfo&&CHinfo.avg&&CHinfo.avg.length)?zN(Math.round(CHinfo.avg.reduce((a,x)=>a+x.avg*10,0))):'–'}</td></tr></table><p class="note" style="margin:4px 0 0">Prosjek svih računa se iz prvih pokušaja (u zagradi broj rješavatelja). ▲ bolje od prosjeka, ▼ lošije.</p>
+  <table><tr><th>#</th><th>Gradivo</th><th>Tvoji bodovi</th><th>Zašto</th><th>Prosjek svih</th></tr>${R.res.map((s,i)=>{const A=((CHinfo&&CHinfo.avg)||[]).find(x=>x.i===i),av=A?A.avg*10:null;return `<tr><td>${i+1}.</td><td>${qs[i]?(TOPICS[qs[i].topic]||qs[i].topic):''}</td><td style="font-weight:700;color:${s>=1?'var(--ok)':s>0?'var(--mark)':'var(--bad)'}">${s>=1?'✓ 10':s>0?'✓ '+zN(Math.round(s*100)/10)+' / 10':'✗ 0'}</td><td class="note" style="margin:0;white-space:normal;min-width:160px">${chWhy(R,i)}</td><td class="num" style="color:var(--muted)">${av==null?'–':zN(Math.round(av*10)/10)}${A?` <span style="font-size:12px">(${A.n})</span>`:''}${av!=null?(s*10>av+0.05?' <span style="color:var(--ok)">▲</span>':s*10<av-0.05?' <span style="color:var(--bad)">▼</span>':''):''}</td></tr>`}).join('')}<tr style="font-weight:700"><td></td><td>Ukupno</td><td class="num">${pts}</td><td></td><td class="num" style="color:var(--muted)">${(CHinfo&&CHinfo.avg&&CHinfo.avg.length)?zN(Math.round(CHinfo.avg.reduce((a,x)=>a+x.avg*10,0))):'–'}</td></tr></table><p class="note" style="margin:6px 0 0"><b>Bodovanje:</b> pitanje s jednim odgovorom nosi 10 bodova, a za svakih započetih 5 sekundi razmišljanja gubi se 1 bod (najmanje 1 bod za točan odgovor). Zadatak s koracima nosi 10 bodova, a svaka pogrešna odluka oduzima 3,5 boda. Netočan ili preskočen odgovor nosi 0.</p><p class="note" style="margin:4px 0 0">Prosjek svih računa se iz prvih pokušaja (u zagradi broj rješavatelja). ▲ bolje od prosjeka, ▼ lošije.</p>
   <h3 style="margin:18px 0 6px">Ljestvica izazova danas</h3>${chBoardHtml()}<p class="note">Poredak po bodovima, a pri jednakim bodovima brže vrijeme je bolje. Novi izazov sutra.</p>
   <div class="row" style="gap:8px;margin-top:10px"><button class="primary" id="chhome" style="margin:0">Na početnu</button></div></div>`;$('#chhome').onclick=()=>{view='home';render()}}
 async function chStart(){const I=await chLoad();if(!I.qids)return;CH={qs:I.qids,i:0,res:[],t0:Date.now(),first:!chMine()};chStartQ()}
 {const _fs=fbSurvey;fbSurvey=function(){if(CH)return;return _fs.apply(this,arguments)}}
 /* bilježenje rezultata */
-{const _arC=applyResult;applyResult=function(q,correct){const d=_arC.apply(this,arguments);try{if(CH&&q&&q.id===CH.qs[CH.i]&&CH.res.length===CH.i){{let s=typeof correct==='number'?Math.max(0,Math.min(1,correct)):(correct?1:0);const multi=q.topic==='ruk'||q.topic==='rukC'||((q.topic==='kont'||q.topic==='cvor'||q.topic==='thev'||q.topic==='nort')&&!q.type)||q.type==='TE';if(!multi&&s>0){const sec=(Date.now()-(CH.qt||Date.now()))/1000;s=Math.max(1,10-Math.floor(sec/5))/10}CH.res.push(s)}setTimeout(chBar,30)}}catch(e){}return d}}
+{const _arC=applyResult;applyResult=function(q,correct){const d=_arC.apply(this,arguments);try{if(CH&&q&&q.id===CH.qs[CH.i]&&CH.res.length===CH.i){{let s=typeof correct==='number'?Math.max(0,Math.min(1,correct)):(correct?1:0);const multi=q.topic==='ruk'||q.topic==='rukC'||((q.topic==='kont'||q.topic==='cvor'||q.topic==='thev'||q.topic==='nort')&&!q.type)||q.type==='TE';const raw=s,sec0=(Date.now()-(CH.qt||Date.now()))/1000;if(!multi&&s>0){const sec=sec0;s=Math.max(1,10-Math.floor(sec/5))/10}CH.info=CH.info||[];CH.info[CH.i]={sec:sec0,multi,raw};CH.res.push(s)}setTimeout(chBar,30)}}catch(e){}return d}}
 /* Početna: kartica izazova */
 {const _rh4=renderHome;renderHome=function(){const r=_rh4.apply(this,arguments);try{const p=prof(),qb=document.getElementById('qbox');if(!qb||document.getElementById('chbox'))return r;const ans=Object.values(p.ratings||{}).reduce((a,x)=>a+(x.n||0),0);
   qb.insertAdjacentHTML('beforebegin',`<div id="chbox" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:12px 16px;margin:0 0 22px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="margin:0">Dnevni izazov</h3><div class="note" style="margin:2px 0 0" id="chtxt">Učitavam…</div></div><div id="chbtns"></div></div></div>`);
@@ -3152,13 +3156,55 @@ function rkUseful(S,g){/* otpornik vodi struju ako je u istoj dvopovezanoj kompo
   const gi=S.groups.indexOf(g);return comp[gi]!==undefined&&comp[gi]===comp[vi]}
 function rkDrop(kind){const S=rkState(),g=S.groups.find(x=>x.seg.n===rk.sel[0]);if(!g)return;const A=sub(g.seg.n);
   const deg={};for(const x of S.groups){deg[x.a]=(deg[x.a]||0)+1;deg[x.b]=(deg[x.b]||0)+1}
-  const isShort=g.a===g.b,isDead=!isShort&&!rkUseful(S,g),act=isShort?'short':isDead?'dead':'none';
+  const cls=rkClass(S,g),act=cls==='use'?'none':cls;
+  if(cls==='loop'||(cls==='short'&&kind==='dead')){rk.segs.splice(rk.segs.indexOf(g.seg),1);rkPrune();rk.steps.push(cls==='short'?`${A} kratko spojen → izbačen`:`${A} bez struje → izbačen`);rk.sel=[];rk.msgOk=true;rk.msg=cls==='short'?`Točno, kroz ${A} ne teče struja jer je kratko spojen: oba kraja su mu na istom potencijalu.`:`Dobro. Kroz ${A} ne teče struja (kratko spojen dio mreže ili slijepa grana), pa ne utječe na R<sub>uk</sub>.`;return renderRuk()}
   if(act!==kind){rk.mistakes++;rk.msgOk=false;
     rk.msg=act==='none'?`${A} vodi struju i utječe na R<sub>uk</sub>. Spoji ga s drugim otpornikom u seriju ili paralelu.`:act==='short'?`${A} jest suvišan, ali zato što je kratko spojen: oba kraja su mu na istom potencijalu (spojena vodičem).`:`${A} jest suvišan, ali zato što je u slijepoj grani: jedan kraj mu ne vodi nikamo, pa struja nema kamo nastaviti.`;
     rk.sel=[];return renderRuk()}
   rk.segs.splice(rk.segs.indexOf(g.seg),1);rkPrune();
   rk.steps.push(kind==='short'?`${A} kratko spojen → izbačen`:`${A} u slijepoj grani → izbačen`);
   rk.sel=[];rk.msgOk=true;rk.msg=kind==='short'?`Dobro. ${A} je kratko spojen i ne utječe na R<sub>uk</sub>.`:`Dobro. Kroz ${A} ne teče struja, pa ne utječe na R<sub>uk</sub>.`;renderRuk()}
+/* ===== Ukupni otpor: klasifikacija, više kratkih spojeva, baza zadataka ===== */
+function rkClass(S,g){if(g.a===g.b)return 'short';if(rkUseful(S,g))return 'use';
+  /* suvišan: ako je u petlji (ciklusu) s drugim suvišnim otpornicima, može se opisati i kao kratko spojen i kao bez struje */
+  const others=S.groups.filter(x=>x!==g&&x.a!==x.b&&!rkUseful(S,x));const adj={};others.forEach(x=>{(adj[x.a]=adj[x.a]||[]).push(x.b);(adj[x.b]=adj[x.b]||[]).push(x.a)});
+  const seen=new Set([g.a]),st=[g.a];while(st.length){const u=st.pop();for(const v of adj[u]||[])if(!seen.has(v)){seen.add(v);st.push(v)}}
+  return seen.has(g.b)?'loop':'dead'}
+const RK_DNETS=Object.values(NETS).filter(n=>n.tx);
+(function rkGenShorts(){const add=[],base=[...new Set(QS.filter(q=>q.topic==='ruk'&&!q.type).map(q=>q.net))].map(id=>NETS[id]).filter(Boolean);
+  const key=p=>p.join(','),diff=(st,tr)=>Math.round(Math.max(2,Math.min(8.6,2.4+0.42*st+0.9*tr))*10)/10;
+  for(const n of base){const pts=new Map();n.segs.forEach(x=>{pts.set(key(x.a),x.a);pts.set(key(x.b),x.b)});const P=[...pts.values()];
+    const on=(x,p)=>{const [ax,ay]=x.a,[bx,by]=x.b,cr=(bx-ax)*(p[1]-ay)-(by-ay)*(p[0]-ax);return Math.abs(cr)<1e-9&&p[0]>=Math.min(ax,bx)-1e-9&&p[0]<=Math.max(ax,bx)+1e-9&&p[1]>=Math.min(ay,by)-1e-9&&p[1]<=Math.max(ay,by)+1e-9};
+    const node=rkNodes(n.segs,n),cand=[];
+    for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const p=P[i],q=P[j],dx=Math.abs(p[0]-q[0]),dy=Math.abs(p[1]-q[1]);if(dx>1||dy>1)continue;
+      if(node[key(p)]===node[key(q)])continue;const mid=[(p[0]+q[0])/2,(p[1]+q[1])/2];
+      if(n.segs.some(x=>on(x,mid)))continue;
+      if(dx&&dy){const o1=[p[0],q[1]],o2=[q[0],p[1]];if(n.segs.some(x=>(key(x.a)===key(o1)&&key(x.b)===key(o2))||(key(x.a)===key(o2)&&key(x.b)===key(o1))))continue}
+      if([n.A,n.B].some(t=>key(t)===key(p)||key(t)===key(q))&&dx===0&&p[0]===0)continue;
+      const u=node[key(p)],v=node[key(q)];const direct=n.segs.filter(x=>x.k==='r'&&((node[key(x.a)]===u&&node[key(x.b)]===v)||(node[key(x.a)]===v&&node[key(x.b)]===u)));if(!direct.length)continue;
+      const segs=n.segs.map(x=>({...x,a:[...x.a],b:[...x.b]}));segs.push({a:[...p],b:[...q],k:'w',d:!!(dx&&dy)});
+      const r=rkSolve(segs,n.A,n.B,n.vals);if(!r||r.steps<3||r.steps>10)continue;cand.push({segs,r,direct})}
+    if(!cand.length)continue;const rnd=seeded('ks'+n.id),c=cand[Math.floor(rnd()*cand.length)],id=n.id+'-KS';
+    const nn=Object.assign({},n,{id,segs:c.segs,status:{_:'ks'},ks:c.direct.map(x=>x.n)});nn.node=rkNodes(nn.segs,nn);NETS[id]=nn;RK_DNETS.push(nn);
+    add.push({id:'T-'+id,net:id,topic:'ruk',type:'KS',ruk:Math.round(c.r.R*100)/100,diff:diff(c.r.steps,c.r.tricks),tags:['redukcija','kratki_spoj']})}
+  QS.push(...add);window.RK_TRICK_COUNT.KS2=add.length})();
+function rkTrickNet(n){return !!(n.tx||n.ks||(n.status&&Object.values(n.status).some(v=>v==='short'||v==='dead')))}
+function rkBankNote(n){if(n.tx)return `<p class="note">Odspojen je ${sub(n.tx.rx)}, a A i B su na njegovim krajevima (kao za R<sub>T</sub>). Ugašeni ${n.tx.src==='E'?'naponski izvor je kratki spoj':'strujni izvor je prekid'}.</p>`;
+  if(n.ks)return `<p class="note">Dodani vodič kratko spaja ${n.ks.map(sub).join(', ')}.</p>`;if(rkTrickNet(n))return `<p class="note">Mreža s kratko spojenim otpornikom ili slijepom granom.</p>`;return ''}
+function rkSolveText(n){const node=rkNodes(n.segs,n),S={groups:n.segs.filter(x=>x.k==='r').map(x=>({members:[x.n],a:node[x.a.join(',')],b:node[x.b.join(',')]})),nA:node[n.A.join(',')],nB:node[n.B.join(',')]},out=[];
+  for(let guard=0;guard<60&&!(S.groups.length===1);guard++){
+    const x=S.groups.find(g=>rkClass(S,g)!=='use');if(x){const c=rkClass(S,x);out.push(`${sub(grpName(x.members))} ${c==='short'?'kratko spojen':'bez struje'} → izbačen`);S.groups=S.groups.filter(g=>g!==x);continue}
+    let found=false;
+    for(let i=0;i<S.groups.length&&!found;i++)for(let j=i+1;j<S.groups.length&&!found;j++){const g1=S.groups[i],g2=S.groups[j],r=rkRel(g1,g2,S);if(r==='none')continue;
+      const A=sub(grpName(g1.members)),B=sub(grpName(g2.members)),members=[...g1.members,...g2.members],nm=sub(grpName(members));let ng;
+      if(r==='parallel'){ng={members,a:g1.a,b:g1.b};out.push(`${nm} = ${A} ∥ ${B}`)}else{const sh=[g1.a,g1.b].find(v=>v===g2.a||v===g2.b);ng={members,a:g1.a===sh?g1.b:g1.a,b:g2.a===sh?g2.b:g2.a};out.push(`${nm} = ${A} + ${B}`)}
+      S.groups=S.groups.filter(g=>g!==g1&&g!==g2);S.groups.push(ng);found=true}
+    if(!found)break}
+  return out}
+function chWhy(R,i){const x=(R.info||[])[i],s=R.res[i];if(!x)return '';if(x.skip)return 'preskočeno';
+  if(x.multi){const m=Math.round((1-Math.max(0,x.raw))/0.35);if(x.raw>=1)return 'bez pogreške';if(s<=0)return `${m} pogrešnih odluka`;return `${m} ${m===1?'pogrešna odluka':'pogrešne odluke'}: 10 − ${m} × 3,5`}
+  if(x.raw<=0)return 'netočno';const t=Math.round(x.sec),k=Math.floor(x.sec/5);return k===0?`točno za ${t} s`:`točno za ${t} s: 10 − ${k} (${k} × 5 s)${10-k<1?', najmanje 1':''}`}
+new MutationObserver(()=>{try{if(typeof CH!=='undefined'&&CH&&view==='practice'&&!document.getElementById('chbar')&&main.querySelector('.board,.sheet'))chBar()}catch(e){}}).observe(main,{childList:true});
 view='home';
 boot();
 
