@@ -487,7 +487,7 @@ function renderHelp(){
   <h3>Zadaci</h3>
   <p>Zadaci s brojevima koje rješavaš na papiru: elektrostatika (naboji i kondenzatori), magnetsko polje, ukupni otpor i kapacitet, struje i naponi, metode rješavanja, teoremi i prilagođenje. Kod naboja i magnetskog polja možeš odabrati vrstu zadatka. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti. Na Ljestvici i Početnoj vidiš bodove i ukupno i po gradivima.</p>
   <h3>Baza zadataka</h3>
-  <p>Svi zadaci s rješenjima. Svaki možeš isprobati gumbom „Isprobaj”, bez utjecaja na razinu, a uz „Prikaži moje rezultate” vidiš koji su ti zadaci točni (zeleno), koji netočni (crveno), a koji još nisu rješavani (sivo).</p>
+  <p>Svi zadaci s rješenjima. Svaki možeš isprobati gumbom „Isprobaj”, bez utjecaja na razinu, a uz „Prikaži moje rezultate” (uključeno je zadano) vidiš koji su ti zadaci točni (zeleno), koji netočni (crveno), a koji još nisu rješavani (sivo).</p>
   <h3>Testiraj se</h3>
   <p>U kartici Zadaci odaberi <b>Testiraj se</b>: niz zadataka iz odabranog gradiva bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena.</p>
   <h3>Priprema za KZ1</h3>
@@ -1169,7 +1169,7 @@ for(const nm of['renderSerpar','renderRuk','renderEstat','metRender']){const f=w
 
 /* ---------- Moji rezultati u bazi ---------- */
 {const _ar2=applyResult;applyResult=function(q,correct){try{const p=prof(),sc=typeof correct==='number'?correct:(correct?1:0);p.qres=p.qres||{};p.qres[q.id]=sc>=0.5?1:0}catch(e){}return _ar2.apply(this,arguments)}}
-let showRes=!!Store.get('showRes',false);
+let showRes=!!Store.get('showRes',true);
 function resCol(id){const r=(prof().qres||{})[id];return r===1?'var(--ok)':r===0?'var(--bad)':'var(--line)'}
 function itemQs(m,id){if(m==='serpar')return QS.filter(q=>q.topic==='serpar'&&q.net===id);if(m==='ruk'||m==='rukC')return QS.filter(q=>q.topic===m&&q.net===id);if(m==='estat')return EQ.filter(q=>q.id===id);return QS.filter(q=>q.id===id)}
 function addRes(){if(view!=='bank'||main.querySelector('#showres'))return;const m=prof().module,panel=main.querySelector('.panel');if(!panel)return;
