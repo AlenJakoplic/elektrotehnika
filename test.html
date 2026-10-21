@@ -3144,9 +3144,15 @@ function rkIntro(){const q=rk&&rk.q;if(!q||!RKTR[q.type])return '';
   if(q.type==='AB')return `<p class="note" style="margin:4px 0 0">Otpornik ${sub(q.rx)} je odspojen, a stezaljke A i B su na njegovim krajevima, kao kod određivanja Theveninova otpora R<sub>T</sub>. Izvor je ugašen: ${q.src==='E'?'naponski izvor zamijenjen je <b>kratkim spojem</b>':'strujni izvor zamijenjen je <b>prekidom</b>'}. Otpornik koji ne utječe na R<sub>uk</sub> klikni i izbaci.</p>`;
   return `<p class="note" style="margin:4px 0 0">Pazi na otpornike koji ne utječu na R<sub>uk</sub>. Takav otpornik klikni i izbaci ga.</p>`}
 function rkDropHtml(){const A=sub(rk.sel[0]);return `<p class="q" style="margin-top:14px">Što je s otpornikom ${A}?</p><div class="opts"><button class="opt" data-drop="short"><kbd>a)</kbd>Kratko je spojen: izbaci ga</button><button class="opt" data-drop="dead"><kbd>b)</kbd>Nema struje (slijepa grana): izbaci ga</button><button class="ghost" id="cancel" style="margin-top:4px">Odustani</button></div><p class="note" style="margin-top:6px">Ili odaberi još jedan otpornik za seriju ili paralelu.</p>`}
+function rkUseful(S,g){/* otpornik vodi struju ako je u istoj dvopovezanoj komponenti kao zamišljena grana A–B */
+  const E=S.groups.map(x=>[x.a,x.b]);E.push([S.nA,S.nB]);const vi=E.length-1,adj={};E.forEach(([u,v],i)=>{if(u===v)return;(adj[u]=adj[u]||[]).push([v,i]);(adj[v]=adj[v]||[]).push([u,i])});
+  const disc={},low={},st=[],comp={};let t=0,c=0;
+  const dfs=(u,pe)=>{disc[u]=low[u]=t++;for(const [v,ei] of adj[u]||[]){if(ei===pe)continue;if(disc[v]===undefined){st.push(ei);dfs(v,ei);low[u]=Math.min(low[u],low[v]);if(low[v]>=disc[u]){let x;do{x=st.pop();comp[x]=c}while(x!==ei);c++}}else if(disc[v]<disc[u]){st.push(ei);low[u]=Math.min(low[u],disc[v])}}};
+  for(const u in adj)if(disc[u]===undefined)dfs(+u,-1);
+  const gi=S.groups.indexOf(g);return comp[gi]!==undefined&&comp[gi]===comp[vi]}
 function rkDrop(kind){const S=rkState(),g=S.groups.find(x=>x.seg.n===rk.sel[0]);if(!g)return;const A=sub(g.seg.n);
   const deg={};for(const x of S.groups){deg[x.a]=(deg[x.a]||0)+1;deg[x.b]=(deg[x.b]||0)+1}
-  const isShort=g.a===g.b,isDead=!isShort&&[g.a,g.b].some(v=>deg[v]===1&&v!==S.nA&&v!==S.nB),act=isShort?'short':isDead?'dead':'none';
+  const isShort=g.a===g.b,isDead=!isShort&&!rkUseful(S,g),act=isShort?'short':isDead?'dead':'none';
   if(act!==kind){rk.mistakes++;rk.msgOk=false;
     rk.msg=act==='none'?`${A} vodi struju i utječe na R<sub>uk</sub>. Spoji ga s drugim otpornikom u seriju ili paralelu.`:act==='short'?`${A} jest suvišan, ali zato što je kratko spojen: oba kraja su mu na istom potencijalu (spojena vodičem).`:`${A} jest suvišan, ali zato što je u slijepoj grani: jedan kraj mu ne vodi nikamo, pa struja nema kamo nastaviti.`;
     rk.sel=[];return renderRuk()}
