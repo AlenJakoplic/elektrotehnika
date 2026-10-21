@@ -3220,7 +3220,8 @@ const NEWS=[
 function newsSeen(p){return (p.newsSeen||'')===NEWS_ID}
 function newsOpen(){const p=prof();p.newsSeen=NEWS_ID;save();
   const m=fbModal(`<h3 style="margin:0 0 4px">Što je novo</h3><p class="note" style="margin:0 0 10px">Nova verzija Digitalne radionice.</p>${NEWS.map(n=>`<div style="border-top:1px solid var(--line);padding:10px 0 4px"><h4 style="margin:0 0 6px;font-size:17px">${n.t}</h4>${n.h}${n.a.length?`<div class="row" style="gap:8px;flex-wrap:wrap;margin:6px 0 4px">${n.a.map(([id,l])=>`<button class="ghost" data-nw="${id}" style="margin:0">${l}</button>`).join('')}</div>`:''}</div>`).join('')}<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">${IS_TEST?'<a href="#" id="nwreset" class="note" style="color:var(--muted)">(test) vrati kao nepročitano</a>':'<span></span>'}<button class="primary" id="nwx" style="margin:0">Zatvori</button></div>`);
-  const close=()=>m.remove();m.querySelector('#nwx').onclick=()=>{close();if(view==='home')render()};
+  const close=()=>{m.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape'){close();if(view==='home')render()}};document.addEventListener('keydown',esc);m.querySelector('#nwx').onclick=()=>{close();if(view==='home')render()};
+  m.addEventListener('click',e=>{if(e.target===m){close();if(view==='home')render()}});
   if(m.querySelector('#nwreset'))m.querySelector('#nwreset').onclick=e=>{e.preventDefault();p.newsSeen='';save();close();render()};
   const go=(fn)=>{close();fn();window.scrollTo(0,0)};
   m.querySelectorAll('[data-nw]').forEach(b=>b.onclick=()=>{const a=b.dataset.nw;
