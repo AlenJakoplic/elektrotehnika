@@ -2980,8 +2980,8 @@ async function chTopics(){try{const {data,error}=await Remote.rpc('topic_recent'
   return CHG.filter((g,i)=>{const s=new Set();L[i].forEach(r=>(r.data||[]).forEach(x=>{if((x.n||0)>=10)s.add(x.nick)}));return s.size>=Math.max(2,0.4*N)}).map(g=>g[0])}catch(e){return ['estat','serpar','ruk']}}
 const CH_MAXSTEPS=12;function chShort(q){if(q.topic==='ruk')return !!RKTR[q.type];if(q.topic!=='kont'&&q.topic!=='cvor')return true;try{return metSteps(q).length<=CH_MAXSTEPS}catch(e){return false}}
 function chBuild(day,topics){const rnd=chRng('izazov'+day),G=CHG.filter(g=>topics.includes(g[0]));if(!G.length)return null;const out=[];let k=Math.floor(rnd()*G.length),guard=0;
-  while(out.length<5&&guard++<200){const g=G[k%G.length];k++;const pool=chPool(g[2]).filter(q=>!out.includes(q.id)&&chShort(q)).sort((a,b)=>qRating(b)-qRating(a));const hard=pool.slice(0,Math.max(5,Math.floor(pool.length*0.35)));if(!hard.length)continue;out.push(hard[Math.floor(rnd()*hard.length)].id)}
-  return out.length===5?out:null}
+  while(out.length<10&&guard++<200){const g=G[k%G.length];k++;const pool=chPool(g[2]).filter(q=>!out.includes(q.id)&&chShort(q)).sort((a,b)=>qRating(b)-qRating(a));const hard=pool.slice(0,Math.max(5,Math.floor(pool.length*0.35)));if(!hard.length)continue;out.push(hard[Math.floor(rnd()*hard.length)].id)}
+  return out.length===10?out:null} /* baza traži 10; izazov koristi prvih 5 */
 async function chLoad(force){const day=zgDate();if(CHinfo&&CHinfo.day===day&&!force)return CHinfo;if(!Remote||!session)return CHinfo={day,off:true};
   try{let {data}=await Remote.rpc('daily_get',{p_token:session.token,p_day:day});if(data&&data.locked)return CHinfo={day,locked:true};
     if(!data||!data.qids){const tp=await chTopics(),q=chBuild(day,tp);if(!q)return CHinfo={day,off:true};const r=await Remote.rpc('daily_set',{p_token:session.token,p_day:day,p_qids:q,p_topics:tp});data=r.data}
