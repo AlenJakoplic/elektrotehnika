@@ -2540,11 +2540,11 @@ async function renderAn(){main.innerHTML='<div class="sheet panel" style="max-wi
   const th=(k,l)=>`<th><a href="#" data-ans="${k}" style="color:inherit;${anSort===k?'text-decoration:underline':''}">${l}</a></th>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Analitika</h2>${anErr?`<p class="msg bad">${anErr}</p>`:''}<p class="note">Vidljivo samo administratoru. Podaci iz baze: profili studenata i dnevnik svih odgovora. Klik na nadimak otvara detalje.</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px"><label>Kolegij: <select id="ancrs" style="padding:6px 8px">${[['sve','Svi'],...COURSES,['-','Nije odabran']].map(([k,l])=>`<option value="${k}" ${anCourse===k?'selected':''}>${l}</option>`).join('')}</select></label><label>Aktivni: <select id="andays" style="padding:6px 8px">${[[0,'svi'],[1,'danas'],[3,'zadnja 3 dana'],[7,'zadnjih 7 dana'],[14,'zadnjih 14 dana'],[30,'zadnjih 30 dana']].map(([v,l])=>`<option value="${v}" ${anDays===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Riješeno barem: <select id="anmin" style="padding:6px 8px">${[0,1,10,20,50,100,200].map(v=>`<option value="${v}" ${anMin===v?'selected':''}>${v?v+' (pitanja + zadaci)':'bez uvjeta'}</option>`).join('')}</select></label><span class="note" style="margin:0">Prikazano: ${L.length} od ${anData.length}</span><button class="ghost" id="anref" style="margin:0">Osvježi</button><button class="ghost" id="ancsv" style="margin:0">Izvoz u CSV (Excel)</button><button class="ghost" id="anexp" style="margin:0" title="Svi podaci iz baze, anonimizirano (JSON)">Potpuni izvoz za analizu</button></div>
-  <div class="modbar" style="margin:0 0 14px;flex-wrap:wrap">${[['pre','Pregled i studenti'],['kz','Priprema za KZ1: gdje zapinju'],['grp','Cijela grupa']].map(([k,l])=>`<button data-ansec="${k}" aria-current="${anSec===k}">${l}</button>`).join('')}</div>${anSec!=='pre'?'':`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px">${anTile(L.length,'studenata')}${anTile(act7,'aktivnih u 7 dana')}${anTile(avgR+' %','prosječna spremnost za KZ1')}${anTile(withSim.length,'riješilo probnu KZ1')}${anTile(avgB==null?'–':zN(avgB),'prosj. najbolja probna')}${anTile(risk,'u riziku','var(--bad)')}</div>
+  <div class="modbar" style="margin:0 0 14px;flex-wrap:wrap">${[['pre','Pregled i studenti'],['kz','Priprema za KZ1: gdje zapinju'],['grp','Cijela grupa'],['fun','Korištenje funkcija']].map(([k,l])=>`<button data-ansec="${k}" aria-current="${anSec===k}">${l}</button>`).join('')}</div>${anSec!=='pre'?'':`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px">${anTile(L.length,'studenata')}${anTile(act7,'aktivnih u 7 dana')}${anTile(avgR+' %','prosječna spremnost za KZ1')}${anTile(withSim.length,'riješilo probnu KZ1')}${anTile(avgB==null?'–':zN(avgB),'prosj. najbolja probna')}${anTile(risk,'u riziku','var(--bad)')}</div>
   <h3 style="margin:0 0 6px">Aktivnost</h3>${anActChart()}
   <h3 style="margin:18px 0 6px">Studenti</h3><table><tr>${th('nick','Nadimak')}<th>Ime</th><th>Kolegij</th>${th('ov','Razina')}${th('nAns','Odgovora')}<th>Zadataka</th>${th('ready','Spremnost')}<th>Stadij</th>${th('best','Probna (najbolja / br.)')}${th('last','Zadnje')}<th>Najslabije</th>${th('risk','Rizik')}</tr>
   ${L.map(s=>`<tr><td><a href="#" data-ann="${anEsc(s.nick)}" style="color:var(--ok);font-weight:700">${anEsc(s.nick)}</a></td><td>${anEsc(s.name)}</td><td style="font-size:13px">${s.course?anCN(s.course).split(' – ')[0]:'–'}</td><td class="num">${fmt(s.ov)}</td><td class="num">${s.nAns}</td><td class="num">${s.zn}</td><td class="num">${s.ready} %</td><td class="num">${s.stage}</td><td class="num">${s.sims?zN(s.best)+' / '+s.sims:'–'}</td><td style="white-space:nowrap">${anAgo(s.last)}</td><td style="font-size:13px">${s.weak}</td><td style="font-size:13px;color:var(--bad)">${s.risk.join(', ')}</td></tr>`).join('')||'<tr><td colspan="12">Nema studenata.</td></tr>'}</table>`}
-  ${anSec==='kz'?`<h3 style="margin:4px 0 6px">Priprema za KZ1: gdje zapinju</h3>${anPrep(L)}`:''}${anSec==='grp'?anGroup(L):''}</div>`;
+  ${anSec==='kz'?`<h3 style="margin:4px 0 6px">Priprema za KZ1: gdje zapinju</h3>${anPrep(L)}`:''}${anSec==='grp'?anGroup(L):''}${anSec==='fun'?'<div id="anfun"><p class="note">Učitavam…</p></div>':''}</div>`;
   main.querySelectorAll('[data-ansec]').forEach(b=>b.onclick=()=>{anSec=b.dataset.ansec;renderAn()});
   adBar();$('#ancrs').onchange=e=>{anCourse=e.target.value;renderAn()};$('#andays').onchange=e=>{anDays=+e.target.value;renderAn()};$('#anmin').onchange=e=>{anMin=+e.target.value;renderAn()};$('#anref').onclick=async()=>{await anLoad(true);renderAn()};$('#ancsv').onclick=()=>anCsv(L);$('#anexp').onclick=anExport;
   main.querySelectorAll('[data-ans]').forEach(a=>a.onclick=e=>{e.preventDefault();anSort=a.dataset.ans;renderAn()});
@@ -2983,7 +2983,7 @@ const CH_MAXSTEPS=12;function chShort(q){if(q.topic==='ruk')return !!RKTR[q.type
 function chBuild(day,topics){const rnd=chRng('izazov'+day),G=CHG.filter(g=>topics.includes(g[0]));if(!G.length)return null;const out=[];let k=Math.floor(rnd()*G.length),guard=0;
   while(out.length<10&&guard++<200){const g=G[k%G.length];k++;const pool=chPool(g[2]).filter(q=>!out.includes(q.id)&&chShort(q)).sort((a,b)=>qRating(b)-qRating(a));const hard=pool.slice(0,Math.max(5,Math.floor(pool.length*0.35)));if(!hard.length)continue;out.push(hard[Math.floor(rnd()*hard.length)].id)}
   return out.length===10?out:null} /* baza traži 10; izazov koristi prvih 5 */
-async function chLoad(force){const day=zgDate();if(CHinfo&&CHinfo.day===day&&!force)return CHinfo;if(!Remote||!session)return CHinfo={day,off:true};
+async function chLoad(force){const day=zgDate();if(CHinfo&&CHinfo.day===day&&!force&&!CHinfo.off)return CHinfo;if(!Remote||!session)return CHinfo={day,off:true};
   try{let {data}=await Remote.rpc('daily_get',{p_token:session.token,p_day:day});if(data&&data.locked)return CHinfo={day,locked:true};
     if(!data||!data.qids){const tp=await chTopics(),q=chBuild(day,tp);if(!q)return CHinfo={day,off:true};const r=await Remote.rpc('daily_set',{p_token:session.token,p_day:day,p_qids:q,p_topics:tp});data=r.data}
     const [b,av]=await Promise.all([Remote.rpc('daily_board',{p_token:session.token,p_day:day}),Remote.rpc('daily_avg',{p_token:session.token,p_day:day}).then(r=>r,()=>({data:[]}))]);return CHinfo={day,qids:data.qids,topics:data.topics||[],board:b.data||[],avg:av.data||[]}}catch(e){return CHinfo={day,off:true}}}
@@ -3212,7 +3212,7 @@ function chWhy(R,i){const x=(R.info||[])[i],s=R.res[i];if(!x)return '';if(x.skip
   if(x.raw<=0)return 'netočno';const t=Math.round(x.sec),k=Math.floor(x.sec/5);return k===0?`točno za ${t} s`:`točno za ${t} s: 2 − ${k} × 0,2 (${k} × 5 s)${10-k<1?', najmanje 0,2':''}`}
 new MutationObserver(()=>{try{if(typeof CH!=='undefined'&&CH&&view==='practice'&&!document.getElementById('chbar')&&main.querySelector('.board,.sheet'))chBar()}catch(e){}}).observe(main,{childList:true});
 /* ===== Što je novo (Početna) ===== */
-const NEWSV={'0.18':1};document.addEventListener('click',e=>{const b=e.target.closest('[data-nwv]');if(!b)return;e.preventDefault();newsOpen()});
+const NEWSV={'0.18':1};document.addEventListener('click',e=>{const b=e.target.closest('[data-nwv]');if(!b)return;e.preventDefault();newsOpen(b.dataset.nwv)});
 const NEWS_ID='n2026-10-22';
 const NEWS=[
  {t:'Dnevni izazov',h:`<p>Svaki dan <b>5 težih pitanja</b> iz gradiva koja se trenutačno najviše vježbaju, isti set za sve. Najviše je <b>10 bodova</b>: brži točan odgovor nosi više (svakih 5 sekundi 0,2 boda manje), a kod zadataka s koracima oduzimaju se pogreške. Na kraju vidiš za svako pitanje odakle bodovi i kako stojiš prema prosjeku svih. Na ljestvicu izazova i u tjedne bodove ulazi prvi pokušaj u danu. Otključava se nakon 100 riješenih pitanja.</p>`,a:[['nwch','Idi na izazov'],['nwlb','Ljestvica izazova']]},
@@ -3223,8 +3223,9 @@ const NEWS=[
  {t:'Veće slike',h:`<p><b>Na prijedlog iz studentske ankete</b>: svaku sliku (naboji, mreže, polja) možeš povećati gumbom <b>⤢</b> u njezinu gornjem desnom kutu. Povećanu sliku možeš dodatno povećati gumbima + i − ili prstima, a zatvara se klikom pored nje. Na mobitelu su crteži naboja sada i sami veći.</p><p>Hvala na prijedlogu!</p>`,a:[]},
  {t:'Sitnice',h:`<ul style="margin:0;padding-left:18px"><li>U zadacima s koracima postoji gumb <b>Novi zadatak</b> i usred rješavanja (i <b>Preskoči korak</b> gdje ima smisla).</li><li>U Bazi zadataka rezultati su odmah prikazani, a kod Ukupnog otpora može se birati vrsta zadatka.</li><li>U Zadacima je Magnetsko polje na kraju, kao na nastavi.</li><li>Povremeno se pojavi kratka anketa o gradivu koje se puno vježba. Hvala na odgovorima!</li></ul>`,a:[]}];
 function newsSeen(p){return (p.newsSeen||'')===NEWS_ID}
-function newsOpen(){const p=prof();p.newsSeen=NEWS_ID;save();
-  const m=fbModal(`<h3 style="margin:0 0 4px">Što je novo</h3><p class="note" style="margin:0 0 10px">Nova verzija Digitalne radionice.</p>${NEWS.map(n=>`<div style="border-top:1px solid var(--line);padding:10px 0 4px"><h4 style="margin:0 0 6px;font-size:17px">${n.t}</h4>${n.h}${n.a.length?`<div class="row" style="gap:8px;flex-wrap:wrap;margin:6px 0 4px">${n.a.map(([id,l])=>`<button class="ghost" data-nw="${id}" style="margin:0">${l}</button>`).join('')}</div>`:''}</div>`).join('')}<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">${IS_TEST?'<a href="#" id="nwreset" class="note" style="color:var(--muted)">(test) vrati kao nepročitano</a>':'<span></span>'}<button class="primary" id="nwx" style="margin:0">Zatvori</button></div>`);
+function newsOpen(ver){const p=prof(),old=ver&&ver!=='0.18'&&NEWSOLD[ver],LIST=old||NEWS,VV=VERS.find(x=>x[0]===(ver||'0.18'))||VERS[0];if(!old){p.newsSeen=NEWS_ID;save()}
+  const m=fbModal(`<h3 style="margin:0 0 4px">${old?`Novosti u verziji ${VV[0]}`:'Što je novo'}</h3><p class="note" style="margin:0 0 10px">${old?`Verzija ${VV[0]} · ${VV[1]}`:'Nova verzija Digitalne radionice.'}</p>${LIST.map(n=>`<div style="border-top:1px solid var(--line);padding:10px 0 4px"><h4 style="margin:0 0 6px;font-size:17px">${n.t}</h4>${n.h}${n.a.length?`<div class="row" style="gap:8px;flex-wrap:wrap;margin:6px 0 4px">${n.a.map(([id,l])=>`<button class="ghost" data-nw="${id}" style="margin:0">${l}</button>`).join('')}</div>`:''}</div>`).join('')}<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">${IS_TEST&&!old?'<a href="#" id="nwreset" class="note" style="color:var(--muted)">(test) vrati kao nepročitano</a>':'<span></span>'}<span style="display:inline-flex;gap:8px;align-items:center"><button class="ghost" id="nwfb2" style="margin:0;padding:6px 10px;font-size:13px;color:var(--muted)">Pošalji povratnu informaciju</button><button class="primary" id="nwx" style="margin:0">Zatvori</button></span></div>`);
+  m.querySelector('#nwfb2').onclick=()=>{m.remove();try{fbOpen({})}catch(e){}};
   const close=()=>{m.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape'){close();if(view==='home')render()}};document.addEventListener('keydown',esc);m.querySelector('#nwx').onclick=()=>{close();if(view==='home')render()};
   m.addEventListener('click',e=>{if(e.target===m){close();if(view==='home')render()}});
   if(m.querySelector('#nwreset'))m.querySelector('#nwreset').onclick=e=>{e.preventDefault();p.newsSeen='';save();close();render()};
@@ -3234,6 +3235,7 @@ function newsOpen(){const p=prof();p.newsSeen=NEWS_ID;save();
     else if(a==='nwlb')go(()=>{view='board';boardAll='daily';render()});
     else if(a==='nwring'){close();view='home';render();setTimeout(()=>{const h=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Gradiva');if(h)h.scrollIntoView({behavior:'smooth',block:'start'})},300)}
     else if(a==='nwfb'){close();try{fbOpen({})}catch(e){}}
+    else if(a.startsWith('go:'))go(()=>newsGo(a.slice(3)));
     else if(a==='nwfree')go(()=>{view='practice';render()});
     else if(a==='nwes')go(()=>{const p=prof();p.module='estat';testType='';eq=null;save();view='practice';render()});
     else if(a==='nwks'||a==='nwab')go(()=>{const p=prof();p.module='ruk';testType=a==='nwks'?'KS':'AB';rk=null;save();view='practice';render()})})}
@@ -3325,6 +3327,106 @@ new MutationObserver(()=>{try{if(view!=='practice')return;const p=prof();if(!p)r
     if($('#errgo'))$('#errgo').onclick=()=>{ERRQ={topic:p.module,ids:errIds(p,p.module),i:0};ERRQ.total=ERRQ.ids.length;errReset();render();window.scrollTo(0,0)};
     if($('#errstop'))$('#errstop').onclick=()=>{ERRQ=null;errReset();render()}}
   const bd=main.querySelector('.board');if(bd&&!main.querySelector('#freenote')&&(p.freeMode||ERRQ))bd.insertAdjacentHTML('beforebegin',`<div id="freenote" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:8px 12px;margin:0 0 10px;font-size:14px;background:color-mix(in srgb,var(--mark) 10%,transparent)"><b>${ERRQ?`Ponavljanje grešaka: pitanje ${Math.max(1,ERRQ.i)} od ${ERRQ.total}`:'Vježba bez bodovanja'}</b> · odgovori ne mijenjaju razinu, ali se broje u riješene zadatke i tjedne bodove. Pitanja s greškom i dalje će se vraćati u običnoj vježbi.</div>`)}catch(e){}}).observe(main,{childList:true,subtree:true});
+/* ===== Novosti starijih verzija (O aplikaciji) ===== */
+function newsGo(c){const p=prof(),[k,x,y]=c.split(':');if(k!=='p')testType='';
+  if(k==='p'){p.module=x;testType=y||'';cur=null;answered=null;rk=null;eq=null;eAns=null;mt=null;ths=null;if(typeof mgq!=='undefined'){mgq=null;mgA=null}save();view='practice';render();return}
+  if(k==='z'){goZad(x);return}
+  if(k==='l'){p.module=x;lessonX=null;save();view='lesson';render();return}
+  if(k==='tour'){view='home';render();setTimeout(()=>{try{tourStart()}catch(e){}},300);return}
+  view=x;if(x==='board')try{boardAll=y||boardAll}catch(e){}render()}
+const NA=(c,l)=>['go:'+c,l];
+const NEWSOLD={
+ '0.17':[
+  {t:'Zadaci dana',h:'<p>Na Početnoj su svaki dan novi mali zadaci: miks gradiva, slabije gradivo, gradivo koje je na redu i zadatak s brojevima. Ispunjeni zadaci donose bonus bodove za tjednu ljestvicu.</p>',a:[NA('v:home','Pogledaj na Početnoj')]},
+  {t:'Tjedna ljestvica i značka Tjedni vrh',h:'<p>Na tjednoj ljestvici mogu se pogledati i prijašnji tjedni. Najboljih 10 % u tjednu dobiva značku <b>Tjedni vrh</b>.</p>',a:[NA('v:board','Otvori Ljestvicu')]},
+  {t:'Serija i paralela: Mreža s izvorima',h:'<p>Nova vrsta pitanja: mreža ima i naponske ili strujne izvore. Paralelni su samo otpornici koji su sami u granama između ista dva čvora, a serijski oni u istoj grani.</p>',a:[NA('p:serpar:S','Isprobaj')]},
+  {t:'Sitnice',h:'<ul style="margin:0;padding-left:18px"><li>Kad je gradivo svladano, pojavi se poruka i poveznica na zadatke s brojevima.</li><li>Formule EtR_f1 i EtR_f2 otvaraju se u pregledniku, a u Vježbi i Zadacima je poveznica na lekciju.</li><li>Preporuka za danas predlaže i zadatke s brojevima.</li><li>U zadacima s više koraka može se preskočiti korak ili cijeli zadatak.</li></ul>',a:[]}],
+ '0.16':[
+  {t:'Priprema za KZ1 i Probna KZ1',h:'<p>Kartica KZ1 vodi kroz stadije pripreme i pokazuje spremnost. <b>Probna KZ1</b> je probna kontrolna zadaća s 4 zadatka kao na pravoj, uz pregled svakog zadatka nakon predaje.</p>',a:[NA('v:kz','Otvori KZ1')]},
+  {t:'Magnetsko polje i u Vježbi',h:'<p>Kratka pitanja o smjeru i jačini polja ravnih vodiča sada su i u Vježbi.</p>',a:[NA('p:mag','Isprobaj')]},
+  {t:'Pitaj nastavnika',h:'<p>Uz svaki zadatak su poveznice <b>Pitaj nastavnika</b> i <b>Prijavi grešku</b>. Odgovor nastavnika vidi se na Napretku.</p>',a:[NA('v:progress','Otvori Napredak')]},
+  {t:'Sitnice',h:'<ul style="margin:0;padding-left:18px"><li>Odabir kolegija i usporedba kolegija na Ljestvici.</li><li>Izbor vrste pitanja i točnost po vrstama.</li><li>Elektrostatika u Zadacima kao jedna kartica (naboji i kondenzatori) i Testiraj se u Zadacima.</li><li>Prikaži rješenje pokraj Provjeri i bolji prikaz na mobitelu.</li></ul>',a:[NA('z:nab','Zadaci: Elektrostatika')]}],
+ '0.15':[
+  {t:'Zadaci iz elektrostatike',h:'<p>Zadaci s brojevima: naboji (polje, potencijal, sila, rad) i kondenzatori (C, Q, U, W).</p>',a:[NA('z:nab','Naboji'),NA('z:capu','Kondenzatori')]},
+  {t:'Magnetsko polje ravnih vodiča',h:'<p>Lekcija i zadaci s brojevima. Rješenje se prikazuje vektorima na slici, a prelaskom mišem preko vodiča vide se njegove silnice.</p>',a:[NA('l:mag','Lekcija'),NA('z:mag','Zadaci')]},
+  {t:'Teoremi mreža',h:'<p>Theveninov i Nortonov teorem korak po korak: gašenje izvora, R<sub>T</sub>, prazni hod ili kratki spoj i nadomjesna shema.</p>',a:[NA('p:thev','Isprobaj Thevenina')]},
+  {t:'Sitnice',h:'<ul style="margin:0;padding-left:18px"><li>Nove vrste pitanja u Vježbi za sva gradiva i izbor vrste pitanja.</li><li>Traka napretka kod zadataka s više koraka.</li><li>Nakon pogrešnog koraka objašnjenje ostaje vidljivo do klika na Dalje.</li><li>Poveznica na lekciju kad zadatak ne ide.</li></ul>',a:[]}],
+ '0.14':[
+  {t:'Profil',h:'<p>Nadimak se može promijeniti, točnost je zadano skrivena (može se prikazati na ljestvici i profilu), a PIN se pri upisu skriva, uz oko za prikaz.</p>',a:[]},
+  {t:'Bolji vodič kroz aplikaciju',h:'<p>Vodič pokazuje gdje je što u aplikaciji.</p>',a:[NA('tour','Pokreni vodič')]},
+  {t:'Uskrsno jaje',h:'<p>Negdje u aplikaciji skriva se <b>uskrsno jaje</b>. Gdje je, ne odajemo. Možeš li ga pronaći?</p>',a:[]}],
+ '0.13':[
+  {t:'Niz dana i slobodni dani',h:'<p>Svaki dan s vježbom produljuje niz. Slobodni dani čuvaju niz kad se jedan dan preskoči, a zarađuju se točnim odgovorima zaredom.</p>',a:[NA('v:home','Pogledaj na Početnoj')]},
+  {t:'Značke i tjedna liga',h:'<p>Značke za postignuća i tjedna liga na Ljestvici. Klik na nadimak na ljestvici otvara javni profil.</p>',a:[NA('v:board','Otvori Ljestvicu')]},
+  {t:'Bodovanje u Zadacima',h:'<p>U Zadacima s brojevima rezultat se upisuje i boduje: točno iz prvog pokušaja donosi pune bodove, a iz drugog pola.</p>',a:[NA('v:zad','Otvori Zadatke')]}],
+ '0.12':[
+  {t:'Prijava nadimkom i PIN-om',h:'<p>Napredak se sprema na poslužitelj i vidi na svim uređajima. Profil se može i obrisati.</p>',a:[]},
+  {t:'Zajednička ljestvica i Početna',h:'<p>Zajednička i ukupna ljestvica te statistika svih korisnika. Početna stranica predlaže što vježbati danas.</p>',a:[NA('v:board','Otvori Ljestvicu')]},
+  {t:'Rješenje na shemi',h:'<p>Nakon rješavanja struje i naponi prikazuju se izravno na shemi.</p>',a:[]}],
+ '0.11':[
+  {t:'Kondenzatori',h:'<p>Ukupni kapacitet: isti postupak kao za otpor, ali su formule obrnute (paralela je zbroj, serija „puta kroz plus”).</p>',a:[NA('p:rukC','Isprobaj')]},
+  {t:'Metode rješavanja mreža',h:'<p>Konturne struje i naponi čvorova korak po korak, uključujući strujne izvore.</p>',a:[NA('p:kont','Konturne struje'),NA('p:cvor','Naponi čvorova')]},
+  {t:'Zadaci s brojevima i Baza zadataka',h:'<p>Zadaci s brojevima s postupkom rješenja, a u Bazi zadataka svaki se zadatak može isprobati.</p>',a:[NA('v:zad','Zadaci'),NA('v:bank','Baza zadataka')]},
+  {t:'Sitnice',h:'<p>Vodič kroz aplikaciju, tamna tema i preskakanje prelaganih zadataka.</p>',a:[]}],
+ '0.10':[
+  {t:'Prva verzija',h:'<p>Serija ili paralela na generiranim mrežama, razina od 1 do 10, Vježba, Ispit, Napredak i Ljestvica.</p>',a:[NA('p:serpar','Serija ili paralela')]},
+  {t:'Ukupni otpor korak po korak',h:'<p>Mreža se svodi na jedan otpor: klikneš dva otpornika i odabereš seriju ili paralelu. <b>Bojice potencijala</b> boje čvorove na istom potencijalu istom bojom.</p>',a:[NA('p:ruk','Ukupni otpor')]},
+  {t:'Lekcije s primjerima',h:'<p>Uz svako gradivo lekcija s primjerima, prije vježbe.</p>',a:[NA('v:lesson','Otvori Lekciju')]}]};
+Object.keys(NEWSOLD).forEach(v=>NEWSV[v]=1);
+/* ===== Bilježenje korištenja funkcija (statistika samo za administratora) ===== */
+const EVONCE=new Set();
+function ev(f,a,d,once){try{if(!Remote||!session)return;if(once){const k=zgDate()+'|'+f+'|'+a+'|'+(d||'');if(EVONCE.has(k))return;EVONCE.add(k)}Remote.rpc('event_log',{p_token:session.token,p_feature:f,p_action:a,p_detail:d==null?null:String(d)}).then(()=>{},()=>{})}catch(e){}}
+/* zadaci dana: klik i ispunjenje */
+document.addEventListener('click',e=>{const b=e.target.closest('[data-qgo]');if(b)ev('zadaci_dana','klik',b.dataset.qgo)},true);
+{const _svE=save;save=function(){const r=_svE.apply(this,arguments);try{const p=prof();if(p&&p.quest&&p.quest.day===zgDate()&&!freeOn()){p.qlog=p.qlog&&p.qlog.day===p.quest.day?p.qlog:{day:p.quest.day,ids:[]};const nw=p.quest.q.filter(x=>x.done&&!p.qlog.ids.includes(x.id));if(nw.length){nw.forEach(x=>{p.qlog.ids.push(x.id);ev('zadaci_dana','ispunjen',x.id)});if(p.quest.q.every(x=>x.done))ev('zadaci_dana','svi',null,1);_svE.apply(this,[])}}}catch(e){}return r}}
+/* zadaci dana: prikaz na Početnoj (koliko ih uopće vidi) */
+{const _rhE=renderHome;renderHome=function(){const r=_rhE.apply(this,arguments);try{if(document.getElementById('qbox'))ev('zadaci_dana','prikaz',null,1);if(document.getElementById('chbox'))ev('izazov','prikaz',null,1)}catch(e){}return r}}
+/* dnevni izazov */
+{const _csE=chStart;chStart=async function(){ev('izazov',chMine()?'ponovno':'otvoren');return _csE.apply(this,arguments)}}
+{const _crE=chResult;chResult=function(R,pts,ms,first){if(R&&!R._ev){R._ev=1;ev('izazov',first?'zavrsen':'zavrsen_ponovno',pts)}return _crE.apply(this,arguments)}}
+document.addEventListener('click',e=>{const t=e.target;if(t.id==='chsk')ev('izazov','preskok',CH?CH.i+1:null);if(t.id==='chlb')ev('izazov','ljestvica')},true);
+{const _cfE=window.confirm;window.confirm=function(m){const r=_cfE.apply(this,arguments);try{if(r&&String(m).startsWith('Prekinuti izazov'))ev('izazov','prekid',CH?CH.i+1:null)}catch(e){}return r}}
+/* novosti */
+{const _noE=newsOpen;newsOpen=function(v){ev('novosti','otvoreno',v||'0.18');return _noE.apply(this,arguments)}}
+document.addEventListener('click',e=>{const b=e.target.closest('#fbm [data-nw]');if(b)ev('novosti','akcija',b.dataset.nw)},true);
+/* vježba bez bodovanja, ponavljanje grešaka, povećanje slika */
+document.addEventListener('change',e=>{if(e.target.id==='freechk')ev('bez_bodova',e.target.checked?'ukljuceno':'iskljuceno',prof().module)},true);
+document.addEventListener('click',e=>{const t=e.target;if(t.id==='errgo')ev('greske','start',prof().module);if(t.id==='errstop')ev('greske','prekid',prof().module);if(t.closest&&t.closest('.zbtn'))ev('povecanje','otvoreno',view==='practice'?prof().module:view)},true);
+/* lekcije: koja se gradiva otvaraju (jednom dnevno po gradivu) */
+{const _rlE=renderLesson;renderLesson=function(){const r=_rlE.apply(this,arguments);try{ev('lekcija','otvorena',lessonX||prof().module,1)}catch(e){}return r}}
+/* ljestvica, preporuka, KZ1 */
+{const _rEv=render;render=function(){const r=_rEv.apply(this,arguments);try{if(view==='board'){ev('ljestvica','otvorena',null,1);const t=boardAll===true?'ukupno':boardAll===false?'gradivo:'+prof().module:String(boardAll);ev('ljestvica','kartica',t,1)}
+  if(view==='kz')ev('kz1','otvoren',null,1);
+  if(view==='home'&&[...main.querySelectorAll('div')].some(d=>d.textContent.trim().startsWith('Preporuka za danas')))ev('preporuka','prikaz',null,1)}catch(e){}return r}}
+document.addEventListener('click',e=>{try{const t=e.target;
+  const nk=t.closest('[data-nick]');if(nk&&view==='board')ev('ljestvica','profil');
+  if(view==='home'){const g=t.closest('#zrecgo,[data-go]');if(g){const box=g.parentElement;if(box&&/Preporuka za danas/.test(box.textContent))ev('preporuka','klik',g.id==='zrecgo'?(g.dataset.zr+'/zad'):(g.dataset.go+'/'+(g.dataset.v||'')))}
+    if(t.closest('#kzban')&&!t.closest('#kzcrs'))ev('kz1','banner')}
+  if(view==='kz'){const k=t.closest('[data-kgo]');if(k)ev('kz1','vjezbaj',k.dataset.kgo);const z=t.closest('[data-kzt]');if(z)ev('kz1','zadatak',z.dataset.kzt);if(t.id==='kzgo'||t.id==='kznew')ev('kz1','probna_start');if(t.id==='kzsub')ev('kz1','probna_predana')}}catch(e){}},true);
+/* Analitika: Korištenje funkcija */
+const FEVN={preporuka:'Preporuka za danas',zadaci_dana:'Zadaci dana',kz1:'KZ1 (priprema)',ljestvica:'Ljestvica',izazov:'Dnevni izazov',novosti:'Što je novo',bez_bodova:'Vježba bez bodovanja',greske:'Ponovi moje greške',povecanje:'Povećanje slike',lekcija:'Lekcije'};
+const FEVA={prikaz:'vidjelo na Početnoj',banner:'kliknulo obavijest na Početnoj',kartica:'otvorilo karticu',profil:'otvorilo profil studenta',vjezbaj:'kliknulo Vježbaj',zadatak:'kliknulo Riješi zadatak',probna_start:'pokrenulo probnu KZ1',probna_predana:'predalo probnu KZ1',klik:'kliknulo zadatak',ispunjen:'ispunilo zadatak',svi:'ispunilo sve',otvoren:'pokrenulo (prvi put)',ponovno:'pokrenulo ponovno',zavrsen:'završilo (prvi pokušaj)',zavrsen_ponovno:'završilo ponovno',preskok:'preskočilo pitanje',prekid:'prekinulo',ljestvica:'otvorilo ljestvicu',otvoreno:'otvorilo',akcija:'kliknulo gumb',ukljuceno:'uključilo',iskljuceno:'isključilo',start:'pokrenulo',otvorena:'otvorilo'};
+let anFunDays=14;
+let anFunOpen=new Set();
+async function anFunLoad(){const box=document.getElementById('anfun');if(!box)return;let rows=[],err='',det=[];
+  try{const {data,error}=await Remote.rpc('admin_feature_stats',{p_token:session.token,p_days:anFunDays});if(error)err='Statistika nije dostupna. Pokreni supabase-dodatak-funkcije.sql u Supabaseu.';else{const D=data||[];rows=D.filter(r=>r.lvl===undefined||r.lvl===0);det=D.filter(r=>r.lvl===1)}}catch(e){err='Statistika nije dostupna.'}
+  if(!document.getElementById('anfun'))return;
+  const days=[...new Set(rows.map(r=>r.day))].sort().reverse(),keys=[...new Set(rows.map(r=>r.feature+'|'+r.action))].sort((a,b)=>Object.keys(FEVN).indexOf(a.split('|')[0])-Object.keys(FEVN).indexOf(b.split('|')[0])||Object.keys(FEVA).indexOf(a.split('|')[1])-Object.keys(FEVA).indexOf(b.split('|')[1]));
+  const get=(d,k)=>rows.find(r=>r.day===d&&r.feature+'|'+r.action===k),tot=k=>rows.filter(r=>r.feature+'|'+r.action===k).reduce((a,r)=>a+r.n,0),uSum=k=>rows.filter(r=>r.feature+'|'+r.action===k).reduce((a,r)=>a+r.users,0);
+  const lab=k=>{const [f,a]=k.split('|');return `<b>${FEVN[f]||f}</b>: ${f==='preporuka'&&a==='klik'?'kliknulo Kreni':f==='ljestvica'&&a==='otvorena'?'otvorilo Ljestvicu':f==='kz1'&&a==='otvoren'?'otvorilo karticu KZ1':(FEVA[a]||a)}`};
+  const dd=d=>{const [y,m,x]=d.split('-');return `${+x}. ${+m}.`};
+  box.innerHTML=`<h3 style="margin:4px 0 6px">Korištenje funkcija</h3><p class="note" style="margin:0 0 8px">Broj studenata koji su nešto napravili (u zagradi ukupan broj događaja). Administratori nisu uračunati. Bilježi se od uvođenja ove statistike.</p>
+  <div class="row" style="gap:8px;align-items:center;margin:0 0 10px"><label>Razdoblje: <select id="anfd" style="padding:6px 8px">${[7,14,30,60].map(v=>`<option value="${v}" ${anFunDays===v?'selected':''}>zadnjih ${v} dana</option>`).join('')}</select></label></div>
+  ${err?`<p class="msg bad">${err}</p>`:!rows.length?'<p class="note">Još nema zabilježenih događaja.</p>':`<div style="overflow-x:auto"><table><tr><th>Funkcija</th>${days.map(d=>`<th class="num">${dd(d)}</th>`).join('')}<th class="num">Ukupno</th></tr>${keys.map(k=>{const ds=[...new Set(det.filter(r=>r.feature+'|'+r.action===k&&r.detail!=='–').map(r=>r.detail))],op=anFunOpen.has(k);const cell=r=>r?`${r.users}${r.n>r.users?` <span class="note" style="font-size:12px">(${r.n})</span>`:''}`:'<span class="note">–</span>';
+    return `<tr><td style="white-space:nowrap">${ds.length?`<a href="#" data-fx="${k}" style="color:inherit;text-decoration:none">${op?'▾':'▸'} ${lab(k)}</a>`:'&nbsp;&nbsp;'+lab(k)}</td>${days.map(d=>`<td class="num">${cell(get(d,k))}</td>`).join('')}<td class="num"><b>${uSum(k)}</b> <span class="note" style="font-size:12px">(${tot(k)})</span></td></tr>`+(op?ds.map(x=>{const R=det.filter(r=>r.feature+'|'+r.action===k&&r.detail===x);return `<tr style="font-size:14px"><td style="padding-left:30px;color:var(--muted)">${fevDet(k,x)}</td>${days.map(d=>`<td class="num">${cell(R.find(r=>r.day===d))}</td>`).join('')}<td class="num">${R.reduce((a,r)=>a+r.users,0)} <span class="note" style="font-size:12px">(${R.reduce((a,r)=>a+r.n,0)})</span></td></tr>`}).join(''):'')}).join('')}</table></div><p class="note" style="margin:6px 0 0">Klik na ▸ prikazuje razradu (npr. koja kartica ljestvice, koje gradivo, koja vrsta zadatka dana).</p>
+  <p class="note" style="margin:8px 0 0">Ukupno = zbroj studenata po danima (isti student u dva dana broji se dvaput).</p>`}`;
+  const sel=document.getElementById('anfd');if(sel)sel.onchange=e=>{anFunDays=+e.target.value;anFunLoad()};box.querySelectorAll('[data-fx]').forEach(a=>a.onclick=e=>{e.preventDefault();const k=a.dataset.fx;anFunOpen.has(k)?anFunOpen.delete(k):anFunOpen.add(k);anFunLoad()})}
+function fevDet(k,x){const BT={ukupno:'Ukupno',week:'Tjedna',daily:'Dnevni izazov',streak:'Redovitost',zad:'Zadaci',kz:'Probna KZ1'},QN={mix:'Miks',weak:'Slabije gradivo',few:'Manje vježbano',zad:'Zadatak s brojevima'};
+  if(k.startsWith('ljestvica|kartica'))return x.startsWith('gradivo:')?'Gradivo: '+(TOPICS[x.slice(8)]||MODNAME[x.slice(8)]||x.slice(8)):(BT[x]||x);
+  if(k.startsWith('zadaci_dana|'))return QN[x]||TOPICS[x]||x;
+  if(k.startsWith('preporuka|')){const [m,v]=x.split('/');return (v==='lesson'?'Lekcija: ':v==='zad'?'Zadaci: ':'Vježba: ')+(TOPICS[m]||MODNAME[m]||m)}
+  return TOPICS[x]||MODNAME[x]||x}
+{const _raE=renderAn;renderAn=async function(){const r=await _raE.apply(this,arguments);try{if(anSec==='fun')anFunLoad()}catch(e){}return r}}
 view='home';
 boot();
 
