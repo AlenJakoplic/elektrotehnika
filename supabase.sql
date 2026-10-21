@@ -662,6 +662,7 @@ create table if not exists public.feature_events (
 );
 create index if not exists feature_events_day on public.feature_events(day);
 create index if not exists feature_events_created on public.feature_events(created_at);
+create index if not exists feature_events_pd on public.feature_events(profile_id, day);
 alter table public.feature_events enable row level security;
 revoke all on public.feature_events from anon, authenticated;
 
