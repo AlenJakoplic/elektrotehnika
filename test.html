@@ -2540,11 +2540,11 @@ async function renderAn(){main.innerHTML='<div class="sheet panel" style="max-wi
   const th=(k,l)=>`<th><a href="#" data-ans="${k}" style="color:inherit;${anSort===k?'text-decoration:underline':''}">${l}</a></th>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Analitika</h2>${anErr?`<p class="msg bad">${anErr}</p>`:''}<p class="note">Vidljivo samo administratoru. Podaci iz baze: profili studenata i dnevnik svih odgovora. Klik na nadimak otvara detalje.</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 12px"><label>Kolegij: <select id="ancrs" style="padding:6px 8px">${[['sve','Svi'],...COURSES,['-','Nije odabran']].map(([k,l])=>`<option value="${k}" ${anCourse===k?'selected':''}>${l}</option>`).join('')}</select></label><label>Aktivni: <select id="andays" style="padding:6px 8px">${[[0,'svi'],[1,'danas'],[3,'zadnja 3 dana'],[7,'zadnjih 7 dana'],[14,'zadnjih 14 dana'],[30,'zadnjih 30 dana']].map(([v,l])=>`<option value="${v}" ${anDays===v?'selected':''}>${l}</option>`).join('')}</select></label><label>Riješeno barem: <select id="anmin" style="padding:6px 8px">${[0,1,10,20,50,100,200].map(v=>`<option value="${v}" ${anMin===v?'selected':''}>${v?v+' (pitanja + zadaci)':'bez uvjeta'}</option>`).join('')}</select></label><span class="note" style="margin:0">Prikazano: ${L.length} od ${anData.length}</span><button class="ghost" id="anref" style="margin:0">Osvježi</button><button class="ghost" id="ancsv" style="margin:0">Izvoz u CSV (Excel)</button><button class="ghost" id="anexp" style="margin:0" title="Svi podaci iz baze, anonimizirano (JSON)">Potpuni izvoz za analizu</button></div>
-  <div class="modbar" style="margin:0 0 14px;flex-wrap:wrap">${[['pre','Pregled i studenti'],['kz','Priprema za KZ1: gdje zapinju'],['grp','Cijela grupa']].map(([k,l])=>`<button data-ansec="${k}" aria-current="${anSec===k}">${l}</button>`).join('')}</div>${anSec!=='pre'?'':`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px">${anTile(L.length,'studenata')}${anTile(act7,'aktivnih u 7 dana')}${anTile(avgR+' %','prosječna spremnost za KZ1')}${anTile(withSim.length,'riješilo probnu KZ1')}${anTile(avgB==null?'–':zN(avgB),'prosj. najbolja probna')}${anTile(risk,'u riziku','var(--bad)')}</div>
+  <div class="modbar" style="margin:0 0 14px;flex-wrap:wrap">${[['pre','Pregled i studenti'],['kz','Priprema za KZ1: gdje zapinju'],['grp','Cijela grupa'],['fun','Korištenje funkcija']].map(([k,l])=>`<button data-ansec="${k}" aria-current="${anSec===k}">${l}</button>`).join('')}</div>${anSec!=='pre'?'':`<div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px">${anTile(L.length,'studenata')}${anTile(act7,'aktivnih u 7 dana')}${anTile(avgR+' %','prosječna spremnost za KZ1')}${anTile(withSim.length,'riješilo probnu KZ1')}${anTile(avgB==null?'–':zN(avgB),'prosj. najbolja probna')}${anTile(risk,'u riziku','var(--bad)')}</div>
   <h3 style="margin:0 0 6px">Aktivnost</h3>${anActChart()}
   <h3 style="margin:18px 0 6px">Studenti</h3><table><tr>${th('nick','Nadimak')}<th>Ime</th><th>Kolegij</th>${th('ov','Razina')}${th('nAns','Odgovora')}<th>Zadataka</th>${th('ready','Spremnost')}<th>Stadij</th>${th('best','Probna (najbolja / br.)')}${th('last','Zadnje')}<th>Najslabije</th>${th('risk','Rizik')}</tr>
   ${L.map(s=>`<tr><td><a href="#" data-ann="${anEsc(s.nick)}" style="color:var(--ok);font-weight:700">${anEsc(s.nick)}</a></td><td>${anEsc(s.name)}</td><td style="font-size:13px">${s.course?anCN(s.course).split(' – ')[0]:'–'}</td><td class="num">${fmt(s.ov)}</td><td class="num">${s.nAns}</td><td class="num">${s.zn}</td><td class="num">${s.ready} %</td><td class="num">${s.stage}</td><td class="num">${s.sims?zN(s.best)+' / '+s.sims:'–'}</td><td style="white-space:nowrap">${anAgo(s.last)}</td><td style="font-size:13px">${s.weak}</td><td style="font-size:13px;color:var(--bad)">${s.risk.join(', ')}</td></tr>`).join('')||'<tr><td colspan="12">Nema studenata.</td></tr>'}</table>`}
-  ${anSec==='kz'?`<h3 style="margin:4px 0 6px">Priprema za KZ1: gdje zapinju</h3>${anPrep(L)}`:''}${anSec==='grp'?anGroup(L):''}</div>`;
+  ${anSec==='kz'?`<h3 style="margin:4px 0 6px">Priprema za KZ1: gdje zapinju</h3>${anPrep(L)}`:''}${anSec==='grp'?anGroup(L):''}${anSec==='fun'?'<div id="anfun"><p class="note">Učitavam…</p></div>':''}</div>`;
   main.querySelectorAll('[data-ansec]').forEach(b=>b.onclick=()=>{anSec=b.dataset.ansec;renderAn()});
   adBar();$('#ancrs').onchange=e=>{anCourse=e.target.value;renderAn()};$('#andays').onchange=e=>{anDays=+e.target.value;renderAn()};$('#anmin').onchange=e=>{anMin=+e.target.value;renderAn()};$('#anref').onclick=async()=>{await anLoad(true);renderAn()};$('#ancsv').onclick=()=>anCsv(L);$('#anexp').onclick=anExport;
   main.querySelectorAll('[data-ans]').forEach(a=>a.onclick=e=>{e.preventDefault();anSort=a.dataset.ans;renderAn()});
@@ -2983,7 +2983,7 @@ const CH_MAXSTEPS=12;function chShort(q){if(q.topic==='ruk')return !!RKTR[q.type
 function chBuild(day,topics){const rnd=chRng('izazov'+day),G=CHG.filter(g=>topics.includes(g[0]));if(!G.length)return null;const out=[];let k=Math.floor(rnd()*G.length),guard=0;
   while(out.length<10&&guard++<200){const g=G[k%G.length];k++;const pool=chPool(g[2]).filter(q=>!out.includes(q.id)&&chShort(q)).sort((a,b)=>qRating(b)-qRating(a));const hard=pool.slice(0,Math.max(5,Math.floor(pool.length*0.35)));if(!hard.length)continue;out.push(hard[Math.floor(rnd()*hard.length)].id)}
   return out.length===10?out:null} /* baza traži 10; izazov koristi prvih 5 */
-async function chLoad(force){const day=zgDate();if(CHinfo&&CHinfo.day===day&&!force)return CHinfo;if(!Remote||!session)return CHinfo={day,off:true};
+async function chLoad(force){const day=zgDate();if(CHinfo&&CHinfo.day===day&&!force&&!CHinfo.off)return CHinfo;if(!Remote||!session)return CHinfo={day,off:true};
   try{let {data}=await Remote.rpc('daily_get',{p_token:session.token,p_day:day});if(data&&data.locked)return CHinfo={day,locked:true};
     if(!data||!data.qids){const tp=await chTopics(),q=chBuild(day,tp);if(!q)return CHinfo={day,off:true};const r=await Remote.rpc('daily_set',{p_token:session.token,p_day:day,p_qids:q,p_topics:tp});data=r.data}
     const [b,av]=await Promise.all([Remote.rpc('daily_board',{p_token:session.token,p_day:day}),Remote.rpc('daily_avg',{p_token:session.token,p_day:day}).then(r=>r,()=>({data:[]}))]);return CHinfo={day,qids:data.qids,topics:data.topics||[],board:b.data||[],avg:av.data||[]}}catch(e){return CHinfo={day,off:true}}}
@@ -3372,6 +3372,44 @@ const NEWSOLD={
   {t:'Ukupni otpor korak po korak',h:'<p>Mreža se svodi na jedan otpor: klikneš dva otpornika i odabereš seriju ili paralelu. <b>Bojice potencijala</b> boje čvorove na istom potencijalu istom bojom.</p>',a:[NA('p:ruk','Ukupni otpor')]},
   {t:'Lekcije s primjerima',h:'<p>Uz svako gradivo lekcija s primjerima, prije vježbe.</p>',a:[NA('v:lesson','Otvori Lekciju')]}]};
 Object.keys(NEWSOLD).forEach(v=>NEWSV[v]=1);
+/* ===== Bilježenje korištenja funkcija (statistika samo za administratora) ===== */
+const EVONCE=new Set();
+function ev(f,a,d,once){try{if(!Remote||!session)return;if(once){const k=zgDate()+'|'+f+'|'+a+'|'+(d||'');if(EVONCE.has(k))return;EVONCE.add(k)}Remote.rpc('event_log',{p_token:session.token,p_feature:f,p_action:a,p_detail:d==null?null:String(d)}).then(()=>{},()=>{})}catch(e){}}
+/* zadaci dana: klik i ispunjenje */
+document.addEventListener('click',e=>{const b=e.target.closest('[data-qgo]');if(b)ev('zadaci_dana','klik',b.dataset.qgo)},true);
+{const _svE=save;save=function(){const r=_svE.apply(this,arguments);try{const p=prof();if(p&&p.quest&&p.quest.day===zgDate()&&!freeOn()){p.qlog=p.qlog&&p.qlog.day===p.quest.day?p.qlog:{day:p.quest.day,ids:[]};const nw=p.quest.q.filter(x=>x.done&&!p.qlog.ids.includes(x.id));if(nw.length){nw.forEach(x=>{p.qlog.ids.push(x.id);ev('zadaci_dana','ispunjen',x.id)});if(p.quest.q.every(x=>x.done))ev('zadaci_dana','svi',null,1);_svE.apply(this,[])}}}catch(e){}return r}}
+/* zadaci dana: prikaz na Početnoj (koliko ih uopće vidi) */
+{const _rhE=renderHome;renderHome=function(){const r=_rhE.apply(this,arguments);try{if(document.getElementById('qbox'))ev('zadaci_dana','prikaz',null,1);if(document.getElementById('chbox'))ev('izazov','prikaz',null,1)}catch(e){}return r}}
+/* dnevni izazov */
+{const _csE=chStart;chStart=async function(){ev('izazov',chMine()?'ponovno':'otvoren');return _csE.apply(this,arguments)}}
+{const _crE=chResult;chResult=function(R,pts,ms,first){if(R&&!R._ev){R._ev=1;ev('izazov',first?'zavrsen':'zavrsen_ponovno',pts)}return _crE.apply(this,arguments)}}
+document.addEventListener('click',e=>{const t=e.target;if(t.id==='chsk')ev('izazov','preskok',CH?CH.i+1:null);if(t.id==='chlb')ev('izazov','ljestvica')},true);
+{const _cfE=window.confirm;window.confirm=function(m){const r=_cfE.apply(this,arguments);try{if(r&&String(m).startsWith('Prekinuti izazov'))ev('izazov','prekid',CH?CH.i+1:null)}catch(e){}return r}}
+/* novosti */
+{const _noE=newsOpen;newsOpen=function(v){ev('novosti','otvoreno',v||'0.18');return _noE.apply(this,arguments)}}
+document.addEventListener('click',e=>{const b=e.target.closest('#fbm [data-nw]');if(b)ev('novosti','akcija',b.dataset.nw)},true);
+/* vježba bez bodovanja, ponavljanje grešaka, povećanje slika */
+document.addEventListener('change',e=>{if(e.target.id==='freechk')ev('bez_bodova',e.target.checked?'ukljuceno':'iskljuceno',prof().module)},true);
+document.addEventListener('click',e=>{const t=e.target;if(t.id==='errgo')ev('greske','start',prof().module);if(t.id==='errstop')ev('greske','prekid',prof().module);if(t.closest&&t.closest('.zbtn'))ev('povecanje','otvoreno',view==='practice'?prof().module:view)},true);
+/* lekcije: koja se gradiva otvaraju (jednom dnevno po gradivu) */
+{const _rlE=renderLesson;renderLesson=function(){const r=_rlE.apply(this,arguments);try{ev('lekcija','otvorena',lessonX||prof().module,1)}catch(e){}return r}}
+/* Analitika: Korištenje funkcija */
+const FEVN={zadaci_dana:'Zadaci dana',izazov:'Dnevni izazov',novosti:'Što je novo',bez_bodova:'Vježba bez bodovanja',greske:'Ponovi moje greške',povecanje:'Povećanje slike',lekcija:'Lekcije'};
+const FEVA={prikaz:'vidjelo na Početnoj',klik:'kliknulo zadatak',ispunjen:'ispunilo zadatak',svi:'ispunilo sve',otvoren:'pokrenulo (prvi put)',ponovno:'pokrenulo ponovno',zavrsen:'završilo (prvi pokušaj)',zavrsen_ponovno:'završilo ponovno',preskok:'preskočilo pitanje',prekid:'prekinulo',ljestvica:'otvorilo ljestvicu',otvoreno:'otvorilo',akcija:'kliknulo gumb',ukljuceno:'uključilo',iskljuceno:'isključilo',start:'pokrenulo',otvorena:'otvorilo'};
+let anFunDays=14;
+async function anFunLoad(){const box=document.getElementById('anfun');if(!box)return;let rows=[],err='';
+  try{const {data,error}=await Remote.rpc('admin_feature_stats',{p_token:session.token,p_days:anFunDays});if(error)err='Statistika nije dostupna. Pokreni supabase-dodatak-funkcije.sql u Supabaseu.';else rows=data||[]}catch(e){err='Statistika nije dostupna.'}
+  if(!document.getElementById('anfun'))return;
+  const days=[...new Set(rows.map(r=>r.day))].sort().reverse(),keys=[...new Set(rows.map(r=>r.feature+'|'+r.action))].sort((a,b)=>Object.keys(FEVN).indexOf(a.split('|')[0])-Object.keys(FEVN).indexOf(b.split('|')[0])||Object.keys(FEVA).indexOf(a.split('|')[1])-Object.keys(FEVA).indexOf(b.split('|')[1]));
+  const get=(d,k)=>rows.find(r=>r.day===d&&r.feature+'|'+r.action===k),tot=k=>rows.filter(r=>r.feature+'|'+r.action===k).reduce((a,r)=>a+r.n,0),uSum=k=>rows.filter(r=>r.feature+'|'+r.action===k).reduce((a,r)=>a+r.users,0);
+  const lab=k=>{const [f,a]=k.split('|');return `<b>${FEVN[f]||f}</b>: ${FEVA[a]||a}`};
+  const dd=d=>{const [y,m,x]=d.split('-');return `${+x}. ${+m}.`};
+  box.innerHTML=`<h3 style="margin:4px 0 6px">Korištenje funkcija</h3><p class="note" style="margin:0 0 8px">Broj studenata koji su nešto napravili (u zagradi ukupan broj događaja). Administratori nisu uračunati. Bilježi se od uvođenja ove statistike.</p>
+  <div class="row" style="gap:8px;align-items:center;margin:0 0 10px"><label>Razdoblje: <select id="anfd" style="padding:6px 8px">${[7,14,30,60].map(v=>`<option value="${v}" ${anFunDays===v?'selected':''}>zadnjih ${v} dana</option>`).join('')}</select></label></div>
+  ${err?`<p class="msg bad">${err}</p>`:!rows.length?'<p class="note">Još nema zabilježenih događaja.</p>':`<div style="overflow-x:auto"><table><tr><th>Funkcija</th>${days.map(d=>`<th class="num">${dd(d)}</th>`).join('')}<th class="num">Ukupno</th></tr>${keys.map(k=>`<tr><td style="white-space:nowrap">${lab(k)}</td>${days.map(d=>{const r=get(d,k);return `<td class="num">${r?`${r.users}${r.n>r.users?` <span class="note" style="font-size:12px">(${r.n})</span>`:''}`:'<span class="note">–</span>'}</td>`}).join('')}<td class="num"><b>${uSum(k)}</b> <span class="note" style="font-size:12px">(${tot(k)})</span></td></tr>`).join('')}</table></div>
+  <p class="note" style="margin:8px 0 0">Ukupno = zbroj studenata po danima (isti student u dva dana broji se dvaput).</p>`}`;
+  const sel=document.getElementById('anfd');if(sel)sel.onchange=e=>{anFunDays=+e.target.value;anFunLoad()}}
+{const _raE=renderAn;renderAn=async function(){const r=await _raE.apply(this,arguments);try{if(anSec==='fun')anFunLoad()}catch(e){}return r}}
 view='home';
 boot();
 
