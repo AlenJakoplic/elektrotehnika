@@ -2986,7 +2986,7 @@ async function chLoad(force){const day=zgDate();if(CHinfo&&CHinfo.day===day&&!fo
   try{let {data}=await Remote.rpc('daily_get',{p_token:session.token,p_day:day});if(data&&data.locked)return CHinfo={day,locked:true};
     if(!data||!data.qids){const tp=await chTopics(),q=chBuild(day,tp);if(!q)return CHinfo={day,off:true};const r=await Remote.rpc('daily_set',{p_token:session.token,p_day:day,p_qids:q,p_topics:tp});data=r.data}
     const [b,av]=await Promise.all([Remote.rpc('daily_board',{p_token:session.token,p_day:day}),Remote.rpc('daily_avg',{p_token:session.token,p_day:day}).then(r=>r,()=>({data:[]}))]);return CHinfo={day,qids:data.qids,topics:data.topics||[],board:b.data||[],avg:av.data||[]}}catch(e){return CHinfo={day,off:true}}}
-function chMine(){const p=prof();return(p.chal&&p.chal[zgDate()])||null}
+function chMine(){const p=prof(),d=zgDate(),loc=(p.chal&&p.chal[d])||null;if(CHinfo&&CHinfo.day===d&&Array.isArray(CHinfo.board)&&CHinfo.qids){const e=CHinfo.board.find(x=>x.nick===p.nick);if(e)return{pts:e.pts,ms:e.ms,res:loc&&loc.res};return null}return loc}
 function chStartQ(){const id=CH.qs[CH.i],q=chFind(id),p=prof();if(!q){CH.res.push(0);CH.i++;return chNext()}
   p.module=q.topic;testType='';answered=null;cur=null;rk=null;eq=null;mt=null;ths=null;if(typeof mgq!=='undefined')mgq=null;
   if(q.topic==='mag'){mgq=q;mgA=null}else if(q.topic==='thev'||q.topic==='nort'){thStart(q)}else if(q.topic==='serpar'){cur=q;answered=false}else if(q.topic==='ruk'||q.topic==='rukC'){startRuk(q)}else if(q.topic==='estat'){eq=q;eAns=null}else if(q.topic==='kont'||q.topic==='cvor'){metStart(q)}
@@ -3002,8 +3002,10 @@ function chBar(){document.getElementById('chbar')?.remove();if(!CH||view!=='prac
 {const _rch=render;render=function(){const r=_rch.apply(this,arguments);try{if(CH&&view==='practice'&&!document.getElementById('chbar'))chBar()}catch(e){}return r}}
 function chTick(){const e=document.getElementById('chtm');if(!e||!CH)return;const s=Math.floor((Date.now()-CH.t0)/1000);e.textContent=`⏱ ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;clearTimeout(CH.tt);CH.tt=setTimeout(chTick,500)}
 async function chNext(){if(CH.i<CH.qs.length)return chStartQ();const p=prof(),ms=Date.now()-CH.t0,sc=CH.res.reduce((a,b)=>a+b,0),pts=Math.round(sc*20)/10,first=CH.first;document.getElementById('chbar')?.remove();document.body.classList.remove('chal');
-  let saved=false;if(first){p.chal=p.chal||{};p.chal[zgDate()]={pts,ms,res:CH.res};gWeek(p).pts+=sc*2;save();try{const r=await Remote.rpc('daily_submit',{p_token:session.token,p_day:zgDate(),p_pts:pts,p_ms:ms,p_detail:{res:CH.res}});saved=!!r.data}catch(e){}}
-  const R=CH;CH=null;await chLoad(true);chResult(R,pts,ms,first)}
+  const R=CH;CH=null;if(first){p.chal=p.chal||{};p.chal[zgDate()]={pts,ms,res:R.res};gWeek(p).pts+=sc*2;save();if(CHinfo&&CHinfo.board){const B=CHinfo.board.filter(x=>x.nick!==p.nick);B.push({nick:p.nick,pts,ms});B.sort((a,b)=>b.pts-a.pts||a.ms-b.ms);CHinfo.board=B}}
+  chResult(R,pts,ms,first);/* rezultat odmah, ljestvica i prosjek osvježe se kad stignu */
+  if(first){try{await Remote.rpc('daily_submit',{p_token:session.token,p_day:zgDate(),p_pts:pts,p_ms:ms,p_detail:{res:R.res}})}catch(e){}}
+  await chLoad(true);if(document.getElementById('chhome'))chResult(R,pts,ms,first)}
 function chFmt(ms){const s=Math.round(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
 function chBoardHtml(){const B=(CHinfo&&CHinfo.board)||[],me=prof().nick,esc=s=>String(s).replace(/[<>&"]/g,''),MC={1:'#D4A017',2:'#A8B2BD',3:'#C07A3A'};
   return `<table><tr><th></th><th>Nadimak</th><th>Bodovi</th><th>Vrijeme</th></tr>${B.map((r,i)=>`<tr${r.nick===me?' style="font-weight:700"':''}><td style="${MC[i+1]?'color:'+MC[i+1]+';font-weight:800':''}">${i+1}.</td><td><a href="#" data-nick="${esc(r.nick)}">${esc(r.nick)}</a></td><td class="num">${zN(r.pts)}</td><td class="num">${chFmt(r.ms)}</td></tr>`).join('')||'<tr><td colspan="4">Danas još nitko nije riješio izazov.</td></tr>'}</table>`}
