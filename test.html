@@ -182,8 +182,10 @@ function applyResult(q,correct,usedColors){
   const p=prof(),R=p.ratings[q.topic];
   const qr=qRating(q),P=pCorrect(R.r,qr);
   const K=Math.max(0.25,1.0/Math.sqrt(1+R.n/6));
-  let d=K*(score-P);
-  if(d>0&&usedColors)d*=0.4;
+  let d=K*(score-P);const RB={};p.stk=p.stk||{};const stk=p.stk[q.topic]||0;
+  if(d<0)d*=0.75;
+  else if(d>0){if(correct){const prevW=(p.wrong||[]).filter(w=>w.id===q.id);if(prevW.length){const ref=prevW.reduce((a,w)=>a+(w.pen||0),0);d=d*2+ref;RB.fix=ref}if(stk>=3){d*=1.5;RB.streak=stk+1}}if(usedColors)d*=0.4}
+  p.stk[q.topic]=correct?stk+1:0;window.RB_LAST=RB;
   const before=R.r;
   R.r=Math.min(10,Math.max(1,R.r+d));R.n++;if(correct)R.c++;
   p.answered++;p.best=Math.max(p.best,overall(p));
@@ -192,7 +194,7 @@ function applyResult(q,correct,usedColors){
   remoteRecord(q,score,usedColors,q.diff,dq);
   for(const t of q.tags){const key=q.topic+':'+t,ts=p.tags[key]||{n:0,c:0};ts.n++;if(correct)ts.c++;p.tags[key]=ts}
   p.recent.push(q.id);if(p.recent.length>25)p.recent.shift();
-  if(!correct)p.wrong.push({id:q.id,due:p.answered+5+Math.floor(Math.random()*5)});
+  if(!correct)p.wrong.push({id:q.id,due:p.answered+5+Math.floor(Math.random()*5),pen:Math.max(0,before-R.r)});
   else p.wrong=p.wrong.filter(w=>w.id!==q.id);
   if(p.boost&&p.boost[q.topic])p.boost[q.topic]=correct?Math.max(0,p.boost[q.topic]-0.25):0;
   save();return R.r-before;
@@ -479,7 +481,7 @@ function renderHelp(){
   <p><b>Vrste pitanja.</b> Osim osnovnih zadataka, u Vježbi se pojavljuju i kratka pitanja: ista struja ili isti napon, pronađi uljeza, koji par možeš odmah spojiti, zapis ukupnog otpora, točna jednadžba, pronađi grešku, koja metoda daje manje jednadžbi, prilagođenje i druga. Izbornikom <b>Vrsta pitanja</b> možeš se usredotočiti na jednu vrstu. Svaki put kad promijeniš gradivo, izbor se vraća na sve.</p>
   <p><b>Magnetsko polje ravnih vodiča.</b> Lekcija o polju oko ravnog vodiča, pravilu desne ruke, zbrajanju polja više vodiča i silama, uz zadatke s brojevima. U zadacima prijeđi mišem preko vodiča pa ćeš vidjeti njegove silnice.</p>
   <h3>Razina</h3>
-  <p>Svako gradivo ima svoju razinu od 1,0 do 10,0, a gore desno je ukupna razina. Točan odgovor podiže razinu, a pogrešan je spušta. Teža pitanja donose više. Aplikacija ti zadaje pitanja prilagođena tvojoj razini. Pitanja na kojima pogriješiš vratit će se kasnije, a vrste zamki koje ti ne idu dobivat ćeš češće.</p>
+  <p>Svako gradivo ima svoju razinu od 1,0 do 10,0, a gore desno je ukupna razina. Točan odgovor podiže razinu, a pogrešan je spušta. Teža pitanja donose više. Aplikacija ti zadaje pitanja prilagođena tvojoj razini. Pitanja na kojima pogriješiš vratit će se kasnije, a vrste zamki koje ti ne idu dobivat ćeš češće. Greška razinu spušta blaže nego prije, a kad se vraćeno pitanje riješi točno, bodovi izgubljeni na njemu se vraćaju i porast je dvostruk. Nakon 3 točna odgovora zaredom u istom gradivu svaki sljedeći točan donosi 1,5 puta više.</p>
   <h3>Bojice potencijala</h3>
   <p>Svi vodiči na istom potencijalu oboje se istom bojom, pa se lakše vidi što je spojeno na što. Viša stezaljka (A) je crvena, niža (B) plava, a čvorovi između idu od toplijih prema hladnijim bojama. Pomažu, ali točan odgovor uz bojice donosi manje napretka. Pokušaj ih koristiti samo kad zapneš.</p>
   <h3>Lakši ili teži?</h3>
@@ -3217,6 +3219,8 @@ const NEWS=[
  {t:'Prsteni napretka po gradivu',h:`<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:4px 0 8px">${ringSvg({les:0.75,vj:0.55,zd:0.33},76)}<div style="font-size:14px;line-height:1.6"><span style="color:#5B9BD5;font-weight:700">●</span> lekcija (koliko je prođeno)<br><span style="color:#2E9E5B;font-weight:700">●</span> vježba (broj pitanja i razina)<br><span style="color:#E8A33D;font-weight:700">●</span> zadaci s brojevima</div></div><p>Uz svako gradivo na Početnoj sada je prsten koji pokazuje koliko je toga napravljeno. Napredak u lekcijama počeo se bilježiti tek u ovoj verziji, pa lekcije pročitane ranije još nisu ubrojene. Dovoljno je ponovno prolistati lekciju do kraja i plavi dio prstena će se popuniti.</p>`,a:[['nwring','Pogledaj na Početnoj']]},
  {t:'Ukupni otpor: zadaci s trikom',h:`<p>Nove vrste zadataka u Vježbi: neki otpornik je <b>kratko spojen</b> ili je u <b>slijepoj grani</b> pa ga treba prepoznati i izbaciti (klikni ga). U vrsti <b>Stezaljke na mjestu otpornika</b> jedan je otpornik odspojen, a A i B su na njegovim krajevima, kao kad se traži Theveninov otpor R<sub>T</sub> za taj otpornik. Ugašeni naponski izvor tada je kratki spoj, a strujni prekid.</p>`,a:[['nwks','Isprobaj: kratki spoj'],['nwab','Isprobaj: stezaljke kao za R<sub>T</sub>']]},
  {t:'Elektrostatika: tri puta više pitanja',h:`<p><b>Na prijedlog iz studentske ankete</b> Elektrostatika sada ima 157 pitanja umjesto 48: više naboja, kosi položaji, naboji na različitim udaljenostima i zamke u kojima najjači naboj ne određuje smjer rezultante. Pitanja idu do težine 8,6, a gumbi <b>Lakši</b> i <b>Teži</b> sada stvarno mijenjaju težinu sljedećeg pitanja. Hvala na prijedlogu!</p>`,a:[['nwes','Isprobaj Elektrostatiku']]},
+ {t:'Razina raste pravednije',h:`<p><b>Na prijedlog iz studentske ankete</b> prilagodili smo formulu za razinu, da se više isplati učiti na greškama:</p><ul style="margin:0 0 6px;padding-left:18px"><li>pogrešan odgovor razinu spušta <b>blaže</b> nego prije;</li><li>kad se pitanje na kojem je bila greška kasnije riješi točno, <b>izgubljeni bodovi se vraćaju</b>, a porast je dvostruk;</li><li>nakon <b>3 točna zaredom</b> u istom gradivu svaki sljedeći točan odgovor donosi 1,5 puta više.</li></ul><p>Hvala na prijedlogu! Slobodno javi kroz <b>Pošalji povratnu informaciju</b> (dno stranice) je li sada bolje ili formulu treba još doraditi.</p>`,a:[['nwfb','Pošalji povratnu informaciju']]},
+ {t:'Veće slike',h:`<p><b>Na prijedlog iz studentske ankete</b>: svaku sliku (naboji, mreže, polja) možeš povećati gumbom <b>⤢</b> u njezinu gornjem desnom kutu. Povećanu sliku možeš dodatno povećati gumbima + i − ili prstima, a zatvara se klikom pored nje. Na mobitelu su crteži naboja sada i sami veći.</p>`,a:[]},
  {t:'Sitnice',h:`<ul style="margin:0;padding-left:18px"><li>U zadacima s koracima postoji gumb <b>Novi zadatak</b> i usred rješavanja (i <b>Preskoči korak</b> gdje ima smisla).</li><li>U Bazi zadataka rezultati su odmah prikazani, a kod Ukupnog otpora može se birati vrsta zadatka.</li><li>U Zadacima je Magnetsko polje na kraju, kao na nastavi.</li><li>Povremeno se pojavi kratka anketa o gradivu koje se puno vježba. Hvala na odgovorima!</li></ul>`,a:[]}];
 function newsSeen(p){return (p.newsSeen||'')===NEWS_ID}
 function newsOpen(){const p=prof();p.newsSeen=NEWS_ID;save();
@@ -3229,6 +3233,7 @@ function newsOpen(){const p=prof();p.newsSeen=NEWS_ID;save();
     if(a==='nwch'){close();view='home';render();setTimeout(()=>{const c=document.getElementById('chbox');if(c)c.scrollIntoView({behavior:'smooth',block:'center'})},300)}
     else if(a==='nwlb')go(()=>{view='board';boardAll='daily';render()});
     else if(a==='nwring'){close();view='home';render();setTimeout(()=>{const h=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Gradiva');if(h)h.scrollIntoView({behavior:'smooth',block:'start'})},300)}
+    else if(a==='nwfb'){close();try{fbOpen({})}catch(e){}}
     else if(a==='nwes')go(()=>{const p=prof();p.module='estat';testType='';eq=null;save();view='practice';render()});
     else if(a==='nwks'||a==='nwab')go(()=>{const p=prof();p.module='ruk';testType=a==='nwks'?'KS':'AB';rk=null;save();view='practice';render()})})}
 {const _rhN=renderHome;renderHome=function(){const r=_rhN.apply(this,arguments);try{const p=prof(),h=main.querySelector('.sheet.panel h2');if(!p||!h||document.getElementById('nwbox'))return r;
@@ -3266,6 +3271,35 @@ function dirNear(x,y){const a=Math.atan2(-y,x)*180/Math.PI,ks=['E','NE','N','NW'
   [['plates',2,3,'eq'],['plates',3,1,'eq'],['tocka',2,1,'more'],['tocka',1,3,'less'],['tocka',2,3,'less']].forEach(([f,a,b,ans])=>add.push({type:'polje2',form:f,a,b,ans,tags:['homogeno'],diff:f==='plates'?2.9:2}));
   let n=EQ.length;add.forEach(q=>{q.id='E'+String(++n).padStart(2,'0');q.topic='estat';q.diff=Math.round(q.diff*10)/10;EQ.push(q);QS.push(q)});
   window.ESTAT_ADDED=add.length})();
+/* ===== Oznake bonusa uz promjenu razine ===== */
+new MutationObserver(()=>{try{const RB=window.RB_LAST;if(!RB||(!RB.fix&&!RB.streak))return;main.querySelectorAll('.delta:not([data-rb])').forEach(el=>{el.dataset.rb=1;const t=[];if(RB.fix)t.push(`ispravljena greška: vraćeno +${fmt(RB.fix)}, porast ×2`);if(RB.streak)t.push(`${RB.streak} točnih zaredom: ×1,5`);el.insertAdjacentHTML('beforeend',` <span style="color:var(--ok);font-weight:600">· ${t.join(' · ')}</span>`)})}catch(e){}}).observe(main,{childList:true,subtree:true});
+{const _ar9=applyResult;applyResult=function(){window.RB_LAST=null;return _ar9.apply(this,arguments)}}
+/* ===== Povećanje slika ===== */
+function zoomOpen(svg){document.getElementById('zbox')?.remove();const html=svg.outerHTML.replace(/<svg/,'<svg data-zc="1"');let sc=1;
+  document.body.insertAdjacentHTML('beforeend',`<div id="zbox" style="position:fixed;inset:0;z-index:9999;background:rgba(10,18,26,.88);display:flex;flex-direction:column"><div style="display:flex;gap:8px;justify-content:flex-end;padding:calc(env(safe-area-inset-top,0px) + 8px) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))"><button class="ghost" data-z="-" style="margin:0;min-width:44px;font-size:20px" aria-label="Smanji">−</button><button class="ghost" data-z="+" style="margin:0;min-width:44px;font-size:20px" aria-label="Povećaj">+</button><button class="primary" data-z="x" style="margin:0">Zatvori</button></div><div id="zsc" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 12px)"><div id="zin" style="margin:0 auto;background:var(--sheet);border-radius:10px;padding:6px">${html}</div></div></div>`);
+  const box=document.getElementById('zbox'),zsc=document.getElementById('zsc'),zin=document.getElementById('zin'),sv=zin.querySelector('svg');
+  sv.style.cssText='display:block;width:100%;height:auto;max-height:none;max-width:none';
+  const vb=(sv.getAttribute('viewBox')||'0 0 4 3').split(/[ ,]+/).map(Number),ar=vb[2]/vb[3]||1.4;
+  const fit=()=>{const W=zsc.clientWidth-24,H=zsc.clientHeight-24;return Math.max(200,Math.min(W,H*ar))};
+  const apply=()=>{zin.style.width=Math.round(fit()*sc)+'px'};apply();
+  const close=()=>{box.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',esc);
+  box.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{const z=b.dataset.z;if(z==='x')return close();sc=Math.max(1,Math.min(5,sc*(z==='+'?1.4:1/1.4)));apply()});
+  box.addEventListener('click',e=>{if(e.target===box||e.target===zsc)close()});
+  let d0=0,s0=1;const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+  zsc.addEventListener('touchstart',e=>{if(e.touches.length===2){d0=dist(e.touches);s0=sc}},{passive:true});
+  zsc.addEventListener('touchmove',e=>{if(e.touches.length===2&&d0){e.preventDefault();sc=Math.max(1,Math.min(5,s0*dist(e.touches)/d0));apply()}},{passive:false});
+  zsc.addEventListener('touchend',e=>{if(e.touches.length<2)d0=0},{passive:true})}
+new MutationObserver(()=>{try{document.querySelectorAll('.schem:not([data-zb])').forEach(el=>{const sv=el.querySelector('svg');if(!sv)return;el.dataset.zb=1;if(getComputedStyle(el).position==='static')el.style.position='relative';
+  el.insertAdjacentHTML('beforeend','<button type="button" class="zbtn" aria-label="Povećaj sliku" title="Povećaj sliku">⤢</button>');el.querySelector(':scope > .zbtn').onclick=e=>{e.stopPropagation();const s2=el.querySelector('svg');if(s2)zoomOpen(s2)}})}catch(e){}}).observe(document.body,{childList:true,subtree:true});
+document.head.insertAdjacentHTML('beforeend','<style>.zbtn{position:absolute;top:6px;right:6px;z-index:3;width:34px;height:34px;padding:0;margin:0;border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;opacity:.85}.zbtn:hover{opacity:1;border-color:var(--ink)}@media (max-width:700px){.schem{padding:4px!important}.schem svg{max-height:none!important}}</style>');
+/* ===== Naboji: crtež izrezan oko naboja (veći na mobitelu) ===== */
+{const _es=estatSvg;estatSvg=function(q,reveal){const out=_es.apply(this,arguments);if(!q||(q.type!=='sila'&&q.type!=='polje')||!q.charges)return out;
+  const S=115,cx=320,cy=280,xs=[cx,...q.charges.map(c=>cx+c.x*S)],ys=[cy,...q.charges.map(c=>cy+c.y*S)];
+  let x0=Math.min(...xs)-70,x1=Math.max(...xs)+70,y0=Math.min(...ys)-62,y1=Math.max(...ys)+(reveal&&q.charges.length>1?76:58);
+  x0=Math.min(x0,cx-110);x1=Math.max(x1,cx+110);y0=Math.min(y0,cy-110);y1=Math.max(y1,cy+110);
+  let w=x1-x0,h=y1-y0;if(w<400){const e=(400-w)/2;x0-=e;w=400}if(h<340){const e=(340-h)/2;y0-=e;h=340}
+  x0=Math.max(0,x0);y0=Math.max(0,y0);w=Math.min(640-x0,w);h=Math.min(560-y0,h);
+  return out.replace('viewBox="0 0 640 560"',`viewBox="${x0} ${y0} ${w} ${h}"`).replace(/<text x="320" y="544"/,`<text x="${x0+w/2}" y="${y0+h-10}"`)}}
 view='home';
 boot();
 
