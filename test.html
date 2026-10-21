@@ -245,10 +245,10 @@ function drawNet(net,opts={}){
   g+=`<defs><pattern id="pg" width="13" height="13" patternUnits="userSpaceOnUse"><path d="M13 0H0V13" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern></defs><rect width="${W}" height="${H}" fill="url(#pg)"/>`;
   const ends={};
   const bump=p=>{const k=p.join(',');ends[k]=(ends[k]||0)+1};
-  for(const s of net.segs){bump(s.a);bump(s.b)}
+  for(const s of net.segs){if(s.hide)continue;bump(s.a);bump(s.b)}
   bump(net.A);bump(net.B);
   const sw=opts.colors?4:2.5;
-  for(const s of net.segs){
+  for(const s of net.segs){if(s.hide)continue;
     const x1=X(s.a),y1=Y(s.a),x2=X(s.b),y2=Y(s.b);
     if(s.k==='w'){g+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${colOf(s.a)}" stroke-width="${sw}" stroke-linecap="round"/>`;continue}
     const L=Math.hypot(x2-x1,y2-y1),ux=(x2-x1)/L,uy=(y2-y1)/L,mx=(x1+x2)/2,my=(y1+y2)/2,bl=48,bw=17;
@@ -267,7 +267,7 @@ function drawNet(net,opts={}){
     g+=`<text x="${lx}" y="${ly}" text-anchor="middle" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="${on?21:18}" font-weight="${on?700:600}" fill="${ink}">${s.n.replace(/([RC])([\d,]+)/,'$1<tspan font-size="0.72em" dy="4">$2</tspan>')}</text>`;
   }
   for(const k in ends){if(ends[k]>=3){const [px,py]=k.split(',').map(Number);g+=`<circle cx="${X([px,py])}" cy="${Y([px,py])}" r="5" fill="${colOf([px,py])}"/>`}}
-  const te={};for(const [t,p] of [['A',net.A],['B',net.B]]){
+  const te={};if(net.tx)g+=rkTxDraw(net,X,Y,colOf,sw,ink);for(const [t,p] of (net.tx?[]:[['A',net.A],['B',net.B]])){
     const dir=p[0]===0?-1:(p[0]===net.W?1:(p[1]===0?0:0));
     let tx=X(p),ty=Y(p),ex=tx+dir*40,ey=ty;if(dir===0){ex=tx;ey=ty+(p[1]===0?-40:40)}te[t]=[ex,ey];
     if(opts.src){g+=`<line x1="${tx}" y1="${ty}" x2="${ex}" y2="${ey}" stroke="${colOf(p)}" stroke-width="${sw}"/>`;continue}
@@ -473,7 +473,7 @@ function renderHelp(){
   <h3>Gradiva</h3>
   <p><b>Elektrostatika.</b> Kratka pitanja koja se izmjenjuju: smjer sile na naboj i smjer polja u točki, zbrajanje vektora na istom pravcu, homogeno i nehomogeno polje, rad ili energija pri pomicanju naboja te kako se mijenja sila s nabojem i udaljenošću. Nakon odgovora na slici se vide doprinosi pojedinih naboja i njihov zbroj.</p>
   <p><b>Serija ili paralela.</b> Za dva označena otpornika odlučiš jesu li spojeni serijski, paralelno ili ništa od toga. U pitanjima „Mreža s izvorima” mreža ima i naponske ili strujne izvore: paralelni su samo otpornici koji su sami u granama između ista dva čvora, a serijski oni u istoj grani. Zapamti: elementi su u <b>seriji</b> ako kroz njih teče <b>ista struja</b>, a u <b>paraleli</b> ako su na <b>istom naponu</b>, odnosno između ista dva potencijala.</p>
-  <p><b>Ukupni otpor.</b> Klikneš dva otpornika i odabereš formulu: zbroj za seriju ili „puta kroz plus” za paralelu. Ako je korak točan, otpornici se zamijene jednim (npr. R<sub>12</sub>). Ponavljaš dok ne ostane samo jedan otpor između A i B. Uz prekidač <b>Kondenzatori</b> isto radiš za ukupni kapacitet, ali su formule obrnute: paralela je zbroj, a serija „puta kroz plus”.</p>
+  <p><b>Ukupni otpor.</b> Klikneš dva otpornika i odabereš formulu: zbroj za seriju ili „puta kroz plus” za paralelu. Ako je korak točan, otpornici se zamijene jednim (npr. R<sub>12</sub>). Ponavljaš dok ne ostane samo jedan otpor između A i B. U zadacima s trikom neki otpornik može biti <b>kratko spojen</b> ili u <b>slijepoj grani</b>: klikneš ga i izbaciš. U vrsti „Stezaljke na mjestu otpornika” jedan je otpornik odspojen, a A i B su na njegovim krajevima, kao kod Theveninova otpora R<sub>T</sub>; ugašeni naponski izvor postaje kratki spoj, a strujni prekid. Uz prekidač <b>Kondenzatori</b> isto radiš za ukupni kapacitet, ali su formule obrnute: paralela je zbroj, a serija „puta kroz plus”.</p>
   <p><b>Metode rješavanja.</b> Korak po korak postavljaš jednadžbe <b>konturnih struja</b> ili <b>napona čvorova</b>: koliko jednadžbi treba, vlastiti otpori ili vodljivosti, predznaci susjednih petlji ili čvorova te izvori na desnoj strani. Strujni izvor u vanjskoj grani odmah određuje struju petlje, a naponski izvor u seriji s otporom kod čvorova pretvaraš u strujni izvor.</p>
   <p><b>Teoremi mreža.</b> Theveninov i Nortonov teorem korak po korak: gašenje izvora, otpornici koji utječu na R<sub>T</sub>, izraz za R<sub>T</sub>, prazni hod ili kratki spoj, E<sub>T</sub> pomoću konturne struje i nadomjesna shema. Mrežu gledamo sa stezaljki a i b.</p>
   <p><b>Vrste pitanja.</b> Osim osnovnih zadataka, u Vježbi se pojavljuju i kratka pitanja: ista struja ili isti napon, pronađi uljeza, koji par možeš odmah spojiti, zapis ukupnog otpora, točna jednadžba, pronađi grešku, koja metoda daje manje jednadžbi, prilagođenje i druga. Izbornikom <b>Vrsta pitanja</b> možeš se usredotočiti na jednu vrstu. Svaki put kad promijeniš gradivo, izbor se vraća na sve.</p>
@@ -657,7 +657,7 @@ function rkFinishedS(S){if(S.groups.length!==1)return false;const g=S.groups[0];
 function rkFinished(){return rkFinishedS(rkState())}
 function renderRuk(){
   const p=prof();
-  if(!rk||(rk.q.topic!==p.module&&!rk.exam))startRuk();colFor(rk);if(rk.q.type&&!rk.exam)return renderRukMC();
+  if(!rk||(rk.q.topic!==p.module&&!rk.exam))startRuk();colFor(rk);if(rk.q.type&&!RKTR[rk.q.type]&&!rk.exam)return renderRukMC();
   const {n,q}=rk,ex=!!rk.exam,S=rkState(),finished=rkFinishedS(S);
   const view={...n,segs:rk.segs,node:S.node};
   const groupsMap={};rk.segs.forEach((s,i)=>{/* zamjenski otpornici izgledaju kao ostali */});
@@ -676,9 +676,10 @@ function renderRuk(){
   }else{
     action=`<p class="note" style="margin-top:14px">${rk.sel.length?(rk.n.cap?'Odaberi još jedan kondenzator.':'Odaberi još jedan otpornik.'):(rk.n.cap?'Klikni dva kondenzatora koja želiš zamijeniti jednim.':'Klikni dva otpornika koja želiš zamijeniti jednim.')}</p>`;
   }
+  if(!rk.done&&rk.sel.length===1&&RKTR[rk.q.type])action=rkDropHtml();
   const steps=rk.steps.map(s=>`<li>${s}</li>`).join('');
   main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>${ex?`Zadatak ${exam.i+1} od ${exam.qs.length}`:'Mreža '+n.id}</span><span ${ex?'class="timer" id="tm"':''}>${ex?'':'težina zadatka '+fmt(qRating(q))}</span></div><div class="schem" id="rsch">${drawNet(view,{colors:ex?false:p.colors,highlight:hl,groups:groupsMap,click:!rk.done})}</div></div>
-  <div class="sheet side"><p class="q" style="margin-bottom:4px">Svedi mrežu na jedan ${rk.n.cap?'kondenzator C':'otpor R'}<sub>uk</sub> gledano sa stezaljki A i B.</p>
+  <div class="sheet side"><p class="q" style="margin-bottom:4px">Svedi mrežu na jedan ${rk.n.cap?'kondenzator C':'otpor R'}<sub>uk</sub> gledano sa stezaljki A i B.</p>${rkIntro()}
   ${action}<div class="msg ${rk.msgOk?'ok':'bad'}">${rk.msg}</div>
   ${steps?`<ol class="steps">${steps}</ol>`:''}
   ${ex?'':`<label class="toggle"><input type="checkbox" id="col" ${p.colors?'checked':''} ${rk.done?'disabled':''}><span>Bojice potencijala<small>Zadatak riješen uz bojice donosi manje napretka.</small></span></label>`}</div></div>`;
@@ -688,7 +689,7 @@ function renderRuk(){
     const nm=el.dataset.r;rk.msg='';
     if(rk.sel.includes(nm))rk.sel=rk.sel.filter(x=>x!==nm);else if(rk.sel.length<2)rk.sel.push(nm);else rk.sel=[nm];
     renderRuk()});
-  main.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>rkMerge(b.dataset.op));
+  main.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>rkMerge(b.dataset.op));main.querySelectorAll('[data-drop]').forEach(b=>b.onclick=()=>rkDrop(b.dataset.drop));
   if($('#cancel'))$('#cancel').onclick=()=>{rk.sel=[];rk.msg='';renderRuk()};
   if($('#next'))$('#next').onclick=()=>{
     if(ex){exam.res.push({ok:rk.mistakes===0,mistakes:rk.mistakes});exam.i++;rk=null;if(exam.i>=exam.qs.length){exam.running=false;exam.t1=Date.now()}header();return renderExam()}
@@ -2088,7 +2089,7 @@ const IS_TEST='cvoriste-test:'.includes('test');
 const TYPENAME={I:'Ista struja',U:'Isti napon',B:'Bez struje',X:'Uljez',P:'Koji par odmah',Z:'Zapis Ruk',V:'Promjena Ruk',D:'Ne utječe na Ruk',J:'Točna jednadžba',G:'Pronađi grešku',M:'Koja metoda',jace:'Jače polje',nula:'Nula polja'};
 let testType='';
 {const _pq=pickQuestion;pickQuestion=function(topic,exclude=new Set()){
-  if(view==='exam'||(exam&&exam.running)){const ex=new Set(exclude);for(const q of QS)if(q.topic===topic&&q.topic!=='mag'&&q.type&&TYPENAME[q.type]&&!/^(jace|nula)$/.test(q.type))ex.add(q.id);return _pq(topic,ex)}
+  if(view==='exam'||(exam&&exam.running)){const ex=new Set(exclude);for(const q of QS)if(q.topic===topic&&q.topic!=='mag'&&q.type&&TYPENAME[q.type]&&!/^(jace|nula|KS|AB)$/.test(q.type))ex.add(q.id);return _pq(topic,ex)}
   if(testType){const pool=QS.filter(q=>q.topic===topic&&(testType==='-'?!TYPENAME[q.type]:q.type===testType)&&!exclude.has(q.id));if(pool.length){const r=new Set(prof().recent),f=pool.filter(q=>!r.has(q.id));const a=f.length?f:pool;return a[Math.floor(Math.random()*a.length)]}}
   return _pq(topic,exclude)}}
 function tyStat(p,topic,t){const x=(p.ty||{})[topic+':'+t];return x&&x.n?x:null}
@@ -2968,11 +2969,11 @@ let CH=null,CHday=null,CHinfo=null;
 const CHG=[['estat','Elektrostatika',['estat']],['serpar','Serija ili paralela',['serpar']],['ruk','Ukupni otpor',['ruk']],['kont','Metode rješavanja',['kont','cvor']],['thev','Teoremi mreža',['thev','nort']],['mag','Magnetsko polje',['mag']]];
 function chAll(){return [...QS,...(typeof EQ!=='undefined'?EQ:[]),...(typeof MGQ!=='undefined'?MGQ:[])]}
 function chFind(id){return chAll().find(q=>q.id===id)}
-function chPool(ts){return chAll().filter(q=>ts.includes(q.topic)&&!(q.topic==='ruk'&&q.type)&&!(q.topic==='serpar'&&q.type==='S'&&false))}
+function chPool(ts){return chAll().filter(q=>ts.includes(q.topic)&&!(q.topic==='ruk'&&q.type&&!RKTR[q.type])&&!(q.topic==='serpar'&&q.type==='S'&&false))}
 function chRng(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return()=>{h=(h*1103515245+12345)>>>0;return h/4294967296}}
 async function chTopics(){try{const {data,error}=await Remote.rpc('topic_recent');if(!error&&data&&data.length){const tot=Math.max(...data.map(r=>r.total));const u=k=>CHG.find(g=>g[0]===k)[2].reduce((m,t)=>Math.max(m,(data.find(r=>r.topic===t)||{}).users||0),0);const sel=CHG.filter(g=>u(g[0])>=Math.max(3,0.25*tot)).map(g=>g[0]);if(sel.length)return sel}}catch(e){}try{const [t,...L]=await Promise.all([Remote.rpc('leaderboard_total'),...CHG.map(g=>Promise.all(g[2].map(k=>Remote.rpc('leaderboard',{p_topic:k}))))]);const N=(t.data||[]).length||1;
   return CHG.filter((g,i)=>{const s=new Set();L[i].forEach(r=>(r.data||[]).forEach(x=>{if((x.n||0)>=10)s.add(x.nick)}));return s.size>=Math.max(2,0.4*N)}).map(g=>g[0])}catch(e){return ['estat','serpar','ruk']}}
-const CH_MAXSTEPS=12;function chShort(q){if(q.topic!=='kont'&&q.topic!=='cvor')return true;try{return metSteps(q).length<=CH_MAXSTEPS}catch(e){return false}}
+const CH_MAXSTEPS=12;function chShort(q){if(q.topic==='ruk')return !!RKTR[q.type];if(q.topic!=='kont'&&q.topic!=='cvor')return true;try{return metSteps(q).length<=CH_MAXSTEPS}catch(e){return false}}
 function chBuild(day,topics){const rnd=chRng('izazov'+day),G=CHG.filter(g=>topics.includes(g[0]));if(!G.length)return null;const out=[];let k=Math.floor(rnd()*G.length),guard=0;
   while(out.length<10&&guard++<200){const g=G[k%G.length];k++;const pool=chPool(g[2]).filter(q=>!out.includes(q.id)&&chShort(q)).sort((a,b)=>qRating(b)-qRating(a));const hard=pool.slice(0,Math.max(5,Math.floor(pool.length*0.35)));if(!hard.length)continue;out.push(hard[Math.floor(rnd()*hard.length)].id)}
   return out.length===10?out:null}
@@ -3086,6 +3087,72 @@ function svPreview(fn){const p=prof(),keep=JSON.stringify(p.fbs||{});SV_PREVIEW=
   <p style="margin:12px 0 4px;font-weight:600">Osjećaš li se spremno za ovo gradivo na kontrolnoj zadaći?</p>${sel([['da','Da'],['djelomicno','Djelomično'],['ne','Ne']],x.spremnost)}
   <p style="margin:12px 0 4px;font-weight:600">Što bi ti pomoglo u ovom gradivu?</p><div style="min-height:44px;padding:8px;border-radius:8px;border:1px solid var(--line);white-space:pre-wrap;${x.pomoc?'':'color:var(--muted);font-style:italic'}">${x.pomoc?esc(x.pomoc):'(prazno)'}</div>
   <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="primary" id="gsvx" style="margin:0">Zatvori</button></div>`);m.querySelector('#gsvx').onclick=()=>m.remove()}}
+/* ===== Ukupni otpor: zadaci s trikom (kratki spoj, slijepa grana, stezaljke na mjestu otpornika) ===== */
+const RKTR={KS:1,AB:1};
+Object.assign(TYPENAME,{KS:'Kratki spoj i slijepa grana',AB:'Stezaljke na mjestu otpornika'});
+Object.assign(TAGNAMES,{stezaljke:'Stezaljke na mjestu otpornika (R_T)',ugasen_izvor:'Ugašeni izvor u mreži'});
+function rkSolve(segs,A,B,vals){
+  const node=rkNodes(segs,{A,B}),nA=node[A.join(',')],nB=node[B.join(',')];if(nA===nB)return null;
+  let G=segs.filter(x=>x.k==='r').map(x=>({a:node[x.a.join(',')],b:node[x.b.join(',')],v:vals?vals[x.n]:1}));let steps=0,tricks=0,guard=0;
+  while(guard++<200){if(G.length===1&&((G[0].a===nA&&G[0].b===nB)||(G[0].a===nB&&G[0].b===nA)))return{steps,tricks,R:G[0].v};
+    let i=G.findIndex(g=>g.a===g.b);if(i>=0){G.splice(i,1);steps++;tricks++;continue}
+    const deg={};for(const g of G){deg[g.a]=(deg[g.a]||0)+1;deg[g.b]=(deg[g.b]||0)+1}
+    i=G.findIndex(g=>[g.a,g.b].some(v=>deg[v]===1&&v!==nA&&v!==nB));if(i>=0){G.splice(i,1);steps++;tricks++;continue}
+    let done=false;
+    for(let x=0;x<G.length&&!done;x++)for(let y=x+1;y<G.length&&!done;y++){const g=G[x],h=G[y];if((g.a===h.a&&g.b===h.b)||(g.a===h.b&&g.b===h.a)){g.v=g.v*h.v/(g.v+h.v);G.splice(y,1);steps++;done=true}}
+    if(done)continue;
+    for(let x=0;x<G.length&&!done;x++)for(let y=x+1;y<G.length&&!done;y++){const g=G[x],h=G[y];for(const v of [g.a,g.b])if(!done&&(v===h.a||v===h.b)&&deg[v]===2&&v!==nA&&v!==nB){const ga=g.a===v?g.b:g.a,hb=h.a===v?h.b:h.a;if(ga===hb)return null;g.a=ga;g.b=hb;g.v+=h.v;G.splice(y,1);steps++;done=true}}
+    if(!done)return null}
+  return null}
+(function rkGenTricks(){const add=[],key=p=>p.join(',');
+  const mk=(id,base,extra)=>{const n=Object.assign({},base,extra,{id});n.node=rkNodes(n.segs,n);NETS[id]=n;return n};
+  const diff=(st,tr)=>Math.round(Math.max(2,Math.min(8.6,2.4+0.42*st+0.9*tr))*10)/10;
+  /* 1) KS: postojeće mreže s kratko spojenim otpornikom ili slijepom granom, stezaljke A i B ostaju */
+  for(const n of Object.values(NETS)){if(n.cap||!n.status||!Object.values(n.status).some(v=>v==='short'||v==='dead'))continue;
+    const r=rkSolve(n.segs,n.A,n.B,n.vals);if(!r||!r.tricks||r.steps>11||r.steps<3)continue;
+    const tg=['redukcija'];if(Object.values(n.status).includes('short'))tg.push('kratki_spoj');if(Object.values(n.status).includes('dead'))tg.push('bez_struje');
+    add.push({id:'T-'+n.id+'-KS',net:n.id,topic:'ruk',type:'KS',ruk:Math.round(r.R*100)/100,diff:diff(r.steps,r.tricks),tags:tg})}
+  /* 2) AB: otpornik Rx odspojen, stezaljke A i B na njegovim krajevima; izvor između starih A i B ugašen (E → kratki spoj, I → prekid) */
+  const baseNets=[...new Set(QS.filter(q=>q.topic==='ruk'&&!q.type).map(q=>q.net))].map(id=>NETS[id]).filter(Boolean);
+  for(const n of baseNets){const cand=[];
+    for(const rx of n.segs.filter(x=>x.k==='r'))for(const src of ['E','I']){
+      const segs=n.segs.filter(x=>x!==rx).map(x=>({...x,a:[...x.a],b:[...x.b]}));if(src==='E')segs.push({a:[...n.A],b:[...n.B],k:'w',d:false,hide:true});
+      const r=rkSolve(segs,rx.a,rx.b,n.vals);if(!r||r.steps<3||r.steps>10)continue;cand.push({rx,src,segs,r})}
+    const rnd=seeded('ab'+n.id);const pickOne=src=>{const c=cand.filter(x=>x.src===src);if(!c.length)return null;const t=c.filter(x=>x.r.tricks>0);const a=t.length?t:c;return a[Math.floor(rnd()*a.length)]};
+    for(const src of ['E','I']){const c=pickOne(src);if(!c)continue;const id=n.id+'-'+c.rx.n+src;
+      const vals=Object.assign({},n.vals);delete vals[c.rx.n];
+      mk(id,n,{segs:c.segs,A:[...c.rx.a],B:[...c.rx.b],vals,status:undefined,tx:{oA:n.A,oB:n.B,src,rx:c.rx.n,gap:[c.rx.a,c.rx.b]}});
+      const tg=['redukcija','stezaljke','ugasen_izvor'];
+      add.push({id:'T-'+id+'-AB',net:id,topic:'ruk',type:'AB',src,rx:c.rx.n,ruk:Math.round(c.r.R*100)/100,diff:diff(c.r.steps,c.r.tricks+1),tags:tg})}}
+  QS.push(...add);window.RK_TRICK_COUNT={KS:add.filter(q=>q.type==='KS').length,AB:add.filter(q=>q.type==='AB').length}})();
+function rkTxDraw(net,X,Y,colOf,sw,ink){const t=net.tx,F='font-family="Barlow Condensed,Arial Narrow,sans-serif"';let g='';
+  const [p1,p2]=t.gap,x1=X(p1),y1=Y(p1),x2=X(p2),y2=Y(p2),dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;let nx=-uy,ny=ux;if(ny>0||(Math.abs(ny)<1e-6&&nx>0)){nx=-nx;ny=-ny}
+  const c1=[x1+dx*.3,y1+dy*.3],c2=[x1+dx*.7,y1+dy*.7],mx=(x1+x2)/2,my=(y1+y2)/2;
+  g+=`<rect x="${mx-30}" y="${my-14}" width="60" height="28" rx="3" transform="rotate(${Math.atan2(uy,ux)*180/Math.PI} ${mx} ${my})" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" opacity=".55"/>`;
+  g+=`<line x1="${x1}" y1="${y1}" x2="${c1[0]}" y2="${c1[1]}" stroke="${colOf(p1)}" stroke-width="${sw}" stroke-linecap="round"/><line x1="${x2}" y1="${y2}" x2="${c2[0]}" y2="${c2[1]}" stroke="${colOf(p2)}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  for(const [c,l] of [[c1,'A'],[c2,'B']])g+=`<circle cx="${c[0]}" cy="${c[1]}" r="7" fill="var(--sheet)" stroke="${ink}" stroke-width="2.4"/><text x="${c[0]+nx*22}" y="${c[1]+ny*22+7}" text-anchor="middle" ${F} font-size="21" font-weight="700" fill="var(--ok)">${l}</text>`;
+  
+  const ax=X(t.oA),ay=Y(t.oA),bx=X(t.oB),by=Y(t.oB),ex=ax-40;
+  g+=`<line x1="${ax}" y1="${ay}" x2="${ex}" y2="${ay}" stroke="${colOf(t.oA)}" stroke-width="${sw}"/><line x1="${bx}" y1="${by}" x2="${ex}" y2="${by}" stroke="${colOf(t.oB)}" stroke-width="${sw}"/>`;
+  const m=(ay+by)/2;
+  if(t.src==='E')g+=`<line x1="${ex}" y1="${ay}" x2="${ex}" y2="${by}" stroke="var(--mark)" stroke-width="${sw+1.5}" stroke-linecap="round"/><text x="${ex-10}" y="${m-4}" text-anchor="end" ${F} font-size="16" font-weight="700" fill="${ink}">ugašen E</text><text x="${ex-10}" y="${m+14}" text-anchor="end" ${F} font-size="15" font-weight="500" fill="var(--muted)">kratki spoj</text>`;
+  else g+=`<circle cx="${ex}" cy="${ay}" r="5" fill="var(--sheet)" stroke="${ink}" stroke-width="2"/><circle cx="${ex}" cy="${by}" r="5" fill="var(--sheet)" stroke="${ink}" stroke-width="2"/><text x="${ex-10}" y="${m-4}" text-anchor="end" ${F} font-size="16" font-weight="700" fill="${ink}">ugašen I</text><text x="${ex-10}" y="${m+14}" text-anchor="end" ${F} font-size="15" font-weight="500" fill="var(--muted)">prekid</text>`;
+  return g}
+{const _dn=drawNet;drawNet=function(net,opts){const svg=_dn.apply(this,arguments);if(!net||!net.tx)return svg;
+  return svg.replace(/viewBox="0 0 ([\d.]+) ([\d.]+)"/,(m,w,h)=>`viewBox="-96 0 ${+w+96} ${h}"`).replace('<rect width=','<rect x="-96" width="9999" height="9999" fill="url(#pg)"/><rect width=')}}
+function rkIntro(){const q=rk&&rk.q;if(!q||!RKTR[q.type])return '';
+  if(q.type==='AB')return `<p class="note" style="margin:4px 0 0">Otpornik ${sub(q.rx)} je odspojen, a stezaljke A i B su na njegovim krajevima, kao kod određivanja Theveninova otpora R<sub>T</sub>. Izvor je ugašen: ${q.src==='E'?'naponski izvor zamijenjen je <b>kratkim spojem</b>':'strujni izvor zamijenjen je <b>prekidom</b>'}. Otpornik koji ne utječe na R<sub>uk</sub> klikni i izbaci.</p>`;
+  return `<p class="note" style="margin:4px 0 0">Pazi na otpornike koji ne utječu na R<sub>uk</sub>. Takav otpornik klikni i izbaci ga.</p>`}
+function rkDropHtml(){const A=sub(rk.sel[0]);return `<p class="q" style="margin-top:14px">Što je s otpornikom ${A}?</p><div class="opts"><button class="opt" data-drop="short"><kbd>a)</kbd>Kratko je spojen: izbaci ga</button><button class="opt" data-drop="dead"><kbd>b)</kbd>Nema struje (slijepa grana): izbaci ga</button><button class="ghost" id="cancel" style="margin-top:4px">Odustani</button></div><p class="note" style="margin-top:6px">Ili odaberi još jedan otpornik za seriju ili paralelu.</p>`}
+function rkDrop(kind){const S=rkState(),g=S.groups.find(x=>x.seg.n===rk.sel[0]);if(!g)return;const A=sub(g.seg.n);
+  const deg={};for(const x of S.groups){deg[x.a]=(deg[x.a]||0)+1;deg[x.b]=(deg[x.b]||0)+1}
+  const isShort=g.a===g.b,isDead=!isShort&&[g.a,g.b].some(v=>deg[v]===1&&v!==S.nA&&v!==S.nB),act=isShort?'short':isDead?'dead':'none';
+  if(act!==kind){rk.mistakes++;rk.msgOk=false;
+    rk.msg=act==='none'?`${A} vodi struju i utječe na R<sub>uk</sub>. Spoji ga s drugim otpornikom u seriju ili paralelu.`:act==='short'?`${A} jest suvišan, ali zato što je kratko spojen: oba kraja su mu na istom potencijalu (spojena vodičem).`:`${A} jest suvišan, ali zato što je u slijepoj grani: jedan kraj mu ne vodi nikamo, pa struja nema kamo nastaviti.`;
+    rk.sel=[];return renderRuk()}
+  rk.segs.splice(rk.segs.indexOf(g.seg),1);rkPrune();
+  rk.steps.push(kind==='short'?`${A} kratko spojen → izbačen`:`${A} u slijepoj grani → izbačen`);
+  rk.sel=[];rk.msgOk=true;rk.msg=kind==='short'?`Dobro. ${A} je kratko spojen i ne utječe na R<sub>uk</sub>.`:`Dobro. Kroz ${A} ne teče struja, pa ne utječe na R<sub>uk</sub>.`;renderRuk()}
 view='home';
 boot();
 
