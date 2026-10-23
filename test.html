@@ -518,6 +518,8 @@ function renderHelp(){
   <p>Svi vodiči na istom potencijalu oboje se istom bojom, pa se lakše vidi što je spojeno na što. Viša stezaljka (A) je crvena, niža (B) plava, a čvorovi između idu od toplijih prema hladnijim bojama. Pomažu, ali točan odgovor uz bojice donosi manje napretka. Pokušaj ih koristiti samo kad zapneš.</p>
   <h3>Lakši ili teži?</h3>
   <p>Ispod zadatka u vježbi su gumbi <b>Lakši</b>, <b>Novi zadatak</b> i <b>Teži</b>. Zadatak se preskače bez utjecaja na razinu, a idući je lakši ili teži. Kad u zadatku s više koraka već kreneš, možeš <b>preskočiti korak</b> (računa se kao pogreška) ili <b>preskočiti zadatak</b>.</p>
+  <h3>Tipkovnica, objašnjenje i sažetak</h3>
+  <p>Na računalu se na ponuđeni odgovor može odgovoriti tipkom: slovo s gumba (a, b, c…) ili broj (1, 2, 3…). <b>Enter</b> otvara sljedeće pitanje, a <b>N</b> daje novi zadatak. Nakon pogrešnog odgovora u Vježbi prvo se vidi početak objašnjenja, a ostatak gumbom <b>Pokaži cijelo objašnjenje</b>: pokušaj prvo samostalno pronaći grešku. Kad se izađe iz Vježbe nakon barem tri odgovora, pojavi se <b>sažetak</b>: koliko je riješeno, postotak točnih, promjena ukupne razine i gradivo s najviše grešaka.</p>
   <h3>Zadaci</h3>
   <p>Zadaci s brojevima koje rješavaš na papiru: elektrostatika (naboji i kondenzatori), magnetsko polje, ukupni otpor i kapacitet, struje i naponi, metode rješavanja, teoremi i prilagođenje. Kod naboja i magnetskog polja možeš odabrati vrstu zadatka. Upišeš rezultate, a aplikacija provjeri jesu li točni (priznaje se odstupanje do 5 %). Točan rezultat iz prvog pokušaja nosi pune bodove, a iz drugog pola. Nakon predaje možeš pogledati cijeli postupak. Ako prikažeš rješenje prije predaje, zadatak nosi 0 bodova. Prema bodovima se bira težina idućeg zadatka, a gumbima Lakši i Teži možeš je i sam promijeniti. Na Ljestvici i Početnoj vidiš bodove i ukupno i po gradivima.</p>
   <h3>Baza zadataka</h3>
@@ -3517,5 +3519,151 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
   enter();
 })();
 </script>
+<style id="extra">
+.kbhint{margin:10px 0 0;font-size:12px;color:var(--muted)}
+.kbhint kbd{font:inherit;font-weight:700;padding:0 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;background:var(--btn);color:var(--ink)}
+@media (hover:none),(pointer:coarse){.kbhint{display:none}}
+.xmore[hidden]{display:none}
+.xbtn{display:block;font:inherit;font-size:14px;font-weight:700;background:none;border:0;padding:0;margin:0 0 6px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.sesgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 12px}
+.sesgrid div{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.sesgrid b{display:block;font-family:var(--f-head);font-size:26px;line-height:1.1}
+.sesgrid span{font-size:13px;color:var(--muted)}
+#novo{position:fixed;left:12px;bottom:12px;z-index:9990;width:300px;max-width:calc(100vw - 24px);background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18);font-size:13px}
+#novo>button{display:flex;width:100%;align-items:center;gap:8px;font:inherit;font-weight:700;background:none;border:0;color:inherit;padding:9px 12px;cursor:pointer}
+#novo>button i{font-style:normal;margin-left:auto;color:var(--muted)}
+#novo ul{list-style:none;margin:0;padding:0 8px 8px}
+#novo li{display:flex;gap:8px;align-items:center;padding:7px 4px;border-top:1px solid var(--line)}
+#novo li div{flex:1;line-height:1.3}#novo li small{display:block;color:var(--muted)}
+#novo li .ghost{padding:5px 10px;font-size:13px;margin:0}
+#novo.zatv ul{display:none}
+#novotoast{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:9991;max-width:min(520px,calc(100vw - 24px));background:var(--ink);color:var(--sheet);padding:10px 14px;border-radius:8px;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+</style>
+<script>
+/* ---------- Tipkovnica: a–e ili 1–5 za odgovor, Enter za dalje, N za novi zadatak ---------- */
+(function(){
+  const NEXT='#next,#tnext,#tnext2,#mnext,#mgnext,#enext,#rnext';
+  const vis=e=>e&&!e.disabled&&e.offsetParent!==null;
+  const modal=()=>!!document.querySelector('body>div[style*="inset:0"]');
+  addEventListener('keydown',e=>{
+    if(e.ctrlKey||e.metaKey||e.altKey||!prof())return;
+    const t=e.target;if(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||modal())return;
+    let k=e.key.toLowerCase();if(/^[1-9]$/.test(k))k='abcdefghi'[+k-1];
+    if(/^[a-i]$/.test(k)){
+      const b=[...main.querySelectorAll('.opt')].find(o=>vis(o)&&o.querySelector('kbd')&&o.querySelector('kbd').textContent.trim()===k+')');
+      if(b){e.preventDefault();e.stopImmediatePropagation();b.click();return}
+    }
+    if(k==='enter'&&!(t.tagName==='BUTTON'||t.tagName==='A')){
+      const b=[...main.querySelectorAll(NEXT)].find(vis);
+      if(b){e.preventDefault();e.stopImmediatePropagation();b.click();return}
+    }
+    if(k==='n'){
+      const b=[...main.querySelectorAll('button')].find(x=>vis(x)&&x.textContent.trim()==='Novi zadatak');
+      if(b){e.preventDefault();e.stopImmediatePropagation();b.click()}
+    }
+  },true);
+  // Kratka uputa ispod ponuđenih odgovora (samo na računalu)
+  new MutationObserver(()=>{
+    if(view!=='practice'&&view!=='lesson')return;
+    const o=main.querySelector('.opts');if(!o||main.querySelector('.kbhint')||!o.querySelector('.opt kbd'))return;
+    const n=o.querySelectorAll('.opt').length,hasNew=[...main.querySelectorAll('button')].some(x=>x.textContent.trim()==='Novi zadatak');
+    o.insertAdjacentHTML('afterend',`<p class="kbhint">Tipke: <kbd>a</kbd>–<kbd>${'abcdefghi'[n-1]}</kbd> ili <kbd>1</kbd>–<kbd>${n}</kbd> odgovor · <kbd>Enter</kbd> dalje${hasNew?' · <kbd>N</kbd> novi zadatak':''}</p>`);
+  }).observe(main,{childList:true,subtree:true});
+})();
+
+/* ---------- Postupno objašnjenje: nakon greške prvo samo prvi korak, ostatak na klik ---------- */
+(function(){
+  const ABBR=/(?:^|\s)(npr|tj|itd|odn|br|sl|god|str)$/i,open=new Set();
+  const sig=()=>view+'|'+((main.querySelector('.q')||{}).textContent||'').slice(0,80)+'|'+((main.querySelector('.meta span')||{}).textContent||'');
+  function cut(p){
+    // Prve dvije rečenice (tvrdnja + ključni razlog); ostatak ide iza gumba
+    const want=2;let cnt=0;
+    for(const nd of [...p.childNodes]){
+      if(nd.nodeType!==3)continue;const re=/[.!?](?=\s+\S)/g;let m;
+      while((m=re.exec(nd.data))){
+        if(ABBR.test(nd.data.slice(0,m.index)))continue;
+        if(++cnt===want){
+          const rest=nd.splitText(m.index+1),span=document.createElement('span');span.className='xmore';span.hidden=true;
+          let x=rest;while(x){const nx=x.nextSibling;span.appendChild(x);x=nx}
+          if(span.textContent.trim().length<30){while(span.firstChild)p.appendChild(span.firstChild);return null}
+          p.appendChild(span);return span}
+      }
+    }
+    return null}
+  new MutationObserver(()=>{
+    if(view!=='practice')return;
+    const fb=main.querySelector('.fb.bad');if(!fb||fb.dataset.x)return;fb.dataset.x='1';
+    const h=fb.querySelector('h3');if(!h||h.textContent.trim()!=='Nije točno')return;
+    const p=fb.querySelector('p');if(!p)return;const s=sig();if(open.has(s))return;
+    const span=cut(p);if(!span)return;
+    p.insertAdjacentHTML('afterend','<button class="xbtn" type="button">Pokaži cijelo objašnjenje</button>');
+    const b=p.nextElementSibling;b.onclick=()=>{span.hidden=false;b.remove();open.add(s)};
+  }).observe(main,{childList:true,subtree:true});
+})();
+
+/* ---------- Sažetak sesije: kad student izađe iz Vježbe nakon barem 3 odgovora ---------- */
+(function(){
+  const fresh=()=>({n:0,ok:0,t0:Date.now(),r0:$('#hdrNum').textContent,mods:{},tags:{},seen:new Set()});
+  let S=fresh(),lastView=view;
+  const qsig=()=>((main.querySelector('.q')||{}).textContent||'').slice(0,80)+'|'+((main.querySelector('.meta span')||{}).textContent||'');
+  const modName=()=>{const b=main.querySelector('.modbar[role=tablist] button[aria-current="true"]');return b?b.textContent.trim():'Ostalo'};
+  function show(s){
+    const r1=$('#hdrNum').textContent,min=Math.max(1,Math.round((Date.now()-s.t0)/60000)),pct=Math.round(100*s.ok/s.n);
+    const bad=Object.entries(s.mods).filter(([,m])=>m.n>m.ok).sort((a,b)=>(b[1].n-b[1].ok)-(a[1].n-a[1].ok));
+    const tg=Object.entries(s.tags).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const d=document.createElement('div');d.id='sesov';
+    d.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(10,18,26,.55);display:flex;align-items:center;justify-content:center;padding:12px';
+    d.innerHTML=`<div style="background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:460px;width:100%;max-height:92vh;overflow:auto;padding:18px 18px 16px">
+      <h3 style="margin:0 0 2px">Sažetak vježbanja</h3><p class="note" style="margin:0">Otprilike ${min} min</p>
+      <div class="sesgrid"><div><b>${s.n}</b><span>riješeno</span></div><div><b>${pct} %</b><span>točno (${s.ok})</span></div><div><b>${s.r0===r1?r1:s.r0+' → '+r1}</b><span>ukupna razina</span></div></div>
+      ${bad.length?`<p style="margin:0 0 4px"><b>Najviše grešaka:</b> ${bad.slice(0,2).map(([k,m])=>`${k} (${m.n-m.ok} od ${m.n})`).join(', ')}</p>`:'<p style="margin:0 0 4px"><b>Bez greške.</b> Odlično!</p>'}
+      ${tg.length?`<p class="note" style="margin:0 0 4px">Zamke na kojima je bilo grešaka: ${tg.map(([t])=>TAGNAMES[t]||t).join(', ')}</p>`:''}
+      <button class="primary" id="sesok" style="margin-top:12px">U redu</button></div>`;
+    document.body.appendChild(d);
+    const close=()=>{d.remove();removeEventListener('keydown',esc,true)},esc=e=>{if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();close()}};
+    addEventListener('keydown',esc,true);d.onclick=e=>{if(e.target===d)close()};d.querySelector('#sesok').onclick=close;
+  }
+  // Za testnu traku: pokaži sažetak (trenutni ako ima odgovora, inače primjer)
+  window.sesDemo=()=>show(S.n?S:{n:8,ok:5,t0:Date.now()-6*60000,r0:'2,0',mods:{'Serija ili paralela':{n:5,ok:3},'Elektrostatika':{n:3,ok:2}},tags:{dijagonala:1,skrivena_paralela:1}});
+  new MutationObserver(()=>{
+    if(view!==lastView){
+      if(lastView==='practice'&&S.n>=3)show(S);
+      if(view==='practice'&&lastView!=='practice')S=fresh();
+      lastView=view;
+    }
+    if(view!=='practice'||document.body.classList.contains('chal'))return;
+    const fb=main.querySelector('.fb.ok,.fb.bad');if(!fb)return;
+    const k=qsig();if(S.seen.has(k))return;S.seen.add(k);
+    const ok=fb.classList.contains('ok'),m=modName(),o=S.mods[m]||(S.mods[m]={n:0,ok:0});
+    S.n++;o.n++;if(ok){S.ok++;o.ok++}
+    else if(typeof cur!=='undefined'&&cur&&cur.tags&&prof().module==='serpar')for(const t of cur.tags)if(TAGNAMES[t])S.tags[t]=(S.tags[t]||0)+1;
+  }).observe(main,{childList:true,subtree:true});
+})();
+
+/* ---------- Testna traka "Novo u testu": samo u testnoj verziji, brzi prečaci do novih funkcija ---------- */
+(function(){
+  if(!IS_TEST)return;
+  const toast=t=>{document.getElementById('novotoast')?.remove();const d=document.createElement('div');d.id='novotoast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),7000)};
+  const go=(v,m)=>{if(!prof())return toast('Prvo se prijavi.');const b=document.querySelector(`#nav [data-v="${v}"]`);if(b)b.click();if(m){const x=main.querySelector(`.modbar[role=tablist] [data-m="${m}"]`);if(x&&x.getAttribute('aria-current')!=='true')x.click()}scrollTo(0,0)};
+  const T=[
+    ['Tipkovnica','a–d / 1–4, Enter, N',()=>{go('practice','serpar');toast('Ne klikaj mišem: pritisni 1–4 ili a–d za odgovor, Enter za dalje, N za novi zadatak.')}],
+    ['Postupno objašnjenje','nakon krivog odgovora',()=>{go('practice','estat');toast('Odgovori namjerno krivo, pa klikni „Pokaži cijelo objašnjenje”.')}],
+    ['Sažetak vježbanja','pri izlasku iz Vježbe',()=>{sesDemo();if(!document.getElementById('sesov'))return;toast('Ovo je primjer. Pravi se pojavi kad izađeš iz Vježbe nakon barem 3 odgovora.')}],
+    ['Animacije','prijelazi i prelazak mišem',()=>{go('home');toast('Mijenjaj kartice gore i prelazi mišem preko gumba i ponuđenih odgovora.')}],
+  ];
+  const adm=()=>typeof isAdmin!=='undefined'&&isAdmin;
+  const box=document.createElement('div');box.id='novo';
+  let zatv=false;try{zatv=localStorage.getItem('cvoriste-test:novo-zatv')==='1'}catch(e){}
+  const draw=()=>{const L=adm()?[...T,['Najteža pitanja','Nastavnik → Analitika',()=>{view='fb';adTab='an';anSec='grp';anNick=null;render();scrollTo(0,0)}]]:T;
+    box.className=zatv?'zatv':'';
+    box.innerHTML=`<button type="button" aria-expanded="${!zatv}">✨ Novo u testu <i>${zatv?'▴':'▾'}</i></button><ul>${L.map(([t,s],i)=>`<li><div>${t}<small>${s}</small></div><button class="ghost" data-i="${i}">Pokaži</button></li>`).join('')}</ul>`;
+    box.firstChild.onclick=()=>{zatv=!zatv;try{localStorage.setItem('cvoriste-test:novo-zatv',zatv?'1':'0')}catch(e){}draw()};
+    box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>L[+b.dataset.i][2]())};
+  draw();document.body.appendChild(box);
+  // Gumb "Najteža pitanja" pojavi se kad se učita da si administrator
+  let a=adm();setInterval(()=>{if(adm()!==a){a=adm();draw()}},2000);
+})();
+</script>
+
 </body>
 </html>
