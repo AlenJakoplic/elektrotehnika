@@ -127,7 +127,41 @@ td{overflow-wrap:normal;word-break:normal}
  .board>*{min-width:0}
  .schem svg{max-width:100%;height:auto}
 }
-</style></head>
+</style><style id="anim">
+/* ===== Lagane animacije (izgled ostaje isti; isključeno uz "smanji pokrete") ===== */
+@keyframes anIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes anFade{from{opacity:0}to{opacity:1}}
+@keyframes anPop{from{opacity:0;transform:translateY(4px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes anBump{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes anGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:no-preference){
+  main.an-enter>*{animation:anIn .35s cubic-bezier(.23,1,.32,1) both}
+  main.an-enter>*:nth-child(2){animation-delay:.04s}
+  main.an-enter>*:nth-child(3){animation-delay:.08s}
+  main.an-enter>*:nth-child(n+4){animation-delay:.12s}
+  main.an-enter .board>*:nth-child(2),main.an-enter .lesson>*:nth-child(2){animation:anIn .38s cubic-bezier(.23,1,.32,1) .07s both}
+  main.an-enter .opts .opt{animation:anFade .25s ease-out both}
+  main.an-enter .opts .opt:nth-child(2){animation-delay:.03s}main.an-enter .opts .opt:nth-child(3){animation-delay:.06s}main.an-enter .opts .opt:nth-child(n+4){animation-delay:.09s}
+  main.an-enter .bar i{transform-origin:left center;animation:anGrow .6s cubic-bezier(.23,1,.32,1) .1s both}
+  .an-pop{animation:anPop .28s cubic-bezier(.23,1,.32,1) both}
+  #hdrNum{display:inline-block}#hdrNum.an-bump{animation:anBump .45s cubic-bezier(.23,1,.32,1)}
+  .opt,.primary,.ghost,nav button,.modbar button,.banklist button,.zbtn{transition:border-color .12s,background-color .15s,color .15s,transform .15s cubic-bezier(.23,1,.32,1),box-shadow .15s,filter .15s}
+  /* Prijelaz mišem: blago podizanje i sjena (samo na uređajima s mišem) */
+  @media (hover:hover){
+    .primary:hover:not(:disabled),.ghost:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,.15)}
+    .primary:hover:not(:disabled){filter:brightness(1.12)}
+    .ghost:hover:not(:disabled){filter:brightness(.96)}
+    .opt:hover:not(:disabled){transform:translateX(3px);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    nav button:hover:not([aria-current="true"]),.modbar button:hover:not([aria-current="true"]){color:var(--ink);background:color-mix(in srgb,var(--btn) 60%,transparent)}
+    .banklist button:hover:not([aria-current="true"]){transform:translateY(-1px);border-color:var(--ink)}
+    .zbtn:hover{transform:scale(1.06)}
+  }
+  .opt:active:not(:disabled),.primary:active:not(:disabled),.ghost:active:not(:disabled){transform:scale(.98);box-shadow:none}
+  div[style*="position:fixed;inset:0"]{animation:anFade .2s ease-out both}
+  div[style*="position:fixed;inset:0"]>div{animation:anPop .26s cubic-bezier(.23,1,.32,1) both}
+}
+</style>
+</head>
 <body>
 <header>
   <div class="brand">Elektrotehnika<small>Digitalna radionica</small></div>
@@ -3462,6 +3496,26 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
   <tr><td>Prosj. najbolja probna KZ1</td>${R.map(r=>`<td class="num">${r.kz_best==null?'–':zN(r.kz_best)+' / 20'}</td>`).join('')}</tr></table>
   <p class="note">Uspoređuju se samo korisnici koji su odabrali kolegij. Statistika iznad i dalje obuhvaća sve. Razina po gradivu je prosjek korisnika koji su vježbali to gradivo (u zagradi broj korisnika).</p></div>`)}
 {const _rba=renderBoardAll;renderBoardAll=async function(){const r=await _rba.apply(this,arguments);try{courseStats()}catch(e){}return r}}
+</script>
+<script>
+/* ---------- Lagane animacije: prijelazi između prikaza, isticanje povratne poruke ---------- */
+(function(){
+  // Stilovi koje skripte ubacuju tijekom rada idu na kraj <head>; ovaj sloj mora ostati iza njih.
+  const css=document.getElementById('anim');if(css)document.head.appendChild(css);
+  const txt=s=>{const e=main.querySelector(s);return e?e.textContent.trim().slice(0,80):''};
+  let lastSig='',lastFb='',lastNum=$('#hdrNum').textContent;
+  let tEnter;const enter=()=>{main.classList.remove('an-enter');void main.offsetWidth;main.classList.add('an-enter');clearTimeout(tEnter);tEnter=setTimeout(()=>main.classList.remove('an-enter'),900)};
+  new MutationObserver(()=>{
+    // Novi prikaz ili novo pitanje: kratko klizanje sadržaja; promjena unutar istog pitanja: bez animacije.
+    const sig=view+'|'+txt('h2')+'|'+txt('.q')+'|'+txt('.meta span');
+    if(sig!==lastSig){lastSig=sig;enter()}
+    const fb=[...main.querySelectorAll('.fb,.msg.ok,.msg.bad')].filter(e=>e.textContent.trim());
+    const f=fb.map(e=>e.textContent.trim()).join('|');
+    if(f!==lastFb){lastFb=f;fb.forEach(e=>{e.classList.remove('an-pop');void e.offsetWidth;e.classList.add('an-pop')})}
+  }).observe(main,{childList:true,subtree:true,characterData:true});
+  new MutationObserver(()=>{const n=$('#hdrNum'),v=n.textContent;if(v!==lastNum&&lastNum!=='–'){n.classList.remove('an-bump');void n.offsetWidth;n.classList.add('an-bump')}lastNum=v}).observe($('#hdrNum'),{childList:true,characterData:true,subtree:true});
+  enter();
+})();
 </script>
 </body>
 </html>
