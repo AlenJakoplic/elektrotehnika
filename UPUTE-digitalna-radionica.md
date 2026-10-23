@@ -24,6 +24,7 @@ Digitalna radionica je web-aplikacija za vježbanje gradiva jednog kolegija, nap
 | GitHub i GitHub Pages | besplatno spremište i objava aplikacije na webu |
 | Supabase | baza podataka: profili, odgovori, ljestvice, povratne informacije |
 | Claude (claude.ai, projekt) | piše i dorađuje aplikaciju prema materijalima kolegija |
+| Claude Code | mijenja kod izravno u GitHub repozitoriju, sam ga isproba i spremi (preporučeno) |
 
 Postoje dvije verzije iste datoteke: `index.html` je živa verzija koju koriste studenti, a `test.html` je testna. Sve se prvo napravi i isproba na testu, a tek onda objavi.
 
@@ -86,6 +87,27 @@ Najbolje ide **korak po korak**: jedno gradivo ili jedna funkcija po razgovoru, 
 
 - Traži od Claudea **popis što sve provjeriti**, pa ga drugi dan za računalom prođi na testnoj verziji, tek onda napiši „objavi“.
 - Uz veće novosti Claude pri objavi doda **novu oznaku verzije** i prozor **Što je novo** za studente. Za sitnice (tekst, boja, mala ispravka) to ne treba.
+
+## Claude Code (preporučeno za rad na kodu)
+
+**Claude Code** je Claudeov alat za rad na kodu. Za razliku od razgovora u claude.ai projektu, radi izravno u GitHub repozitoriju: sam otvori `test.html`, izmijeni ga, isproba u pregledniku i spremi izmjenu na GitHub. Datoteke ne treba preuzimati ni ručno učitavati. Koristi se s istim Claude računom, na webu, u aplikaciji za računalo i na mobitelu.
+
+**Kako početi:**
+
+1. U Claude Codeu poveži GitHub račun i odaberi repozitorij aplikacije.
+2. U repozitorij stavi datoteku `CLAUDE.md` s pravilima projekta. Claude Code je pročita na početku svakog rada, pa pravila ne treba ponavljati u svakoj poruci. Kao predložak posluži [Alenov CLAUDE.md](https://github.com/AlenJakoplic/elektrotehnika/blob/main/CLAUDE.md): napiši Claude Codeu da ga prilagodi tvom kolegiju i tvojoj aplikaciji.
+3. Radi kao i inače: opiši izmjenu, isprobaj testnu verziju, napiši „objavi“.
+
+**Materijali kolegija.** Repozitorij je javan, pa u njega ne stavljaj ništa što ne smije biti javno. Materijali ostaju u claude.ai projektu, a kad Claude Code treba neki zadatak ili predavanje, priloži ga u razgovor ili zalijepi tekst.
+
+**Podjela posla (kako radi Alen):**
+
+- **claude.ai projekt:** razgovor o gradivu, prijedlozi, pitanja i zadaci iz materijala, tekstovi za studente.
+- **Claude Code:** izmjene koda, testiranje i objava.
+
+Ako radiš s oba, reci Claudeu u projektu da prije svake izmjene preuzme zadnju verziju s GitHuba. Repozitorij je jedini izvor istine, pa se tako izmjene jednog ne prebrišu drugim.
+
+Pravila iz odjeljka *Važno* vrijede i ovdje: Claude Code nikad ne dobiva *service_role / secret* ključ ni lozinku baze, a SQL i dalje pokrećeš ti u Supabaseu.
 
 ## Važno
 
