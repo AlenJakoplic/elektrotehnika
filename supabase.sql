@@ -639,7 +639,7 @@ language sql security definer set search_path = public as $$
     (sum(coalesce((p.state->'ratings'->k->>'r')::real, 2) * greatest(1, coalesce((p.state->'ratings'->k->>'n')::int, 0)))
       / sum(greatest(1, coalesce((p.state->'ratings'->k->>'n')::int, 0))))::real,
     (sum(coalesce((p.state->'ratings'->k->>'n')::int, 0)) + max(coalesce((p.state->>'freeN')::int, 0)))::int
-  from profiles p, unnest(array['serpar','ruk','estat','kont','cvor']) k
+  from profiles p, unnest(array['serpar','ruk','estat','kont','cvor','thev','nort','mag']) k
   group by p.id, p.nick
   having sum(coalesce((p.state->'ratings'->k->>'n')::int, 0)) + max(coalesce((p.state->>'freeN')::int, 0)) > 0
   order by 2 desc limit 200;
