@@ -700,14 +700,14 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;flex:1;min-height:0">
     <figure class="rv" style="--i:2;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">Pitaj nastavnika</p><p class="small muted" style="margin:0 0 18px">Pitanje uz točno taj zadatak; odgovor se vidi u aplikaciji.</p><div class="shot" data-zoom="prezentacija/slike/pitaj.webp"><img src="prezentacija/slike/pitaj.webp" alt="Pitaj nastavnika" loading="lazy" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 40%"></div></figure>
     <figure class="rv" style="--i:3;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">Kratke ankete</p><p class="small muted" style="margin:0 0 18px">Nakon 100 riješenih pitanja, nakon probne KZ1 i po gradivu.</p><div class="shot" data-zoom="prezentacija/slike/anketa.webp"><img src="prezentacija/slike/anketa.webp" alt="Anketa" loading="lazy" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 20%"></div></figure>
-    <figure class="rv" style="--i:4;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">I pod pauzom</p><p class="small muted" style="margin:0 0 18px">Dođu sa snimkom zaslona i pitanjem o zadatku, ili s idejom za animaciju.</p><div class="pz21"><div class="ph21"><img src="prezentacija/slike/mob-vjezba.webp" alt="Snimka zadatka s mobitela" loading="lazy"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i></div><span class="b21 q">Pitanje o ovom zadatku</span><span class="b21 s">Prijedlog za animaciju</span></div></figure>
+    <figure class="rv" style="--i:4;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">I pod pauzom</p><p class="small muted" style="margin:0 0 18px">Dođu sa snimkom zaslona i pitanjem o zadatku, ili s idejom za aplikaciju.</p><div class="pz21"><div class="ph21"><img src="prezentacija/slike/mob-vjezba.webp" alt="Snimka zadatka s mobitela" loading="lazy"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i></div><span class="b21 q">Pitanje o ovom zadatku</span><span class="b21 s">Ideja za aplikaciju</span></div></figure>
   </div>
 </section>
 
 <!-- 22 · Brojke iz aplikacije -->
 <section class="slide c" data-sec="Analitika" id="s-num">
   <p class="kick rv"><b>07</b> U brojkama</p>
-  <h2 class="rv" style="--i:1">Prvi mjesec</h2>
+  <h2 class="rv" style="--i:1" id="anH">Do sada</h2>
   <p class="small muted rv" id="anNote" style="--i:1;margin:-30px 0 10px">Brojke se učitavaju uživo iz analitike…</p>
   <div class="stats" style="margin-top:20px">
     <div class="stat rv" style="--i:2"><div class="v"><span class="anv" id="an1">–</span></div><div class="l">studenata koristi aplikaciju<span class="an-sub" id="an1b"></span></div></div>
@@ -923,7 +923,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:38};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:39};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
@@ -1019,6 +1019,10 @@ function heroRun(){const t=++heroTok;hero.getAnimations?.().forEach(a=>a.cancel(
   if(!RM)hero.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:900,easing:'cubic-bezier(.23,1,.32,1)',fill:'both'});
   hl('r1',1000);hl('r2',1160)}
 
+/* slajd 22: do 7. 11. brojke do sada; poslije prvi mjesec (7. 10. – 6. 11.) i stanje u trenutku gledanja */
+const AN_START=new Date('2026-10-07T00:00:00+02:00'),AN_MONTH=new Date('2026-11-07T00:00:00+01:00');
+function anTitle(){const now=new Date(),n=Math.floor((now-AN_START)/864e5);$('#anH').textContent=now<AN_MONTH?`Prvih ${n} dana`:'Prvi mjesec i danas'}
+anTitle();
 /* slajd 22: brojke uživo iz analitike (prava aplikacija u skrivenom okviru; radi samo kad je prijavljen nastavnik) */
 let anDone=false;
 function anLive(){if(anDone)return;liveLoad();const t0=Date.now(),note=$('#anNote');
@@ -1033,6 +1037,19 @@ function anLive(){if(anDone)return;liveLoad();const t0=Date.now(),note=$('#anNot
       const n=r=>r.r.answers_n||(r.nAns+r.zn),act=rows.filter(r=>n(r)>0),wk=rows.filter(r=>(r.r.days7||0)>0).length;
       const solved=rows.reduce((x,r)=>x+n(r),0);
       const fb=(f.data||[]),sv=fb.filter(x=>x.kind==='anketa').length,msg=fb.length-sv;
+      if(new Date()>=AN_MONTH){
+        // prvi mjesec: studenti prijavljeni do 6. 11. koji imaju odgovore, odgovori po danima (admin_activity, 60 dana), poruke s datumom
+        const inM=d=>d&&new Date(d)<AN_MONTH;let M=null;try{M=JSON.parse(localStorage.getItem('prezentacija:m22')||'null')}catch(e){}
+        try{const act2=await R.rpc('admin_activity',{p_token:tok});const days=(act2.data||[]);
+          if(days.length){
+            const ans=days.filter(x=>new Date(x.day+'T12:00:00+01:00')<AN_MONTH).reduce((a,x)=>a+x.n,0);
+            const m={s:act.filter(r=>inM(r.r.created_at)).length,a:ans,f:fb.filter(x=>x.kind!=='anketa'&&inM(x.created_at)).length,v:fb.filter(x=>x.kind==='anketa'&&inM(x.created_at)).length};
+            // odgovori stariji od 60 dana ne dolaze iz baze: tada vrijedi spremljena vrijednost
+            if(!M||m.a>=M.a){M=m;try{localStorage.setItem('prezentacija:m22',JSON.stringify(M))}catch(e){}}}}catch(e){}
+        if(M){show('an1',M.s);show('an2',M.a);show('an3',M.f);
+          $('#an1b').textContent='u prvom mjesecu · danas '+fmtN(act.length);$('#an2b').textContent='u prvom mjesecu · danas '+fmtN(solved);
+          $('#an3b').textContent='u prvom mjesecu · danas '+fmtN(msg);
+          note.textContent='Uživo iz analitike: prvi mjesec (7. 10. – 6. 11. 2026.) i stanje '+new Date().toLocaleDateString('hr-HR')+' Nastavnici se ne broje.';anDone=true;return}}
       show('an1',act.length);$('#an1b').textContent=wk+' aktivno u zadnjih 7 dana';
       show('an2',solved);$('#an2b').textContent='prosječno '+Math.round(solved/Math.max(1,act.length))+' po studentu';
       show('an3',msg);const pl=(n,a,b,c)=>n%10===1&&n%100!==11?a:n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?b:c;$('#an3b').textContent='i '+sv+' '+pl(sv,'ispunjena anketa','ispunjene ankete','ispunjenih anketa');
