@@ -3470,6 +3470,41 @@ function fevDet(k,x){const BT={ukupno:'Ukupno',week:'Tjedna',daily:'Dnevni izazo
   if(k.startsWith('preporuka|')){const [m,v]=x.split('/');return (v==='lesson'?'Lekcija: ':v==='zad'?'Zadaci: ':'Vježba: ')+(TOPICS[m]||MODNAME[m]||m)}
   return TOPICS[x]||MODNAME[x]||x}
 {const _raE=renderAn;renderAn=async function(){const r=await _raE.apply(this,arguments);try{if(anSec==='fun')anFunLoad()}catch(e){}return r}}
+/* ===== Sljedeće „Što je novo”: priprema; vidi se samo u testnoj verziji, objavljena i dalje prikazuje trenutne novosti ===== */
+const NEWS_NEXT_ID='n-next';
+const NEWS_NEXT_SUM='Animacije, odgovaranje tipkovnicom, postupno objašnjenje nakon greške i sažetak vježbanja.';
+const NWDEMO=(no)=>`<div style="display:flex;flex-direction:column;gap:6px"><div class="note" style="margin:0">${no?'Bez animacije':'S animacijom'}</div><button type="button" class="primary${no?' noan':''}" style="margin:0;width:100%">Sljedeće pitanje</button><button type="button" class="ghost${no?' noan':''}" style="margin:0;width:100%">Novi zadatak</button><button type="button" class="opt${no?' noan':''}" style="margin:0;width:100%"><kbd>a)</kbd>Serija</button><button type="button" class="ghost${no?' noan':''}" data-dm="msg" data-an="${no?0:1}" style="margin:8px 0 0;width:100%">Odgovori</button><div class="msg ok" data-dmo="msg" style="margin:0;min-height:22px;font-weight:700"></div><button type="button" class="ghost${no?' noan':''}" data-dm="bar" data-an="${no?0:1}" style="margin:0;width:100%">Napuni traku</button><div class="bar" style="margin-top:2px"><i data-dmo="bar" style="width:0"></i></div></div>`;
+const NEWS_NEXT=[
+ {t:'Animacije',h:`<p>Prijelaz između kartica i pitanja sada je mekši, poruka <b>Točno / Nije točno</b> blago se pojavi, a ukupna razina gore desno kratko poskoči kad se promijeni. Gumbi reagiraju na dodir, a na računalu i na prelazak mišem. Usporedi (gumbi gore ništa ne rade, a <b>Odgovori</b> i <b>Napuni traku</b> pokazuju razliku):</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:6px 0 8px">${NWDEMO(true)}${NWDEMO(false)}</div><p class="note" style="margin:0 0 8px">Na mobitelu se gornji gumbi gotovo ne razlikuju: nema prelaska mišem, a pritisak je prekratak da bi se vidio. Razlika se vidi kod poruke i trake. Ako je na uređaju uključeno „smanji pokrete”, animacija nema.</p><p><b>Zašto animacije?</b> Kratka animacija (0,2 do 0,6 s) nije ukras. Korisnik odmah dobije povratnu informaciju da je klik primljen i vidi što se promijenilo, pa je aplikaciju ugodnije i lakše koristiti. Poruka koja blago iskoči teško se previdi, a ona koja se samo pojavi lako promakne. To je dio dizajna korisničkog sučelja (UX), pa se animacije koriste štedljivo, samo za promjene stanja.</p><p><b>„Smanji pokrete”</b> je opcija pristupačnosti u postavkama mobitela ili računala, za osobe kojima pokret na zaslonu smeta ili izaziva vrtoglavicu. Web-stranica tu postavku može pročitati (u CSS-u <code>@media (prefers-reduced-motion: reduce)</code>), pa aplikacija tada ne prikazuje animacije.</p>`,a:[]},
+ {t:'Odgovaranje tipkovnicom',h:`<p>Na računalu se na ponuđene odgovore može odgovarati tipkama: slovo s gumba (<kbd>a</kbd>, <kbd>b</kbd>, <kbd>c</kbd>…) ili broj (<kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>…). <kbd>Enter</kbd> otvara sljedeće pitanje, a <kbd>N</kbd> daje novi zadatak.</p>`,a:[['go:p:serpar:','Isprobaj u Vježbi']]},
+ {t:'Postupno objašnjenje',h:`<p>Nakon pogrešnog odgovora u Vježbi prvo se vidi samo početak objašnjenja. Pokušaj iz njega pronaći grešku, a ostatak otvori gumbom <b>Pokaži cijelo objašnjenje</b>.</p>`,a:[['go:p:estat:','Isprobaj u Elektrostatici']]},
+ {t:'Sažetak vježbanja',h:`<p>Kad se izađe iz Vježbe nakon barem tri odgovora, pojavi se kratak sažetak: koliko je riješeno, postotak točnih, promjena ukupne razine i gradivo s najviše grešaka.</p>`,a:[['nwses','Pokaži primjer']]},
+ {t:'Dnevni izazov: prijašnji dani',h:`<p>Na ljestvici Dnevnog izazova može se odabrati i prijašnji dan i vidjeti tadašnje rezultate.</p>`,a:[['nwlb','Ljestvica izazova']]}];
+if(IS_TEST){
+  document.head.insertAdjacentHTML('beforeend','<style>.noan,.noan:hover,.noan:active,.noan:focus{transition:none!important;transform:none!important;box-shadow:none!important;filter:none!important;animation:none!important}</style>');
+  const NEWS_CUR=NEWS.slice();NEWS.splice(0,NEWS.length,...NEWS_NEXT);
+  newsSeen=function(){return Store.get('nwnext','')===NEWS_NEXT_ID};
+  const _nwo=newsOpen;
+  newsOpen=function(ver){
+    if(ver==='0.18'){NEWS.splice(0,NEWS.length,...NEWS_CUR);try{return _nwo.apply(this,arguments)}finally{NEWS.splice(0,NEWS.length,...NEWS_NEXT)}}
+    const r=_nwo.apply(this,arguments);Store.set('nwnext',NEWS_NEXT_ID);
+    try{const all=document.querySelectorAll('#fbm'),m=all[all.length-1];
+      const n=m.querySelector('p.note');if(n)n.innerHTML='<b>Priprema za sljedeću verziju</b> · vidi se samo u testnoj verziji';
+      const rs=m.querySelector('#nwreset');if(rs)rs.addEventListener('click',()=>Store.set('nwnext',''));
+      m.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{const col=b.parentElement,an=b.dataset.an==='1'&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(b.dataset.dm==='msg'){const o=col.querySelector('[data-dmo="msg"]');o.textContent='';o.classList.remove('an-pop');void o.offsetWidth;o.textContent='Točno, +0,2';if(an)o.classList.add('an-pop')}
+        else{const i=col.querySelector('[data-dmo="bar"]');i.style.transition='none';i.style.width='0';void i.offsetWidth;if(an)i.style.transition='width .6s cubic-bezier(.23,1,.32,1)';i.style.width='80%'}});
+      const s=m.querySelector('[data-nw="nwses"]');if(s)s.onclick=()=>{m.querySelector('#nwx').click();if(window.sesDemo)sesDemo()};
+    }catch(e){}
+    return r};
+  {const _rhX=renderHome;renderHome=function(){const r=_rhX.apply(this,arguments);try{const bx=document.getElementById('nwbox');if(bx){const n=bx.querySelector('.note'),b=bx.querySelector('b');if(n)n.textContent=NEWS_NEXT_SUM;if(b)b.textContent='Sljedeća verzija (priprema, samo na testu)';const btn=bx.querySelector('#nwbtn');if(btn&&!n)btn.textContent='Što je novo (priprema)'}}catch(e){}return r}}
+}
+
+/* ---------- O aplikaciji: poveznica na prezentaciju na dnu ---------- */
+{const _rhP=renderHelp;renderHelp=function(){const r=_rhP.apply(this,arguments);try{const l=document.getElementById('verlist');if(l&&!document.getElementById('prezlink'))l.insertAdjacentHTML('afterend',`<p class="note" id="prezlink" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><a href="prezentacija.html" target="_blank" rel="noopener" style="color:var(--ink);font-weight:700">Prezentacija o aplikaciji ↗</a><br>Kako je aplikacija nastala i kako radi, s primjerima koji se mogu isprobati. Najbolje se vidi na računalu.</p>`)}catch(e){}return r}}
+/* ---------- Prezentacija za nastavnike: 5 brzih klikova na naslov novosti verzije 0.10 (samo administrator) ---------- */
+let prezN=0,prezT=0;document.addEventListener('click',e=>{const h=e.target.closest('#fbm h3');if(!h||!isAdmin||!/verziji 0\.10$/.test(h.textContent.trim()))return;const t=Date.now();prezN=t-prezT<800?prezN+1:1;prezT=t;if(prezN>=5){prezN=0;window.open('prezentacija.html','_blank','noopener')}});
+
 view='home';
 boot();
 
