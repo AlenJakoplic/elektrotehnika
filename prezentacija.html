@@ -296,6 +296,9 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .qpop td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.35}
 .qpop td:first-child{white-space:nowrap}
 .qpop small{display:block;margin-top:12px;font-size:19px;color:var(--muted)}
+.invite{margin:56px 0 0;max-width:1560px;font-size:28px;line-height:1.45;color:var(--muted);padding-left:22px;border-left:4px solid var(--mark)}
+.invite b{color:var(--ink)}
+.invite span{display:block;font-family:var(--f-head);font-weight:600;font-size:26px;color:var(--ink);margin-top:6px;letter-spacing:.02em}
 /* veliki brojevi */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
 .stat .v{font-family:var(--f-head);font-weight:700;font-size:150px;line-height:.9;font-variant-numeric:tabular-nums}
@@ -781,6 +784,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>08</b> Završetak</p>
   <p class="lead rv" style="--i:1;color:var(--muted)">AI alati su sve sposobniji. Studenti dolaze drukčije pripremljeni nego prije, i za to nisu sami krivi.</p>
   <p class="quote" style="font-size:132px;margin-top:60px"><span class="line" style="--i:2"><span>Na njima je budućnost.</span></span><span class="line" style="--i:3"><span>Na nama je da ih <span class="ul">usmjerimo</span>.</span></span></p>
+  <p class="invite rv" style="--i:6"><b>Napravite i vi sličnu aplikaciju za svoj kolegij.</b> Upute korak po korak i cijeli kod su javni, a rado ću pomoći. <span>github.com/alenjakoplic/elektrotehnika</span></p>
 </section>
 
 <!-- 28 · Hvala -->
@@ -932,7 +936,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:41};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:42};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
