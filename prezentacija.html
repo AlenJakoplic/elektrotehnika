@@ -213,6 +213,7 @@ body:hover #nav,#nav:focus-within{opacity:1}
 /* vremenska crta */
 .tl{position:relative;margin-top:10px}
 .tlk{position:absolute;right:140px;bottom:128px;margin:0;font-size:20px;color:var(--muted);display:flex;align-items:center;gap:10px}
+.tlk-sep{width:1px;height:22px;background:var(--line);margin:0 8px}
 .tlk i{width:18px;height:18px;border-radius:50%;background:var(--mark);border:3px solid var(--ink)}
 .tl .axis{position:absolute;left:0;right:0;top:198px;height:4px;background:var(--line);border-radius:2px}
 .tl .axis i{position:absolute;inset:0;background:var(--ink);transform-origin:0 0;transform:scaleX(0);transition:transform 1.8s var(--ease-io) .25s}
@@ -452,7 +453,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide" data-sec="Rast">
   <p class="kick rv"><b>04</b> Rast aplikacije</p>
   <h2 class="rv" style="--i:1">Iz tjedna u tjedan, uz nastavu</h2>
-  <p class="tlk rv" style="--i:2"><i></i>veća novost</p>
+  <p class="tlk rv" style="--i:2"><i></i>veća novost<span class="tlk-sep"></span><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 3l11 10-5 1 3 6-2 1-3-6-4 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>klik na datum otvara verziju koja je tada bila objavljena</p>
   <div class="tl rv" style="--i:2;height:330px">
     <div class="axis"><i></i></div>
     <!-- raspon 7. 10. – 24. 10. (17 dana); tekstovi naizmjence ispod i iznad crte -->
