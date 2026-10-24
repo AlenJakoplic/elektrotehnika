@@ -3500,6 +3500,9 @@ if(IS_TEST){
   {const _rhX=renderHome;renderHome=function(){const r=_rhX.apply(this,arguments);try{const bx=document.getElementById('nwbox');if(bx){const n=bx.querySelector('.note'),b=bx.querySelector('b');if(n)n.textContent=NEWS_NEXT_SUM;if(b)b.textContent='Sljedeća verzija (priprema, samo na testu)';const btn=bx.querySelector('#nwbtn');if(btn&&!n)btn.textContent='Što je novo (priprema)'}}catch(e){}return r}}
 }
 
+/* ---------- Prezentacija za nastavnike: 5 brzih klikova na naslov novosti verzije 0.10 (samo administrator) ---------- */
+let prezN=0,prezT=0;document.addEventListener('click',e=>{const h=e.target.closest('#fbm h3');if(!h||!isAdmin||!/verziji 0\.10$/.test(h.textContent.trim()))return;const t=Date.now();prezN=t-prezT<800?prezN+1:1;prezT=t;if(prezN>=5){prezN=0;window.open('prezentacija.html','_blank','noopener')}});
+
 view='home';
 boot();
 
