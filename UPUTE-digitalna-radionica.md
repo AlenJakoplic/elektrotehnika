@@ -52,7 +52,7 @@ Prva verzija može biti gotova za jedno popodne. Koraci redom:
 3. **Napravi privatni repozitorij za materijale**, npr. `fizika-materijali` (Private), i učitaj u njega materijale kolegija: Add file → Upload files (pojedina datoteka do 25 MB). Privatan je jer materijali služe samo Claudeu, a ne javnosti.
 4. **Napravi Supabase projekt:** na supabase.com → New project. Upiši naziv, odaberi regiju u Europi (npr. Frankfurt) i postavi lozinku baze. Lozinku spremi za sebe, ali je nikome ne daješ, ni Claudeu.
 5. **Otvori Claude Code** na [claude.ai/code](https://claude.ai/code) i poveži GitHub račun. Kad ponudi, instaliraj **Claude GitHub App** na svoj GitHub račun: bez toga Claude ne vidi privatni repozitorij s materijalima.
-6. **Započni prvu sesiju:** ispod polja za poruku odaberi **oba repozitorija** (aplikaciju i materijale), model Opus 5.5 i pošalji tekst iz odjeljka *Prvi prompt* (niže). Claude napravi `CLAUDE.md` s pravilima projekta, prvu verziju `test.html` i SQL datoteku za bazu.
+6. **Započni prvu sesiju:** uvijek kao sesiju u oblaku (Cloud, ne Local). Ispod polja za poruku odaberi **oba repozitorija** (aplikaciju i materijale), model Opus 5.5 i pošalji tekst iz odjeljka *Prvi prompt* (niže). Claude napravi `CLAUDE.md` s pravilima projekta, prvu verziju `test.html` i SQL datoteku za bazu.
 7. **Pokreni SQL u Supabaseu:** SQL Editor → zalijepi cijeli SQL → Run. Na kraju treba pisati „Success“. Ako javi grešku, kopiraj njen tekst Claudeu.
 8. **Daj Claudeu adresu baze i javni ključ:** u Supabaseu Project Settings → API: adresa projekta (Project URL) i **publishable / anon** ključ. Nikad ne daj *service_role / secret* ključ ni lozinku baze.
 9. **Isprobaj testnu verziju** (`…/test.html`) na mobitelu i računalu. Napravi profil i postavi se za administratora (Claude napiše kratak SQL za to).
@@ -81,7 +81,7 @@ Najbolje ide **korak po korak**: jedno gradivo ili jedna funkcija po razgovoru, 
 - Novo gradivo dodaj kad se obradi na nastavi, a staro dorađuj kad se pokaže da nešto ne radi.
 - Za svaku veću izmjenu otvori novu sesiju s oba repozitorija. Pravila su u CLAUDE.md, pa ih ne treba ponavljati, samo ukratko napiši gdje ste stali.
 
-**Računalo i mobitel.** Provjere i glavne prijedloge radi na računalu. Ako se nečega sjetiš u slobodno vrijeme, prijedlog možeš poslati i s mobitela (aplikacija Claude, kartica Code): Claude izmjenu stavi samo u testnu verziju i vrati snimku zaslona da vidiš kako izgleda.
+**Računalo i mobitel.** Provjere i glavne prijedloge radi na računalu. Ako se nečega sjetiš u slobodno vrijeme, prijedlog možeš poslati i s mobitela (aplikacija Claude, kartica Code): Claude izmjenu stavi samo u testnu verziju i vrati snimku zaslona da vidiš kako izgleda. Sesije uvijek pokreći u oblaku (Cloud), a ne lokalno (Local): samo se sesija u oblaku vidi i na računalu (claude.ai/code ili aplikacija za računalo) i na mobitelu (aplikacija Claude, kartica Code), pa posao započet na jednom uređaju nastavljaš na drugom. Lokalna sesija radi samo na računalu na kojem je pokrenuta.
 
 **Prije objave:**
 
