@@ -201,14 +201,13 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .tl .v:hover .n{color:var(--ink)}
 .tl .v:hover .d{color:var(--ink)}
 
-.cm{margin-top:34px}
-.cmh{display:flex;justify-content:space-between;align-items:baseline;gap:40px;font-size:22px;color:var(--muted);margin:0 0 12px}
-.cms b{font-family:var(--f-head);font-weight:700;font-size:56px;line-height:1;color:var(--ink);margin-right:8px;font-variant-numeric:tabular-nums}
-.cmb{position:relative;height:180px;border-bottom:2px solid var(--line);margin-bottom:34px}
-.cmb div{position:absolute;bottom:0;width:48px;margin-left:-24px;background:var(--ink);border-radius:4px 4px 0 0;transform-origin:bottom;transform:scaleY(.02);transition:transform .9s var(--ease-out);transition-delay:calc(var(--i,0)*45ms + .5s)}
-.on .cmb div{transform:none}
-.cmb div span{position:absolute;top:-30px;left:-20px;right:-20px;text-align:center;font-family:var(--f-head);font-weight:600;font-size:22px;color:var(--muted)}
-.cmb em{position:absolute;bottom:-30px;width:48px;margin-left:-24px;text-align:center;font-style:normal;font-size:17px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:10px;height:170px;margin-top:20px}
+.bars div{flex:1;background:var(--ink);border-radius:4px 4px 0 0;transform-origin:bottom;transform:scaleY(.02);transition:transform .9s var(--ease-out);transition-delay:calc(var(--i,0)*45ms + .5s);position:relative}
+.on .bars div{transform:none}
+.bars div.z{background:var(--line)}
+.bars div span{position:absolute;top:-34px;left:0;right:0;text-align:center;font-family:var(--f-head);font-weight:600;font-size:22px;color:var(--muted)}
+.bars-x{display:flex;gap:10px;margin-top:8px}
+.bars-x span{flex:1;text-align:center;font-size:17px;color:var(--muted)}
 /* veliki brojevi */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
 .stat .v{font-family:var(--f-head);font-weight:700;font-size:150px;line-height:.9;font-variant-numeric:tabular-nums}
@@ -418,9 +417,12 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
     <div class="v big" style="left:82.4%"><div class="hit"></div><div class="d">21. 10.</div><div class="n">0.18</div><div class="o"></div><div class="x"><b>Dnevni izazov, prsteni napretka</b></div></div>
     <div class="v lo" style="left:100%"><div class="hit"></div><div class="d">24. 10.</div><div class="n">danas</div><div class="o" style="background:var(--ink)"></div><div class="x"><b>Animacije, postupno objašnjenje, statistika</b></div></div>
   </div>
-  <div class="cm rv" style="--i:4">
-    <div class="cmh"><span>Izmjene u repozitoriju po danu (commitovi), u istom mjerilu kao crta iznad</span><span class="cms"><b data-count="17">17</b> dana od prve verzije, uz redovnu nastavu</span></div>
-    <div class="cmb" id="cbars"></div>
+  <div style="display:grid;grid-template-columns:1fr 520px;gap:80px;align-items:end;margin-top:10px">
+    <div class="rv" style="--i:4">
+      <p class="small muted" style="margin:0 0 26px">Izmjene u repozitoriju po danu (commitovi)</p>
+      <div class="bars" id="cbars"></div><div class="bars-x" id="cbx"></div>
+    </div>
+    <div class="rv" style="--i:5"><div class="stat"><div class="v" data-count="17">17</div><div class="l">dana od prve verzije do danas, uz redovnu nastavu</div></div></div>
   </div>
 </section>
 
@@ -782,13 +784,10 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
   $('#s-v1 .frame .body').appendChild(f)}
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
-// git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:18};
-const mx=Math.max(...Object.values(CM));let ch='';
-for(let d=7;d<=24;d++){const v=CM[d]||0,x=(d-7)/17*100;
-  if(v)ch+=`<div style="--i:${d-7};left:${x}%;height:${v/mx*100}%">${v>=15?`<span>${v}</span>`:''}</div>`;
-  ch+=`<em style="left:${x}%">${d}.</em>`}
-$('#cbars').innerHTML=ch;
+const CM=[['9.',12],['10.',3],['11.',0],['12.',19],['13.',6],['14.',0],['15.',57],['16.',30],['17.',0],['18.',5],['19.',11],['20.',19],['21.',31],['22.',2],['23.',0],['24.',21]];
+const mx=Math.max(...CM.map(x=>x[1]));
+$('#cbars').innerHTML=CM.map(([d,v],i)=>`<div class="${v?'':'z'}" style="--i:${i};height:${Math.max(2,v/mx*100)}%">${v>=20?`<span>${v}</span>`:''}</div>`).join('');
+$('#cbx').innerHTML=CM.map(([d])=>`<span>${d}</span>`).join('');
 
 /* živorođeni (DZS) */
 const BR=[[1990,55409],[2000,43746],[2010,43361],[2020,35845],[2023,32170],[2024,31858,1]];
