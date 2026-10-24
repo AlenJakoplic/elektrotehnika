@@ -287,6 +287,15 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .b21.s{right:4%;top:64%;background:var(--mark);color:#1C2B3A;border-bottom-right-radius:4px}
 .on .b21{animation:pop21 .5s var(--ease-out) both}.on .b21.q{animation-delay:.9s}.on .b21.s{animation-delay:1.3s}
 @keyframes pop21{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.qm{position:static;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;border:2px solid var(--line);color:var(--muted);font-family:var(--f-head);font-weight:700;font-size:28px;vertical-align:middle;margin-left:8px;cursor:help;transition:border-color .15s,color .15s,background-color .15s}
+.qm:hover,.qm:focus{border-color:var(--mark);color:#1C2B3A;background:var(--mark);outline:none}
+.qpop{position:absolute;left:-20px;bottom:calc(100% + 16px);width:1260px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:22px 26px;font-family:var(--f-body);font-weight:400;font-size:22px;color:var(--ink);text-align:left;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .15s ease,transform .2s var(--ease-out);z-index:6;cursor:default}
+.qm:hover .qpop,.qm:focus .qpop,.qm:focus-within .qpop{opacity:1;transform:none;pointer-events:auto}
+.qpop table{width:100%;border-collapse:collapse}
+.qpop th{font-size:18px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:0 14px 10px 0;border-bottom:1px solid var(--line)}
+.qpop td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.35}
+.qpop td:first-child{white-space:nowrap}
+.qpop small{display:block;margin-top:12px;font-size:19px;color:var(--muted)}
 /* veliki brojevi */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
 .stat .v{font-family:var(--f-head);font-weight:700;font-size:150px;line-height:.9;font-variant-numeric:tabular-nums}
@@ -736,7 +745,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide sec" data-sec="Završetak">
   <div class="big rv">08</div>
   <p class="kick rv"><b>08</b> Završetak</p>
-  <h1><span class="line"><span>Za čiju</span></span><span class="line" style="--i:1"><span><em>pažnju</em> se borimo?</span></span></h1>
+  <h1><span class="line"><span>Pažnja je</span></span><span class="line" style="--i:1"><span>nova <em>valuta</em></span></span></h1>
 </section>
 
 <!-- 25 · Pažnja -->
@@ -746,7 +755,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
     <div class="term rv" style="--i:1"><div class="rule"></div><h3>Doba kratke pažnje</h3><p>Sadržaj se troši u kratkim komadima. Dugo predavanje i debela zbirka teže drže pažnju nego prije.</p></div>
     <div class="term rv" style="--i:2"><div class="rule"></div><h3>Ekonomija pažnje</h3><p>Aplikacije i mreže natječu se za pažnju mladih, i jako dobro znaju kako je osvojiti.</p></div>
   </div>
-  <p class="lead f" style="margin-top:80px"><b>Iste alate možemo upotrijebiti za učenje:</b></p>
+  <div class="lead f" style="margin-top:80px;position:relative"><b>Iste alate možemo upotrijebiti za učenje:</b> <span class="qm" tabindex="0" role="button" aria-label="Objašnjenje">?<div class="qpop"><table><tr><th>Alat</th><th>Mreže i igre</th><th>Digitalna radionica</th></tr><tr><td><b>Kratke runde od 5 pitanja</b></td><td>Kratki videi: malo vremena, lako krenuti</td><td>Dnevni izazov: 5 pitanja, 2–3 minute, i u autobusu ili na pauzi</td></tr><tr><td><b>Odgovor odmah</b></td><td>Lajk i obavijest stižu odmah</td><td>Odmah točno ili netočno, uz objašnjenje</td></tr><tr><td><b>Niz dana</b></td><td>„Streak” u Duolingu i Snapchatu</td><td>Dani zaredom, uz slobodne dane</td></tr><tr><td><b>Ljestvice</b></td><td>Rang-liste u igrama</td><td>Tjedna ljestvica svaki tjedan od nule, po gradivu, izazov, redovitost</td></tr><tr><td><b>Vidljiv napredak</b></td><td>Razine, trake i značke u igrama</td><td>Razina 1–10, prsteni napretka, značke, stadiji pripreme za KZ1</td></tr></table><small>Razina ostaje stroga i mjeri znanje; motivacija dolazi iz ovih alata.</small></div></span></div>
   <div class="answers f"><span>kratke runde od 5 pitanja</span><span>odgovor odmah</span><span>niz dana</span><span>ljestvice</span><span>vidljiv napredak</span></div>
 </section>
 
@@ -852,7 +861,7 @@ function full(){if(document.fullscreenElement)document.exitFullscreen();else doc
 $('#bFull').onclick=e=>{e.stopPropagation();full()};$('#bTheme').onclick=e=>{e.stopPropagation();toggleTheme()};
 
 /* klik i povlačenje prstom */
-const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live';
+const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live,.qm';
 let px=null,py=0,pt=0;
 addEventListener('pointerdown',e=>{if(e.target.closest(INTER))return;px=e.clientX;py=e.clientY;pt=Date.now()});
 addEventListener('pointerup',e=>{if(px===null)return;const dx=e.clientX-px,dy=e.clientY-py;px=null;
@@ -923,7 +932,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:39};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:40};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
