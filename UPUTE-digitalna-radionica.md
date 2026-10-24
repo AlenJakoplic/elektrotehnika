@@ -23,20 +23,19 @@ Digitalna radionica je web-aplikacija za vježbanje gradiva jednog kolegija, nap
 | Jedna HTML datoteka | cijela aplikacija (izgled, zadaci, logika) u jednoj datoteci |
 | GitHub i GitHub Pages | besplatno spremište i objava aplikacije na webu |
 | Supabase | baza podataka: profili, odgovori, ljestvice, povratne informacije |
-| Claude (claude.ai, projekt) | piše i dorađuje aplikaciju prema materijalima kolegija |
-| Claude Code | mijenja kod izravno u GitHub repozitoriju, sam ga isproba i spremi (preporučeno) |
+| Claude Code | piše i dorađuje aplikaciju izravno u GitHub repozitoriju prema materijalima kolegija, sam je isproba i spremi |
 
 Postoje dvije verzije iste datoteke: `index.html` je živa verzija koju koriste studenti, a `test.html` je testna. Sve se prvo napravi i isproba na testu, a tek onda objavi.
 
 ## Što treba prije početka
 
-- [ ] **GitHub račun** (besplatan) na [github.com](https://github.com). Tamo će biti spremljena i objavljena aplikacija.
+- [ ] **GitHub račun** (besplatan) na [github.com](https://github.com). Tamo će biti spremljeni aplikacija i materijali, a aplikacija se odatle objavljuje.
 - [ ] **Vlastiti Supabase račun i projekt** (besplatan plan) na [supabase.com](https://supabase.com). Prijaviti se može i GitHub računom. U bazi samo pokrećeš SQL kod koji napiše Claude.
-- [ ] **Claude račun** s pristupom projektima na [claude.ai](https://claude.ai).
+- [ ] **Claude račun s Claude Codeom** (plan Pro, Max ili Team) na [claude.ai/code](https://claude.ai/code). Na fakultetskom Team računu povezivanje s GitHubom prvo mora uključiti administrator organizacije.
 - [ ] **Materijali kolegija u digitalnom obliku:** predavanja, auditorne vježbe, zadaci s rješenjima, stari kolokviji i literatura (PDF, Word, PowerPoint).
-- [ ] Po želji: **Alenove HTML datoteke** (`index.html` i `test.html`) kao predložak. Claude iz njih vidi kako je radionica građena i može preuzeti dobra rješenja (prijava, ljestvice, analitika).
+- [ ] **Predložak:** Alenov javni repozitorij [AlenJakoplic/elektrotehnika](https://github.com/AlenJakoplic/elektrotehnika). Claude Code ga sam pročita (aplikaciju i pravila u `CLAUDE.md`), pa ništa ne treba preuzimati.
 
-**Model i napor (effort):** u Claudeu odaberi model **Opus 5.5**.
+**Model i napor (effort):** u Claude Codeu odaberi model **Opus 5.5**.
 
 | Posao | Effort |
 | --- | --- |
@@ -48,17 +47,18 @@ Postoje dvije verzije iste datoteke: `index.html` je živa verzija koju koriste 
 
 Prva verzija može biti gotova za jedno popodne. Koraci redom:
 
-1. **Napravi repozitorij na GitHubu**, javni (public), npr. `fizika-radionica`.
+1. **Napravi javni repozitorij za aplikaciju** na GitHubu, npr. `fizika-radionica` (New repository → Public → označi *Add a README file*).
 2. **Uključi GitHub Pages:** u repozitoriju Settings → Pages → Deploy from a branch → grana `main`, mapa `/ (root)`. Aplikacija će biti na adresi `https://<korisničko-ime>.github.io/<repozitorij>/`, a testna verzija na `…/test.html`.
-3. **Napravi Supabase projekt:** na supabase.com → New project. Upiši naziv, odaberi regiju u Europi (npr. Frankfurt) i postavi lozinku baze. Lozinku spremi za sebe, ali je nikome ne daješ, ni Claudeu.
-4. **Napravi projekt u claude.ai** i u njega učitaj sve materijale kolegija (predavanja, auditorne, zadatke, literaturu) te, po želji, Alenove HTML datoteke.
-5. **U upute projekta zalijepi tekst** iz odjeljka *Upute za Claude projekt* (niže) i prilagodi naziv kolegija i imena.
-6. **Započni prvi razgovor** s tekstom iz odjeljka *Prvi prompt* (niže). Claude će napraviti prvu verziju `test.html` i SQL datoteku za bazu.
+3. **Napravi privatni repozitorij za materijale**, npr. `fizika-materijali` (Private), i učitaj u njega materijale kolegija: Add file → Upload files (pojedina datoteka do 25 MB). Privatan je jer materijali služe samo Claudeu, a ne javnosti.
+4. **Napravi Supabase projekt:** na supabase.com → New project. Upiši naziv, odaberi regiju u Europi (npr. Frankfurt) i postavi lozinku baze. Lozinku spremi za sebe, ali je nikome ne daješ, ni Claudeu.
+5. **Otvori Claude Code** na [claude.ai/code](https://claude.ai/code) i poveži GitHub račun. Kad ponudi, instaliraj **Claude GitHub App** na svoj GitHub račun: bez toga Claude ne vidi privatni repozitorij s materijalima.
+6. **Započni prvu sesiju:** ispod polja za poruku odaberi **oba repozitorija** (aplikaciju i materijale), model Opus 5.5 i pošalji tekst iz odjeljka *Prvi prompt* (niže). Claude napravi `CLAUDE.md` s pravilima projekta, prvu verziju `test.html` i SQL datoteku za bazu.
 7. **Pokreni SQL u Supabaseu:** SQL Editor → zalijepi cijeli SQL → Run. Na kraju treba pisati „Success“. Ako javi grešku, kopiraj njen tekst Claudeu.
 8. **Daj Claudeu adresu baze i javni ključ:** u Supabaseu Project Settings → API: adresa projekta (Project URL) i **publishable / anon** ključ. Nikad ne daj *service_role / secret* ključ ni lozinku baze.
-9. **Stavi `test.html` na GitHub:** ako je GitHub povezan s Claudeom, Claude sam sprema izmjene; ako nije, preuzmi datoteku od Claudea i u repozitoriju odaberi Add file → Upload files.
-10. **Isprobaj testnu verziju** na mobitelu i računalu. Napravi profil i postavi se za administratora (Claude napiše kratak SQL za to).
-11. **Objavi:** kad test radi, napiši Claudeu „objavi“. On napravi `index.html` iz testne verzije, a ti je staviš na GitHub kao u koraku 9. Tu adresu daješ studentima.
+9. **Isprobaj testnu verziju** (`…/test.html`) na mobitelu i računalu. Napravi profil i postavi se za administratora (Claude napiše kratak SQL za to).
+10. **Objavi:** kad test radi, napiši Claudeu „objavi“. On napravi `index.html` iz testne verzije i spremi ga na GitHub. Tu adresu daješ studentima.
+
+Claude Code sve izmjene sam sprema na GitHub. U `CLAUDE.md` piše da ih sprema izravno na granu `main`, pa se odmah vide na webu (nakon minute-dvije). Ako ipak napravi zasebnu granu, napiši mu „spoji u main“.
 
 ## Kako raditi s Claudeom
 
@@ -79,35 +79,16 @@ Najbolje ide **korak po korak**: jedno gradivo ili jedna funkcija po razgovoru, 
 - Komentare studenata (ankete, povratne informacije) zalijepi Claudeu i pitaj što s njima.
 - Prije veće promjene traži sigurnosnu kopiju (backup).
 - Novo gradivo dodaj kad se obradi na nastavi, a staro dorađuj kad se pokaže da nešto ne radi.
-- Kad je razgovor jako dug, otvori novi u istom projektu i ukratko napiši gdje ste stali.
+- Za svaku veću izmjenu otvori novu sesiju s oba repozitorija. Pravila su u CLAUDE.md, pa ih ne treba ponavljati, samo ukratko napiši gdje ste stali.
 
-**Računalo i mobitel.** Provjere i glavne prijedloge radi na računalu. Ako se nečega sjetiš u slobodno vrijeme, prijedlog možeš poslati i s mobitela: Claude izmjenu stavi samo u testnu verziju i vrati snimku zaslona da vidiš kako izgleda.
+**Računalo i mobitel.** Provjere i glavne prijedloge radi na računalu. Ako se nečega sjetiš u slobodno vrijeme, prijedlog možeš poslati i s mobitela (aplikacija Claude, kartica Code): Claude izmjenu stavi samo u testnu verziju i vrati snimku zaslona da vidiš kako izgleda.
 
 **Prije objave:**
 
 - Traži od Claudea **popis što sve provjeriti**, pa ga drugi dan za računalom prođi na testnoj verziji, tek onda napiši „objavi“.
 - Uz veće novosti Claude pri objavi doda **novu oznaku verzije** i prozor **Što je novo** za studente. Za sitnice (tekst, boja, mala ispravka) to ne treba.
 
-## Claude Code (preporučeno za rad na kodu)
-
-**Claude Code** je Claudeov alat za rad na kodu. Za razliku od razgovora u claude.ai projektu, radi izravno u GitHub repozitoriju: sam otvori `test.html`, izmijeni ga, isproba u pregledniku i spremi izmjenu na GitHub. Datoteke ne treba preuzimati ni ručno učitavati. Koristi se s istim Claude računom, na webu, u aplikaciji za računalo i na mobitelu.
-
-**Kako početi:**
-
-1. U Claude Codeu poveži GitHub račun i odaberi repozitorij aplikacije.
-2. U repozitorij stavi datoteku `CLAUDE.md` s pravilima projekta. Claude Code je pročita na početku svakog rada, pa pravila ne treba ponavljati u svakoj poruci. Kao predložak posluži [Alenov CLAUDE.md](https://github.com/AlenJakoplic/elektrotehnika/blob/main/CLAUDE.md): napiši Claude Codeu da ga prilagodi tvom kolegiju i tvojoj aplikaciji.
-3. Radi kao i inače: opiši izmjenu, isprobaj testnu verziju, napiši „objavi“.
-
-**Materijali kolegija.** Repozitorij je javan, pa u njega ne stavljaj ništa što ne smije biti javno. Materijali ostaju u claude.ai projektu, a kad Claude Code treba neki zadatak ili predavanje, priloži ga u razgovor ili zalijepi tekst.
-
-**Podjela posla (kako radi Alen):**
-
-- **claude.ai projekt:** razgovor o gradivu, prijedlozi, pitanja i zadaci iz materijala, tekstovi za studente.
-- **Claude Code:** izmjene koda, testiranje i objava.
-
-Ako radiš s oba, reci Claudeu u projektu da prije svake izmjene preuzme zadnju verziju s GitHuba. Repozitorij je jedini izvor istine, pa se tako izmjene jednog ne prebrišu drugim.
-
-Pravila iz odjeljka *Važno* vrijede i ovdje: Claude Code nikad ne dobiva *service_role / secret* ključ ni lozinku baze, a SQL i dalje pokrećeš ti u Supabaseu.
+**Zašto Claude Code, a ne razgovor u claude.ai projektu?** U projektu Claude piše datoteke koje onda ručno preuzimaš i učitavaš na GitHub, a u Claude Codeu sam mijenja, isproba i sprema. Može se raditi i u projektu, ali ne miješaj oba načina na istoj aplikaciji: lako se dogodi da jedan prebriše izmjene drugoga.
 
 ## Važno
 
@@ -118,17 +99,17 @@ Pravila iz odjeljka *Važno* vrijede i ovdje: Claude Code nikad ne dobiva *servi
 - **SQL se smije pokretati više puta.** Svaka promjena baze dolazi kao zasebna datoteka (npr. `supabase-dodatak-ankete.sql`), a postojeći podaci ostaju.
 - **Besplatni Supabase** pauzira projekt nakon otprilike tjedan dana bez ikakve aktivnosti. Dok studenti koriste aplikaciju to se ne događa, a pauzirani projekt se jednim klikom ponovno pokreće.
 
-## Upute za Claude projekt
+## CLAUDE.md: pravila projekta
 
-Ovaj tekst zalijepi u upute projekta u claude.ai. Dijelove u uglatim zagradama zamijeni svojim podacima.
+`CLAUDE.md` je datoteka u repozitoriju aplikacije koju Claude Code pročita na početku svake sesije. Pravila ispod zalijepi na kraj *Prvog prompta* (dijelove u uglatim zagradama zamijeni svojim podacima), a Claude od njih i od Alenova `CLAUDE.md` napravi datoteku za tvoju aplikaciju. Kasnije pravilo dodaš tako da napišeš Claudeu „dodaj u CLAUDE.md: …“.
 
 ```
 Razvijam web-aplikaciju za vježbanje gradiva kolegija [NAZIV KOLEGIJA] na [STUDIJ, FAKULTET]. Nositelj: [IME]. Izvode: [IMENA].
-U projektu su materijali kolegija (predavanja, auditorne, zadaci, literatura). Pitanja i zadatke radi isključivo prema tim materijalima, istim oznakama i nazivljem kao na nastavi.
+Materijali kolegija (predavanja, auditorne, zadaci, literatura) su u privatnom repozitoriju [KORISNIK/MATERIJALI]. Pitanja i zadatke radi isključivo prema tim materijalima, istim oznakama i nazivljem kao na nastavi. Materijale nikad ne kopiraj u javni repozitorij aplikacije.
 
 TEHNIKA
 - Cijela aplikacija je jedna HTML datoteka (HTML, CSS, JavaScript, SVG za sheme), bez build alata.
-- Spremište: GitHub repozitorij [KORISNIK/REPOZITORIJ], objava preko GitHub Pages.
+- Spremište: javni GitHub repozitorij [KORISNIK/REPOZITORIJ], objava preko GitHub Pages. Izmjene spremaj izravno na granu main.
 - Dvije datoteke: index.html je živa verzija za studente, test.html je testna. Radi samo na test.html. index.html mijenjaj tek kad napišem "objavi".
 - Baza: moj Supabase projekt (besplatni plan).
 - Svaka promjena baze ide u zasebnu SQL datoteku koju ja pokrećem u Supabase SQL Editoru. SQL mora biti siguran za ponovno pokretanje (create if not exists, create or replace) i ne smije brisati postojeće podatke.
@@ -152,12 +133,13 @@ NAČIN RADA
 
 ## Prvi prompt
 
-Ovo je prva poruka u novom razgovoru unutar projekta. Effort: **high**.
+Ovo je prva poruka u prvoj sesiji Claude Codea, s odabrana oba repozitorija. Effort: **high**.
 
 ```
-Napravi prvu verziju aplikacije za vježbanje gradiva mog kolegija, prema materijalima u projektu.
+Napravi prvu verziju aplikacije za vježbanje gradiva mog kolegija, prema materijalima u repozitoriju [KORISNIK/MATERIJALI]. Aplikacija ide u repozitorij [KORISNIK/REPOZITORIJ].
 
-Ako su u projektu Alenove datoteke index.html i test.html (Digitalna radionica, Elektrotehnika R), prouči ih kao predložak: kako su građene prijava nadimkom i PIN-om, spremanje u Supabase, razina 1–10, ljestvica, povratne informacije i analitika za administratora. Preuzmi ono što ima smisla, ali sadržaj neka bude iz mog kolegija. Adresu njegove baze i njegov ključ nemoj preuzeti: aplikacija koristi moj Supabase projekt, a adresu i javni ključ dat ću ti posebno.
+1. Prvo u repozitoriju aplikacije napravi CLAUDE.md. Pravila su na kraju ove poruke, a kao uzor za strukturu i tehničke dijelove uzmi CLAUDE.md iz javnog repozitorija AlenJakoplic/elektrotehnika.
+2. Kao predložak aplikacije prouči test.html iz istog repozitorija (Digitalna radionica, Elektrotehnika R): prijava nadimkom i PIN-om, spremanje u Supabase, razina 1–10, ljestvica, povratne informacije i analitika za administratora. Preuzmi ono što ima smisla, ali sadržaj neka bude iz mog kolegija. Adresu njegove baze i njegov ključ nemoj preuzeti: aplikacija koristi moj Supabase projekt, a adresu i javni ključ dat ću ti posebno.
 
 Za ovu prvu verziju želim:
 1. Prijavu nadimkom i PIN-om i spremanje napretka u bazu.
@@ -167,12 +149,15 @@ Za ovu prvu verziju želim:
 5. Gumb za povratnu informaciju.
 
 Predaj mi:
-- test.html,
+- CLAUDE.md i test.html spremljene na GitHub (grana main),
 - SQL datoteku za bazu,
 - kratak SQL kojim sebe postavljam za administratora,
 - popis koraka što da isprobam.
 
-Prije nego što kreneš, ako ti nešto nije jasno, postavi mi do tri pitanja.
+Ako ti nešto nije jasno, prije nego što kreneš postavi mi do tri pitanja.
+
+PRAVILA ZA CLAUDE.md:
+[ovdje zalijepi tekst iz odjeljka "CLAUDE.md: pravila projekta"]
 ```
 
 **Sljedeći koraci**, svaki u novoj poruci kad prethodni radi, npr.:
