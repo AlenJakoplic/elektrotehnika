@@ -37,7 +37,7 @@ button{font:inherit;color:inherit}
 h1,h2{font-family:var(--f-head);font-weight:700;margin:0;line-height:.98;letter-spacing:-.005em;text-wrap:balance}
 h1{font-size:200px}
 h2{font-size:104px;margin-bottom:46px}
-h2 em,h1 em{font-style:normal;background:linear-gradient(transparent 62%,color-mix(in srgb,var(--mark) 70%,transparent) 62%,color-mix(in srgb,var(--mark) 70%,transparent) 92%,transparent 92%);padding:0 .06em}
+h2 em,h1 em,.ul{font-style:normal;text-decoration:underline;text-decoration-color:var(--mark);text-decoration-thickness:.09em;text-underline-offset:.13em;text-decoration-skip-ink:auto}
 p,li{font-size:36px;line-height:1.38}
 .lead{font-size:46px;line-height:1.3;max-width:1300px;text-wrap:pretty}
 .muted{color:var(--muted)}
@@ -94,7 +94,7 @@ sub{font-size:.66em}
 .on .rv{opacity:1;transform:none}
 .f{opacity:0;transform:translateY(14px);transition:opacity .45s var(--ease-out),transform .55s var(--ease-out)}
 .f.in{opacity:1;transform:none}
-.line{display:block;overflow:hidden;padding-bottom:.06em}
+.line{display:block;overflow:hidden;padding-bottom:.16em;margin-bottom:-.1em}
 .line>span{display:inline-block;transform:translateY(105%);transition:transform .9s var(--ease-out);transition-delay:calc(var(--i,0)*90ms + 120ms)}
 .on .line>span{transform:none}
 .draw{stroke-dasharray:var(--len,3000);stroke-dashoffset:var(--len,3000)}
@@ -140,11 +140,6 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .hero .t{fill:var(--paper);stroke:var(--ink);stroke-width:5}
 .hero .e{fill:var(--mark);stroke:var(--ink);stroke-width:3}
 .hero text{font-family:var(--f-head);font-weight:700;font-size:34px;fill:var(--ink)}
-.hpick{position:absolute;right:140px;bottom:96px;display:flex;gap:4px;align-items:center;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--shadow)}
-.hpick span{color:var(--muted);font-size:20px;padding:0 12px 0 10px}
-.hpick button{border:0;background:none;padding:10px 16px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:21px;transition:background-color .15s ease,color .15s ease,transform .16s ease}
-.hpick button:active{transform:scale(.97)}
-.hpick button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);font-weight:700}
 
 .quote{margin:0;font-family:var(--f-head);font-weight:700;font-size:150px;line-height:.96;max-width:1550px;text-wrap:balance}
 .quote em{font-style:normal;color:var(--bad)}
@@ -296,7 +291,6 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <!-- 1 · Naslov -->
 <section class="slide title-s" data-sec="Uvod" id="s-title">
   <svg class="hero" id="hero" viewBox="0 0 820 520" aria-hidden="true"></svg>
-  <div class="hpick" id="hpick"><span>Uvodna animacija</span><button data-v="0">1 · Olovka</button><button data-v="1">2 · Struja</button><button data-v="2">3 · Bojice</button><button data-v="3">4 · Svođenje</button><button data-v="4">5 · Mirno</button></div>
   <p class="kick rv" style="--i:0"><b>Elektrotehnika R</b> Tehnički fakultet u Rijeci</p>
   <h1><span class="line" style="--i:0"><span>Digitalna</span></span><span class="line" style="--i:1"><span>radionica</span></span></h1>
   <p class="lead rv" style="--i:4">Kako smo gradivo elektrotehnike pretvorili u vježbu koja se rješava svaki dan, i što smo iz toga naučili.</p>
@@ -658,7 +652,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide c" data-sec="Završetak">
   <p class="kick rv"><b>08</b> Završetak</p>
   <p class="lead rv" style="--i:1;color:var(--muted)">AI alati su sve sposobniji. Studenti dolaze drukčije pripremljeni nego prije, i za to nisu sami krivi.</p>
-  <p class="quote" style="font-size:132px;margin-top:60px"><span class="line" style="--i:2"><span>Na njima je budućnost.</span></span><span class="line" style="--i:3"><span>Na nama je da ih <em style="color:inherit;background:linear-gradient(transparent 62%,color-mix(in srgb,var(--mark) 70%,transparent) 62%,color-mix(in srgb,var(--mark) 70%,transparent) 92%,transparent 92%)">usmjerimo</em>.</span></span></p>
+  <p class="quote" style="font-size:132px;margin-top:60px"><span class="line" style="--i:2"><span>Na njima je budućnost.</span></span><span class="line" style="--i:3"><span>Na nama je da ih <span class="ul">usmjerimo</span>.</span></span></p>
 </section>
 
 <!-- 28 · Hvala -->
@@ -728,7 +722,6 @@ addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;
   else if(k==='End'){e.preventDefault();go(N-1,-1)}
   else if(k==='f'||k==='F'){e.preventDefault();full()}
   else if(k==='t'||k==='T'){toggleTheme()}
-  else if(slides[cur].id==='s-title'&&/^[1-5]$/.test(k)){heroSet(+k-1)}
   else if(slides[cur].id==='s-demo'&&/^[abc123]$/.test(k)){const i='abc123'.indexOf(k)%3;const b=$$('#dopts .opt')[i];if(b&&!b.disabled)b.click()}
   if(e.target.matches('input[type=range]')&&k.startsWith('Arrow'))return});
 function full(){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen?.().catch(()=>{})}
@@ -822,76 +815,21 @@ function drawElo(){const s=+$('#elR').value,css=getComputedStyle(document.docume
   $('#elU').textContent='+'+hr(K*(1-ps));$('#elD').textContent='−'+hr(K*ps)}
 $('#elR').addEventListener('input',drawElo);drawElo();
 
-/* ---------- naslovna shema: 5 inačica animacije (izbor na dnu prvog slajda) ---------- */
-const hero=$('#hero');let heroTok=0,heroV=+(store.get('uvod')||0);if(!(heroV>=0&&heroV<5))heroV=0;
-// žice po čvorovima (A – lijevi, M – srednji, B – desni), otpornici, spojišta
-const HW=[['A','M40 260 H160'],['A','M160 260 V110 H260'],['A','M160 260 V410 H260'],['M','M360 110 H580'],['M','M360 410 H580'],['M','M470 110 V410'],['B','M680 110 H760 V260'],['B','M680 410 H760 V260'],['B','M760 260 H790']];
-const HR=[['1',260,110],['2',580,110],['3',260,410],['4',580,410]];
-const HJ=[[160,260,'A'],[470,110,'M'],[470,410,'M'],[760,260,'B']];
-const HCOL={A:'var(--pA)',M:'var(--pD)',B:'var(--pB)'};
-const rp=(x,y)=>`M${x} ${y} V${y-22} H${x+100} V${y+22} H${x} Z`; // crta se od lijevog priključka
+/* ---------- naslovna shema: A i B lijevo; R1 i R2 izgledaju kao serija, ali se struja u čvoru između njih grana kroz R5 ---------- */
+const hero=$('#hero');let heroTok=0;
+const rh=(x,y)=>`M${x} ${y} V${y-22} H${x+100} V${y+22} H${x} Z`,rv=(x,y)=>`M${x} ${y} H${x+22} V${y+100} H${x-22} V${y} Z`;
 const lbl=(x,y,sb)=>`<text x="${x}" y="${y}">R<tspan font-size="22" dy="8">${sb}</tspan></text>`;
-function netSvg(){let s='';
-  HW.forEach(([n,d],i)=>s+=`<path class="w" data-n="${n}" data-k="w${i}" d="${d}"/>`);
-  HR.forEach(([k,x,y])=>s+=`<path class="r" data-k="r${k}" d="${rp(x,y)}"/>`);
-  HJ.forEach(([x,y,n],i)=>s+=`<circle class="j" data-n="${n}" data-k="j${i}" cx="${x}" cy="${y}" r="7"/>`);
-  s+='<circle class="t" data-k="tA" cx="40" cy="260" r="12"/><circle class="t" data-k="tB" cx="790" cy="260" r="12"/>';
-  s+='<text data-k="lA" x="22" y="224">A</text><text data-k="lB" x="776" y="224">B</text>';
-  HR.forEach(([k,x,y])=>s+=`<g data-k="l${k}">${lbl(x+26,y<200?y-36:y+72,k)}</g>`);return s}
-function lineSvg(parts){let s='',x0=40;parts.forEach(([x,sb])=>{s+=`<path class="w" d="M${x0} 260 H${x}"/><path class="r" d="${rp(x,260)}"/>${lbl(x+26,224,sb)}`;x0=x+100});
-  return s+`<path class="w" d="M${x0} 260 H790"/><circle class="t" cx="40" cy="260" r="12"/><circle class="t" cx="790" cy="260" r="12"/><text x="22" y="224">A</text><text x="776" y="224">B</text>`}
-const q=k=>hero.querySelector(`[data-k="${k}"]`),qa=s=>[...hero.querySelectorAll(s)];
-const EZ='cubic-bezier(.45,0,.2,1)',EO='cubic-bezier(.23,1,.32,1)';
-function draw(el,delay,dur){const L=el.getTotalLength();el.style.strokeDasharray=L;el.animate([{strokeDashoffset:L},{strokeDashoffset:0}],{duration:dur,delay,easing:EZ,fill:'both'});
-  if(el.classList.contains('r'))el.animate([{fillOpacity:0},{fillOpacity:1}],{duration:250,delay:delay+dur-120,fill:'both'})}
-function show(el,delay,dur=350,y=0){el.animate([{opacity:0,transform:`translateY(${y}px)`},{opacity:1,transform:'none'}],{duration:dur,delay,easing:EO,fill:'both'})}
-const later=(ms,f)=>{const t=heroTok;setTimeout(()=>{if(t===heroTok)f()},ms)};
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-function color(n,on){qa(`[data-n="${n}"]`).forEach(e=>e.style[e.tagName==='circle'?'fill':'stroke']=on?HCOL[n]:'')}
-const HERO=[
- // 1 · Olovka: vodiči i otpornici crtaju se redom, kako teče struja, obje grane istodobno
- ()=>{hero.innerHTML=netSvg();if(RM){['r2','r4'].forEach(k=>q(k).classList.add('hl'));return}
-  
-  show(q('tA'),0);show(q('lA'),0);draw(q('w0'),100,320);show(q('j0'),420,200);
-  [['w1','r1','w3','r2','w6','l1','l2'],['w2','r3','w4','r4','w7','l3','l4']].forEach(([a,r1,b,r2,c,l1,l2])=>{draw(q(a),420,360);draw(q(r1),780,340);show(q(l1),1000);draw(q(b),1120,340);draw(q(r2),1460,340);show(q(l2),1680);draw(q(c),1800,320)});
-  show(q('j1'),1300,200);show(q('j2'),1300,200);draw(q('w5'),1300,380);show(q('j3'),2120,200);draw(q('w8'),2120,220);show(q('tB'),2300);show(q('lB'),2300);
-  later(2700,()=>q('r2').classList.add('hl'));later(2850,()=>q('r4').classList.add('hl'))},
- // 2 · Struja: shema se pojavi cijela, a kroz grane teku točkice
- ()=>{hero.innerHTML=netSvg();hero.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:700,easing:EO,fill:'both'});
-  if(RM)return;
-  const P=['M40 260 H160 V110 H760 V260 H790','M40 260 H160 V410 H760 V260 H790'];let d='';
-  P.forEach((p,b)=>{for(let i=0;i<3;i++){const t=(0.9+i*1.1+b*0.55).toFixed(2);d+=`<circle class="e" r="7" opacity="0"><set attributeName="opacity" to="1" begin="${t}s"/><animateMotion dur="3.3s" begin="${t}s" repeatCount="indefinite" path="${p}"/></circle>`}});
-  hero.insertAdjacentHTML('beforeend',d);try{hero.setCurrentTime(0)}catch(e){}},
- // 3 · Bojice potencijala: čvorovi istog potencijala redom dobivaju istu boju
- ()=>{hero.innerHTML=netSvg();
-  if(RM){['A','M','B'].forEach(n=>color(n,1));['r1','r3'].forEach(k=>q(k).classList.add('hl'));return}
-  hero.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:700,easing:EO,fill:'both'});
-  later(1100,()=>color('A',1));later(1650,()=>color('M',1));later(2200,()=>color('B',1));
-  later(3000,()=>q('r1').classList.add('hl'));later(3150,()=>q('r3').classList.add('hl'))},
- // 4 · Svođenje: mreža se korak po korak svodi na jedan otpor, pa ispočetka
- ()=>{hero.innerHTML=`<g id="g0">${netSvg()}</g><g id="g1" opacity="0">${lineSvg([[220,'13'],[480,'24']])}</g><g id="g2" opacity="0">${lineSvg([[355,'uk']])}</g>`;
-  const [g0,g1,g2]=['#g0','#g1','#g2'].map(s=>hero.querySelector(s));if(RM)return;
-  const t=heroTok,ok=()=>t===heroTok;
-  const xf=(a,b)=>{a.animate([{opacity:1,filter:'blur(0px)'},{opacity:0,filter:'blur(6px)'}],{duration:420,easing:'ease',fill:'forwards'});
-    b.style.opacity=1;b.removeAttribute('opacity');b.animate([{opacity:0,filter:'blur(6px)'},{opacity:1,filter:'blur(0px)'}],{duration:520,delay:140,easing:'ease',fill:'forwards'})};
-  const hl=(g,i,on)=>{const r=g.querySelectorAll('.r')[i];if(r)r.classList.toggle('hl',on)};
-  g0.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:600,easing:EO,fill:'both'});
-  (async()=>{let first=true;while(ok()){
-    if(!first){xf(g2,g0);[0,1,2,3].forEach(i=>hl(g0,i,false))}first=false;
-    await sleep(1300);if(!ok())return;
-    g0.querySelector('[data-k="r1"]').classList.add('hl');g0.querySelector('[data-k="r3"]').classList.add('hl');
-    await sleep(1100);if(!ok())return;xf(g0,g1);hl(g1,0,true);hl(g1,1,false);
-    await sleep(1200);if(!ok())return;hl(g1,1,true);
-    await sleep(1000);if(!ok())return;xf(g1,g2);hl(g2,0,true);
-    await sleep(2600);if(!ok())return}})()},
- // 5 · Mirno: cijela shema se pojavi odjednom, zatim se istaknu dva otpornika
- ()=>{hero.innerHTML=netSvg();if(RM){['r2','r4'].forEach(k=>q(k).classList.add('hl'));return}
-  hero.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:900,easing:EO,fill:'both'});
-  later(1000,()=>q('r2').classList.add('hl'));later(1160,()=>q('r4').classList.add('hl'))}];
-function heroRun(){heroTok++;hero.getAnimations?.().forEach(a=>a.cancel());HERO[heroV]();
-  $$('#hpick button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===heroV))}
-function heroSet(v){heroV=v;store.set('uvod',v);heroRun()}
-$$('#hpick button').forEach(b=>b.onclick=e=>{e.stopPropagation();heroSet(+b.dataset.v)});
+function heroSvg(){
+  const W=['M60 130 H180','M280 130 H520','M620 130 H740 V210','M740 310 V390 H620','M520 390 H60','M420 130 V210','M420 310 V390'];
+  let s=W.map(d=>`<path class="w" d="${d}"/>`).join('');
+  s+=`<path class="r" data-k="r1" d="${rh(180,130)}"/><path class="r" data-k="r2" d="${rh(520,130)}"/><path class="r" d="${rv(740,210)}"/><path class="r" d="${rh(520,390)}"/><path class="r" d="${rv(420,210)}"/>`;
+  s+='<circle class="j" cx="420" cy="130" r="7"/><circle class="j" cx="420" cy="390" r="7"/>';
+  s+='<circle class="t" cx="60" cy="130" r="12"/><circle class="t" cx="60" cy="390" r="12"/><text x="14" y="142">A</text><text x="14" y="402">B</text>';
+  s+=lbl(206,94,1)+lbl(546,94,2)+lbl(774,272,3)+lbl(546,456,4)+lbl(454,272,5);return s}
+function heroRun(){const t=++heroTok;hero.getAnimations?.().forEach(a=>a.cancel());hero.innerHTML=heroSvg();
+  const hl=(k,ms)=>setTimeout(()=>{if(t===heroTok)hero.querySelector(`[data-k="${k}"]`).classList.add('hl')},RM?0:ms);
+  if(!RM)hero.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:900,easing:'cubic-bezier(.23,1,.32,1)',fill:'both'});
+  hl('r1',1000);hl('r2',1160)}
 
 /* početak */
 const h=parseInt(location.hash.slice(1))-1;go(isNaN(h)?0:h,1);
