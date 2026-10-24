@@ -299,6 +299,10 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .invite{margin:56px 0 0;max-width:1560px;font-size:28px;line-height:1.45;color:var(--muted);padding-left:22px;border-left:4px solid var(--mark)}
 .invite b{color:var(--ink)}
 .invite span{display:block;font-family:var(--f-head);font-weight:600;font-size:26px;color:var(--ink);margin-top:6px;letter-spacing:.02em}
+.help28{margin-top:44px;display:grid;grid-template-columns:1fr auto;gap:60px;align-items:center;padding:30px 36px;border-radius:14px;background:color-mix(in srgb,var(--mark) 16%,var(--sheet));border:1px solid color-mix(in srgb,var(--mark) 55%,var(--line))}
+.help28 b{display:block;font-family:var(--f-head);font-size:46px;line-height:1.05}
+.help28 span{display:block;font-size:24px;color:var(--muted);margin-top:8px;line-height:1.4}
+.who28{text-align:right;max-width:640px}.who28 b{font-size:34px}
 /* veliki brojevi */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
 .stat .v{font-family:var(--f-head);font-weight:700;font-size:150px;line-height:.9;font-variant-numeric:tabular-nums}
@@ -784,10 +788,24 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>08</b> Završetak</p>
   <p class="lead rv" style="--i:1;color:var(--muted)">AI alati su sve sposobniji. Studenti dolaze drukčije pripremljeni nego prije, i za to nisu sami krivi.</p>
   <p class="quote" style="font-size:132px;margin-top:60px"><span class="line" style="--i:2"><span>Na njima je budućnost.</span></span><span class="line" style="--i:3"><span>Na nama je da ih <span class="ul">usmjerimo</span>.</span></span></p>
-  <p class="invite rv" style="--i:6"><b>Napravite i vi sličnu aplikaciju za svoj kolegij.</b> Upute korak po korak i cijeli kod su javni, a rado ću pomoći. <span>github.com/alenjakoplic/elektrotehnika</span></p>
 </section>
 
-<!-- 28 · Hvala -->
+<!-- 28 · Napravite i vi -->
+<section class="slide c" data-sec="Kraj">
+  <p class="kick rv"><b>08</b> Napravite i vi</p>
+  <h2 class="rv" style="--i:1;font-size:88px;margin-bottom:50px">Sličnu aplikaciju možete napraviti <em>za svoj kolegij</em></h2>
+  <div class="cards">
+    <div class="card rv" style="--i:2"><span class="num">01</span><h3>Krenite od jednog problema</h3><p>Jedno gradivo koje studentima ne ide. Prva verzija može nastati iz jednog dobrog upita.</p></div>
+    <div class="card rv" style="--i:3"><span class="num">02</span><h3>Bez programiranja</h3><p>Vi opisujete i provjeravate, Claude piše kod uz vaše nastavne materijale.</p></div>
+    <div class="card rv" style="--i:4"><span class="num">03</span><h3>Besplatna objava</h3><p>GitHub Pages i besplatna baza. Treba samo pretplata na Claude (Pro ili Team).</p></div>
+  </div>
+  <div class="help28 rv" style="--i:5">
+    <div><b>Stojim vam na raspolaganju za pitanja i pomoć.</b><span>Rado pomažem s prvim koracima, od ideje do prve verzije.</span></div>
+    <div class="who28"><b>dr. sc. Alen Jakoplić</b><span>Upute korak po korak i cijeli kod:<br>github.com/alenjakoplic/elektrotehnika</span></div>
+  </div>
+</section>
+
+<!-- 29 · Hvala -->
 <section class="slide" data-sec="Kraj">
   <div class="end">
     <div>
@@ -936,7 +954,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:42};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:43};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
