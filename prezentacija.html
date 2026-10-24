@@ -172,6 +172,11 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .btn:active{transform:scale(.97)}
 .btn.ghost{background:var(--btn);color:var(--ink);font-weight:400}
 
+.dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:30px}
+.dstats p{margin:0;font-size:22px;color:var(--muted);line-height:1.3}
+.dstats b{display:block;font-family:var(--f-head);font-weight:700;font-size:68px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.dstats .now{padding-left:28px;border-left:1px solid var(--line)}
+.dstats .now b{color:var(--ok)}
 /* vremenska crta */
 .tl{position:relative;margin-top:30px}
 .tl .axis{position:absolute;left:0;right:0;top:94px;height:4px;background:var(--line);border-radius:2px}
@@ -331,7 +336,15 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide" data-sec="Početna ideja" id="s-demo">
   <p class="kick rv"><b>02</b> Isprobajte</p>
   <div class="demo">
-    <div class="board rv" style="--i:1"><svg id="dm" viewBox="0 0 800 460" aria-label="Mreža otpornika"></svg></div>
+    <div>
+      <div class="board rv" style="--i:1"><svg id="dm" viewBox="0 0 800 460" aria-label="Mreža otpornika"></svg></div>
+    <div class="dstats">
+    <p class="rv" style="--i:3"><b data-count="220">220</b>generiranih mreža</p>
+    <p class="rv" style="--i:4"><b data-count="451">451</b>pitanje „serija ili paralela”</p>
+    <p class="rv" style="--i:5"><b data-count="740">740</b>pitanja ukupno u prvoj verziji</p>
+    <p class="rv now" style="--i:6"><b>2 909</b>pitanja danas</p>
+  </div>
+    </div>
     <div class="rv" style="--i:2">
       <p class="q" id="dq"></p>
       <div class="opts" id="dopts">
