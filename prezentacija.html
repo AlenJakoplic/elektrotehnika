@@ -595,6 +595,8 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
       <svg id="elo" viewBox="0 0 680 330"></svg>
       <div class="row" style="margin-top:14px"><span>Razina studenta</span><b id="elS">5,0</b></div>
       <input type="range" id="elR" min="1" max="10" step="0.1" value="5" aria-label="Razina studenta">
+      <div class="row"><span>Težina pitanja</span><b id="elQs">6,0</b></div>
+      <input type="range" id="elQ" min="1" max="10" step="0.1" value="6" aria-label="Težina pitanja">
       <div class="row"><span>Vjerojatnost točnog odgovora</span><b id="elP">–</b></div>
       <div class="dd"><div class="p">Točno<b id="elU">+0,2</b></div><div class="m">Netočno<b id="elD">−0,2</b></div></div>
     </div>
@@ -882,7 +884,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:33};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:34};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
@@ -948,18 +950,19 @@ $$('#dopts .opt').forEach(b=>b.onclick=e=>{e.stopPropagation();if(done)return;do
 dmQ();
 
 /* ---------- Elo ---------- */
-const Q=6,K=Math.max(.25,1/Math.sqrt(1+30/6));
+const K=Math.max(.25,1/Math.sqrt(1+30/6));
 const P=(s,q)=>1/3+(2/3)/(1+Math.pow(10,(q-s)/2));
 const hr=x=>x.toFixed(2).replace('.',',');
-function drawElo(){const s=+$('#elR').value,css=getComputedStyle(document.documentElement),ink=css.getPropertyValue('--ink'),mut=css.getPropertyValue('--muted'),ln=css.getPropertyValue('--line'),mk=css.getPropertyValue('--mark');
+function drawElo(){const s=+$('#elR').value,Q=+$('#elQ').value,css=getComputedStyle(document.documentElement),ink=css.getPropertyValue('--ink'),mut=css.getPropertyValue('--muted'),ln=css.getPropertyValue('--line'),mk=css.getPropertyValue('--mark');
   const X=v=>40+(v-1)/9*620,Y=p=>300-p*270;let d='';for(let v=1;v<=10.001;v+=.1)d+=(d?'L':'M')+X(v).toFixed(1)+' '+Y(P(v,Q)).toFixed(1);
   let g='';for(const p of [0,1/3,.5,1])g+=`<line x1="40" x2="660" y1="${Y(p)}" y2="${Y(p)}" stroke="${ln}" stroke-dasharray="${p===1/3?'6 6':''}"/><text x="30" y="${Y(p)+7}" text-anchor="end" font-size="20" fill="${mut}">${p===1/3?'⅓':Math.round(p*100)+'%'}</text>`;
   for(let v=1;v<=10;v++)g+=`<text x="${X(v)}" y="326" text-anchor="middle" font-size="20" fill="${mut}">${v}</text>`;
   const ps=P(s,Q);
+  g+=`<line x1="${X(Q)}" x2="${X(Q)}" y1="30" y2="300" stroke="${mut}" stroke-dasharray="3 6"/><text x="${Q>7?X(Q)-8:X(Q)+8}" text-anchor="${Q>7?'end':'start'}" y="46" font-size="20" fill="${mut}">težina pitanja</text>`;
   g+=`<path d="${d}" fill="none" stroke="${ink}" stroke-width="4"/><circle cx="${X(s)}" cy="${Y(ps)}" r="11" fill="${mk}" stroke="${ink}" stroke-width="3"/>`;
-  $('#elo').innerHTML=g;$('#elS').textContent=s.toFixed(1).replace('.',',');$('#elP').textContent=Math.round(ps*100)+' %';
+  $('#elo').innerHTML=g;$('#elS').textContent=s.toFixed(1).replace('.',',');$('#elQs').textContent=Q.toFixed(1).replace('.',',');$('#elP').textContent=Math.round(ps*100)+' %';
   $('#elU').textContent='+'+hr(K*(1-ps));$('#elD').textContent='−'+hr(K*ps)}
-$('#elR').addEventListener('input',drawElo);drawElo();
+$('#elR').addEventListener('input',drawElo);$('#elQ').addEventListener('input',drawElo);drawElo();
 
 /* ---------- naslovna shema: A i B lijevo; R1 i R2 izgledaju kao serija, ali se struja u čvoru između njih grana kroz R5 ---------- */
 const hero=$('#hero');let heroTok=0;
