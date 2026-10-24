@@ -245,6 +245,8 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .on .cmb .col i{transform:none}
 .cmb .col .val{position:absolute;left:-10px;right:-10px;text-align:center;font-family:var(--f-head);font-weight:600;font-size:22px;color:var(--muted);margin-bottom:6px}
 .cmb .col:hover i{background:var(--mark)}
+.cmb .click{cursor:pointer}
+.cmb em.click:hover{color:var(--ink);text-decoration:underline;text-decoration-color:var(--mark);text-decoration-thickness:2px;text-underline-offset:4px}
 .cmb:has(.col:hover) .col:not(:hover) i{opacity:.35}
 .tip{position:absolute;bottom:calc(100% + 16px);left:50%;width:440px;margin-left:-220px;background:var(--sheet);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px 20px 18px;text-align:left;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity .15s ease,transform .2s var(--ease-out);z-index:5}
 .tip.l{left:-6px;margin-left:0}.tip.r{left:auto;right:-6px;margin-left:0}
@@ -453,7 +455,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide" data-sec="Rast">
   <p class="kick rv"><b>04</b> Rast aplikacije</p>
   <h2 class="rv" style="--i:1">Iz tjedna u tjedan, uz nastavu</h2>
-  <p class="tlk rv" style="--i:2"><i></i>veća novost<span class="tlk-sep"></span><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 3l11 10-5 1 3 6-2 1-3-6-4 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>klik na datum otvara verziju koja je tada bila objavljena</p>
+  <p class="tlk rv" style="--i:2"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 3l11 10-5 1 3 6-2 1-3-6-4 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>klik na datum ili stupac otvara verziju koja je tada bila objavljena</p>
   <div class="tl rv" style="--i:2;height:330px">
     <div class="axis"><i></i></div>
     <!-- raspon 7. 10. – 24. 10. (17 dana); tekstovi naizmjence ispod i iznad crte -->
@@ -553,8 +555,8 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide sec" data-sec="Gamifikacija">
   <div class="big rv">06</div>
   <p class="kick rv"><b>06</b> Gamifikacija</p>
-  <h1><span class="line"><span>Učenje koje se</span></span><span class="line" style="--i:1"><span>vraća <em>samo</em></span></span></h1>
-  <p class="lead muted rv" style="--i:4">Iste mehanike kojima igre drže pažnju, ali u službi gradiva.</p>
+  <h1><span class="line"><span>Zašto se</span></span><span class="line" style="--i:1"><span><em>vraćaju</em>?</span></span></h1>
+  <p class="lead muted rv" style="--i:4">Iste mehanike kojima igre drže pažnju, ovaj put za gradivo.</p>
   <svg class="trace" viewBox="0 0 1920 120" preserveAspectRatio="none" aria-hidden="true"><rect class="pop hot" style="--i:1;stroke:none" x="1100" y="40" width="100" height="40"/><path class="draw" style="--len:2400" d="M0 60 H600 V40 H700 V80 H600 V60 M700 60 H1100 V40 H1200 V80 H1100 V60 M1200 60 H1920"/></svg>
 </section>
 
@@ -854,7 +856,7 @@ lb.onclick=lbClose;
 function onEnter(s){
   $$('[data-count]',s).filter(e=>!e.closest('.f:not(.in)')).forEach(countUp);
   if(s.id==='s-v1')loadV1();
-  if(s.querySelector('[data-live]'))setTimeout(liveLoad,600);
+  if(s.querySelector('[data-live]:not([data-src])'))setTimeout(liveLoad,600);
   if(s.id==='s-title')heroRun();
   if(s.id==='s-elo')drawElo()}
 function countUp(el){const to=+el.dataset.count,suf=el.dataset.suf||'';if(RM||to<5){el.textContent=to+suf;return}const t0=performance.now(),D=1100;
@@ -868,7 +870,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:28};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:31};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
@@ -886,10 +888,15 @@ const CMT={
 const mx=Math.max(...Object.values(CM));let ch='';
 for(let d=7;d<=24;d++){const v=CM[d]||0,x=(d-7)/17*100,h=v/mx*100;
   if(v){const it=CMT[d]||[],side=d<=10?' l':d>=21?' r':'';
-    ch+=`<div class="col" style="--i:${d-7};left:${x}%"><i style="height:${h}%"></i>${v>=15?`<span class="val" style="bottom:${h}%">${v}</span>`:''}`+
+    ch+=`<div class="col" data-day="${d}" style="--i:${d-7};left:${x}%"><i style="height:${h}%"></i>${v>=15?`<span class="val" style="bottom:${h}%">${v}</span>`:''}`+
       (it.length?`<div class="tip${side}" style="bottom:calc(${h}% + ${v>=15?40:14}px)"><h4>${d}. 10.<small>${v} ${v%10>=2&&v%10<=4&&(v%100<12||v%100>14)?'izmjene':'izmjena'}</small></h4><ul>${it.map(t=>`<li>${t}</li>`).join('')}</ul></div>`:'')+'</div>'}
-  ch+=`<em style="left:${x}%">${d}.</em>`}
+  ch+=`<em data-day="${d}" style="left:${x}%">${d}.</em>`}
 $('#cbars').innerHTML=ch;
+// stupci izmjena i datumi ispod njih: snimka aplikacije s kraja tog dana
+const DAYV={9:'0.12',10:'0.13',12:'0.14',15:'0.15',16:'0.16',18:'0.17',21:'0.18'};
+$$('#cbars [data-day]').forEach(el=>{const d=+el.dataset.day,src=d<9?'prezentacija/prva-verzija.html':CM[d]?`prezentacija/verzije/${String(d).padStart(2,'0')}-10.html`:null;if(!src)return;
+  el.classList.add('click');el.dataset.live='';el.dataset.src=src;el.dataset.title=(d===24?'Danas':DAYV[d]?'Verzija '+DAYV[d]:'Stanje')+' · '+d+'. 10. 2026.'+(d<9?' (verzija od tog dana nije sačuvana; prikazana je najranija sačuvana, 9. 10. ujutro)':'')});
+
 
 /* živorođeni (DZS) */
 const BR=[[1990,55409],[2000,43746],[2010,43361],[2020,35845],[2023,32170],[2024,31858,1]];
