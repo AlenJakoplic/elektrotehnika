@@ -275,6 +275,18 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .on .sh17 i{transform:none}
 .sh17 b{font-family:var(--f-head);font-size:36px}
 .s17{bottom:84px;max-width:1150px}
+.an-sub{display:block;font-size:22px;margin-top:6px;opacity:.85}
+.pz21{position:relative;aspect-ratio:4/3;background:var(--sheet);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;align-items:flex-start;justify-content:center;padding-top:26px}
+.ph21{position:relative;width:46%;border-radius:22px;border:7px solid #0E151C;background:#0E151C;overflow:hidden;transform:rotate(-4deg);box-shadow:var(--shadow)}
+.ph21 img{display:block;width:100%;border-radius:15px}
+.ph21 i{position:absolute;width:26px;height:26px;border:4px solid var(--mark)}
+.ph21 .c1{left:6px;top:6px;border-right:0;border-bottom:0}.ph21 .c2{right:6px;top:6px;border-left:0;border-bottom:0}
+.ph21 .c3{left:6px;bottom:6px;border-right:0;border-top:0}.ph21 .c4{right:6px;bottom:6px;border-left:0;border-top:0}
+.b21{position:absolute;font-size:21px;font-weight:700;padding:10px 16px;border-radius:16px;box-shadow:var(--shadow);white-space:nowrap}
+.b21.q{left:4%;top:38%;background:var(--ink);color:var(--sheet);border-bottom-left-radius:4px}
+.b21.s{right:4%;top:64%;background:var(--mark);color:#1C2B3A;border-bottom-right-radius:4px}
+.on .b21{animation:pop21 .5s var(--ease-out) both}.on .b21.q{animation-delay:.9s}.on .b21.s{animation-delay:1.3s}
+@keyframes pop21{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
 /* veliki brojevi */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
 .stat .v{font-family:var(--f-head);font-weight:700;font-size:150px;line-height:.9;font-variant-numeric:tabular-nums}
@@ -688,18 +700,19 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;flex:1;min-height:0">
     <figure class="rv" style="--i:2;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">Pitaj nastavnika</p><p class="small muted" style="margin:0 0 18px">Pitanje uz točno taj zadatak; odgovor se vidi u aplikaciji.</p><div class="shot" data-zoom="prezentacija/slike/pitaj.webp"><img src="prezentacija/slike/pitaj.webp" alt="Pitaj nastavnika" loading="lazy" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 40%"></div></figure>
     <figure class="rv" style="--i:3;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">Kratke ankete</p><p class="small muted" style="margin:0 0 18px">Nakon 100 riješenih pitanja, nakon probne KZ1 i po gradivu.</p><div class="shot" data-zoom="prezentacija/slike/anketa.webp"><img src="prezentacija/slike/anketa.webp" alt="Anketa" loading="lazy" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 20%"></div></figure>
-    <figure class="rv" style="--i:4;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">I pod pauzom</p><p class="small muted" style="margin:0 0 18px">Prilaze s prijedlozima što dodati i s pitanjima o zadacima.</p><div class="card" style="aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px"><span class="ph" style="font-size:30px">[SNIMKA: prijedlozi i pitanja studenata, anonimizirano]</span></div></figure>
+    <figure class="rv" style="--i:4;margin:0"><p class="lab" style="font-family:var(--f-head);font-weight:700;font-size:40px;margin:0 0 6px">I pod pauzom</p><p class="small muted" style="margin:0 0 18px">Dođu sa snimkom zaslona i pitanjem o zadatku, ili s idejom za animaciju.</p><div class="pz21"><div class="ph21"><img src="prezentacija/slike/mob-vjezba.webp" alt="Snimka zadatka s mobitela" loading="lazy"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i></div><span class="b21 q">Pitanje o ovom zadatku</span><span class="b21 s">Prijedlog za animaciju</span></div></figure>
   </div>
 </section>
 
 <!-- 22 · Brojke iz aplikacije -->
-<section class="slide c" data-sec="Analitika">
+<section class="slide c" data-sec="Analitika" id="s-num">
   <p class="kick rv"><b>07</b> U brojkama</p>
   <h2 class="rv" style="--i:1">Prvi mjesec</h2>
+  <p class="small muted rv" id="anNote" style="--i:1;margin:-30px 0 10px">Brojke se učitavaju uživo iz analitike…</p>
   <div class="stats" style="margin-top:20px">
-    <div class="stat rv" style="--i:2"><div class="v"><span class="ph">[PODATAK IZ ANALITIKE]</span></div><div class="l">aktivnih studenata</div></div>
-    <div class="stat rv" style="--i:3"><div class="v"><span class="ph">[PODATAK IZ ANALITIKE]</span></div><div class="l">riješenih pitanja i zadataka</div></div>
-    <div class="stat rv" style="--i:4"><div class="v"><span class="ph">[PODATAK IZ ANALITIKE]</span></div><div class="l">prijedloga, pitanja i prijava grešaka</div></div>
+    <div class="stat rv" style="--i:2"><div class="v"><span class="anv" id="an1">–</span></div><div class="l">studenata koristi aplikaciju<span class="an-sub" id="an1b"></span></div></div>
+    <div class="stat rv" style="--i:3"><div class="v"><span class="anv" id="an2">–</span></div><div class="l">riješenih pitanja i zadataka<span class="an-sub" id="an2b"></span></div></div>
+    <div class="stat rv" style="--i:4"><div class="v"><span class="anv" id="an3">–</span></div><div class="l">poruka, pitanja i prijava grešaka<span class="an-sub" id="an3b"></span></div></div>
   </div>
   <div class="stats" style="margin-top:80px">
     <div class="stat rv" style="--i:5"><div class="v" data-count="1">1</div><div class="l">HTML datoteka, bez ijednog alata za izgradnju</div></div>
@@ -895,6 +908,7 @@ lb.onclick=lbClose;
 function onEnter(s){
   $$('[data-count]',s).filter(e=>!e.closest('.f:not(.in)')).forEach(countUp);
   if(s.id==='s-v1')loadV1();
+  if(s.id==='s-num')anLive();
   if(s.querySelector('[data-live]:not([data-src])'))setTimeout(liveLoad,600);
   if(s.id==='s-title')heroRun();
   if(s.id==='s-elo')drawElo()}
@@ -909,7 +923,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:37};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:38};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
@@ -1004,6 +1018,26 @@ function heroRun(){const t=++heroTok;hero.getAnimations?.().forEach(a=>a.cancel(
   const hl=(k,ms)=>setTimeout(()=>{if(t===heroTok)hero.querySelector(`[data-k="${k}"]`).classList.add('hl')},RM?0:ms);
   if(!RM)hero.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:900,easing:'cubic-bezier(.23,1,.32,1)',fill:'both'});
   hl('r1',1000);hl('r2',1160)}
+
+/* slajd 22: brojke uživo iz analitike (prava aplikacija u skrivenom okviru; radi samo kad je prijavljen nastavnik) */
+let anDone=false;
+function anLive(){if(anDone)return;liveLoad();const t0=Date.now(),note=$('#anNote');
+  const fmtN=n=>n.toLocaleString('hr-HR').replace(/\./g,' ');
+  const show=(id,n)=>{const el=$('#'+id);if(RM){el.textContent=fmtN(n);return}const s0=performance.now();const f=t=>{const k=Math.min(1,(t-s0)/1100),e=1-Math.pow(1-k,4);el.textContent=fmtN(Math.round(n*e));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)};
+  (async function poll(){let w;try{w=lvF.contentWindow}catch(e){}
+    let ready=false,admin=false;try{ready=!!(w.prof&&w.prof()&&w.eval('session'));admin=ready&&w.eval('isAdmin')}catch(e){}
+    if(!admin){if(Date.now()-t0<20000)return setTimeout(poll,600);note.textContent='Brojke se vide kad je u ovom pregledniku prijavljen nastavnik (administrator) u aplikaciji.';return}
+    try{const R=w.eval('Remote'),tok=w.eval('session').token;
+      const [a,f]=await Promise.all([R.rpc('admin_students',{p_token:tok}),R.rpc('feedback_list',{p_token:tok})]);
+      if(a.error)throw a.error;const rows=(a.data||[]).map(r=>w.anRow(r));
+      const n=r=>r.r.answers_n||(r.nAns+r.zn),act=rows.filter(r=>n(r)>0),wk=rows.filter(r=>(r.r.days7||0)>0).length;
+      const solved=rows.reduce((x,r)=>x+n(r),0);
+      const fb=(f.data||[]),sv=fb.filter(x=>x.kind==='anketa').length,msg=fb.length-sv;
+      show('an1',act.length);$('#an1b').textContent=wk+' aktivno u zadnjih 7 dana';
+      show('an2',solved);$('#an2b').textContent='prosječno '+Math.round(solved/Math.max(1,act.length))+' po studentu';
+      show('an3',msg);const pl=(n,a,b,c)=>n%10===1&&n%100!==11?a:n%10>=2&&n%10<=4&&(n%100<12||n%100>14)?b:c;$('#an3b').textContent='i '+sv+' '+pl(sv,'ispunjena anketa','ispunjene ankete','ispunjenih anketa');
+      note.textContent='Uživo iz analitike, '+new Date().toLocaleDateString('hr-HR')+' Nastavnici se ne broje.';anDone=true}
+    catch(e){note.textContent='Analitika se trenutačno ne može učitati.'}})()}
 
 /* početak */
 const h=parseInt(location.hash.slice(1))-1;go(isNaN(h)?0:h,1);
