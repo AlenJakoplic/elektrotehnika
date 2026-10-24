@@ -796,7 +796,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:25};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:26};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
@@ -815,7 +815,7 @@ const mx=Math.max(...Object.values(CM));let ch='';
 for(let d=7;d<=24;d++){const v=CM[d]||0,x=(d-7)/17*100,h=v/mx*100;
   if(v){const it=CMT[d]||[],side=d<=10?' l':d>=21?' r':'';
     ch+=`<div class="col" style="--i:${d-7};left:${x}%"><i style="height:${h}%"></i>${v>=15?`<span class="val" style="bottom:${h}%">${v}</span>`:''}`+
-      (it.length?`<div class="tip${side}"><h4>${d}. 10.<small>${v} ${v%10>=2&&v%10<=4&&(v%100<12||v%100>14)?'izmjene':'izmjena'}</small></h4><ul>${it.map(t=>`<li>${t}</li>`).join('')}</ul></div>`:'')+'</div>'}
+      (it.length?`<div class="tip${side}" style="bottom:calc(${h}% + ${v>=15?40:14}px)"><h4>${d}. 10.<small>${v} ${v%10>=2&&v%10<=4&&(v%100<12||v%100>14)?'izmjene':'izmjena'}</small></h4><ul>${it.map(t=>`<li>${t}</li>`).join('')}</ul></div>`:'')+'</div>'}
   ch+=`<em style="left:${x}%">${d}.</em>`}
 $('#cbars').innerHTML=ch;
 
