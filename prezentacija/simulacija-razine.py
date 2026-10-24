@@ -1,5 +1,5 @@
 # Simulacija razine (Elo) za slajd 17 prezentacije: stara i blaža formula (21. 10. 2026.).
-# Podaci za grafove: N=500 odgovora, 3 000 studenata poznatog znanja, seed 7 (vidi D17 u prezentacija.html).
+# Udjeli studenata na razini 9–10 (11 % i 86 %) na 17. slajdu: N=500 odgovora, 3 000 studenata poznatog znanja.
 import random, math, json, statistics as st
 def pc(s,q): return 1/3+(2/3)/(1+10**((q-s)/2))
 def run(lenient, theta, N, rng):
