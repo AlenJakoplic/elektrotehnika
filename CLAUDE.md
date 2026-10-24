@@ -61,6 +61,7 @@ EtR_f1.pdf/png, EtR_f2.pdf/png formule za kolokvij (otvaraju se u pregledniku)
 prezentacija.html              prezentacija aplikacije za nastavnike (zasebna, bez poveznice iz aplikacije)
 prezentacija/slike/*.webp      snimke zaslona za prezentaciju (anonimizirano, S001…)
 prezentacija/prva-verzija.html rana verzija (prvi commit), radi bez baze; prefiks pohrane 'cvoriste-prva:'
+prezentacija/verzije/DD-10.html snimke aplikacije po danima (slajd 8), bez baze i brojača; prefiks 'cvoriste-vDD:'
 icon-*.png, favicon, easter-egg-2.jpg
 ```
 
@@ -197,7 +198,7 @@ Vrste (`Z.type`): `nab` (naboji, podvrste `ZKINDS.nab`: jedan, ploce, pravac2, p
 - **Analitika (`renderAn`, async):** kartice Pregled i studenti / Priprema za KZ1: gdje zapinju / Cijela grupa / Korištenje funkcija; filtri kolegij, aktivni, riješeno barem; CSV i potpuni anonimizirani izvoz (`admin_export`).
 - **Povratne:** poruke, prijave grešaka, pitanja nastavniku (odgovor se vidi na Napretku), ankete (`svShowR` prikazuje predanu anketu).
 - **Uskrsno jaje:** postoji, ne otkrivaj u tekstovima kako se pronalazi.
-- **Prezentacija za nastavnike (`prezentacija.html`):** otvara je samo administrator s 5 brzih klikova (razmak < 0,8 s) na naslov prozora „Novosti u verziji 0.10” (`prezN`, kraj glavne skripte). Ne spominji je u „O aplikaciji”. Slajdovi 1920×1080 skalirani, tipke ←/→/razmak/PgUp/PgDn, F, T, `#broj` u adresi; ulomci `.f` otkrivaju se redom. Rezervirana mjesta `[BROJKA…]`, `[PODATAK IZ ANALITIKE]`, `[SNIMKA…]` (klasa `.ph`) Alen popunjava sam.
+- **Prezentacija za nastavnike (`prezentacija.html`):** otvara je samo administrator s 5 brzih klikova (razmak < 0,8 s) na naslov prozora „Novosti u verziji 0.10” (`prezN`, kraj glavne skripte). Ne spominji je u „O aplikaciji”. Slajdovi 1920×1080 skalirani, tipke ←/→/razmak/PgUp/PgDn, F, T, `#broj` u adresi; ulomci `.f` otkrivaju se redom. Pločice s `data-live` (slajdovi 9, 10, 12, 13) otvaraju pravu aplikaciju (`index.html`) u prozoru `#live` preko `newsGo(kod)`; datumi na vremenskoj crti (slajd 8) otvaraju `prezentacija/verzije/`. Rezervirana mjesta `[BROJKA…]`, `[PODATAK IZ ANALITIKE]`, `[SNIMKA…]` (klasa `.ph`) Alen popunjava sam.
 
 ---
 

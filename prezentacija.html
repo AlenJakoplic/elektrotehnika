@@ -126,6 +126,26 @@ body:hover #nav,#nav:focus-within{opacity:1}
 #lb img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.5);transform:scale(.96);transition:transform .3s var(--ease-out)}
 #lb.on img{transform:none}
 
+/* aplikacija uživo u prozoru (slajd 9) */
+.live-tile{cursor:pointer;transition:transform .2s var(--ease-out),box-shadow .2s ease}
+@media (hover:hover) and (pointer:fine){.live-tile:hover{transform:translateY(-4px)}}
+.live-tile:active{transform:scale(.98)}
+.live-tile .play{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);white-space:nowrap;font-size:19px;font-weight:700;background:var(--ink);color:var(--sheet);padding:8px 16px;border-radius:999px;box-shadow:var(--shadow)}
+#live{position:fixed;inset:0;z-index:30;background:rgba(10,16,22,.7);display:flex;align-items:center;justify-content:center;padding:2.5vh 2.5vw;opacity:0;pointer-events:none;transition:opacity .2s ease}
+#live.on{opacity:1;pointer-events:auto}
+.lv-panel{width:100%;height:100%;max-width:1700px;background:var(--sheet);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.45);transform:scale(.97);transition:transform .3s var(--ease-out)}
+#live.on .lv-panel{transform:none}
+#live.mob .lv-panel{max-width:430px;max-height:920px}
+#live.mob .lv-sp{display:none}
+.lv-bar{display:flex;align-items:center;gap:16px;padding:10px 14px 10px 20px;border-bottom:1px solid var(--line);font-size:15px;color:var(--muted)}
+.lv-bar b{font-family:var(--f-head);font-size:22px;color:var(--ink)}
+.lv-sp{flex:1}
+.lv-bar a{color:var(--muted)}
+.lv-bar button{background:var(--btn);border:0;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:15px;color:var(--ink)}
+.lv-bar kbd{font-family:var(--f-head);font-weight:700;border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-left:4px;font-size:13px}
+.lv-body{flex:1;position:relative;min-height:0}
+.lv-body iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--paper)}
+.lv-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px}
 /* ---------- pojedini slajdovi ---------- */
 .title-s{justify-content:flex-end;padding-bottom:190px}
 .title-s h1{font-size:236px;line-height:.86}
@@ -174,6 +194,16 @@ body:hover #nav,#nav:focus-within{opacity:1}
 
 .dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:30px}
 .dstats.f{opacity:1;transform:none}
+.gen{position:absolute;right:140px;bottom:118px;width:600px;margin:0;font-size:24px;line-height:1.4;color:var(--muted);padding-left:22px;border-left:4px solid var(--mark)}
+.gen b{display:block;font-family:var(--f-head);font-size:38px;line-height:1.1;color:var(--ink);margin-bottom:4px}
+#s-demo .fbk p{font-size:22px}
+#s-demo .demo{align-items:start;padding-top:10px}
+#s-demo .q{font-size:36px;margin-bottom:22px}
+#s-demo .opt{font-size:28px;padding:14px 22px}
+#s-demo .opts{gap:10px}
+#s-demo .fbk{margin-top:18px;min-height:0}
+#s-demo .fbk h4{font-size:40px}
+#s-demo .btn{font-size:24px;padding:12px 22px}
 .dstats p{opacity:0;transform:translateY(16px);transition:opacity .45s var(--ease-out),transform .6s var(--ease-out);transition-delay:calc(var(--i,0)*110ms)}
 .dstats.in p{opacity:1;transform:none}
 .dstats p{margin:0;font-size:22px;color:var(--muted);line-height:1.3}
@@ -182,6 +212,8 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .dstats .now b{color:var(--ok)}
 /* vremenska crta */
 .tl{position:relative;margin-top:10px}
+.tlk{position:absolute;right:140px;bottom:128px;margin:0;font-size:20px;color:var(--muted);display:flex;align-items:center;gap:10px}
+.tlk i{width:18px;height:18px;border-radius:50%;background:var(--mark);border:3px solid var(--ink)}
 .tl .axis{position:absolute;left:0;right:0;top:198px;height:4px;background:var(--line);border-radius:2px}
 .tl .axis i{position:absolute;inset:0;background:var(--ink);transform-origin:0 0;transform:scaleX(0);transition:transform 1.8s var(--ease-io) .25s}
 .on .tl .axis i{transform:none}
@@ -192,6 +224,7 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .tl .v .o{top:189px;left:-11px;width:22px;height:22px;border-radius:50%;background:var(--paper);border:4px solid var(--ink);transition:transform .2s var(--ease-out),background-color .2s ease}
 .tl .v.big .o{background:var(--mark)}
 .tl .v .hit{top:96px;left:-48px;width:96px;height:140px}
+.tl .v .d,.tl .v .n{left:-48px;width:96px;overflow:visible;white-space:nowrap}
 .tl .v .x{left:-95px;width:190px;top:224px;font-size:22px;line-height:1.3;color:var(--ink);text-wrap:balance;transition:opacity .2s ease,color .2s ease}
 .tl .v.lo .x{top:auto;bottom:calc(100% - 98px)}
 .tl .v .x b{font-weight:400;-webkit-text-stroke:0 currentColor;transition:-webkit-text-stroke-width .15s ease}
@@ -200,6 +233,8 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .tl .v:hover .o{transform:scale(1.35);background:var(--mark)}
 .tl .v:hover .n{color:var(--ink)}
 .tl .v:hover .d{color:var(--ink)}
+.tl .v.click .d,.tl .v.click .o,.tl .v.click .n,.tl .v.click .hit{cursor:pointer}
+.tl .v.click:hover .d{text-decoration:underline;text-decoration-color:var(--mark);text-decoration-thickness:3px;text-underline-offset:6px}
 
 .cm{margin-top:50px}
 .cmb{position:relative;height:180px;border-bottom:2px solid var(--line);margin-bottom:34px}
@@ -379,6 +414,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
       <div class="fbk" id="dfb"></div>
     </div>
   </div>
+  <p class="gen f fw"><b>Sve to iz jednog upita.</b>Mreže, pitanja i objašnjenja prve verzije generirao je Claude (AI) nakon jednog upita napisanog na hrvatskom.</p>
 </section>
 
 <!-- 6 · Prva verzija -->
@@ -416,6 +452,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide" data-sec="Rast">
   <p class="kick rv"><b>04</b> Rast aplikacije</p>
   <h2 class="rv" style="--i:1">Iz tjedna u tjedan, uz nastavu</h2>
+  <p class="tlk rv" style="--i:2"><i></i>veća novost</p>
   <div class="tl rv" style="--i:2;height:330px">
     <div class="axis"><i></i></div>
     <!-- raspon 7. 10. – 24. 10. (17 dana); tekstovi naizmjence ispod i iznad crte -->
@@ -442,10 +479,10 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>04</b> Struktura</p>
   <h2 class="rv" style="--i:1">Svako gradivo, isti put</h2>
   <div class="flow">
-    <div class="step rv" style="--i:2"><div class="hd"><span class="num">01</span><h3>Lekcija</h3></div><div class="arrow"></div><p>Kratki slajdovi s primjerima, korak po korak.</p><div class="shot" data-zoom="prezentacija/slike/lekcija.webp"><div class="bar"></div><img src="prezentacija/slike/lekcija.webp" alt="Lekcija" loading="lazy"></div></div>
-    <div class="step rv" style="--i:3"><div class="hd"><span class="num">02</span><h3>Vježba</h3></div><div class="arrow"></div><p>Pitanja prilagođena razini, s objašnjenjem nakon svakog odgovora.</p><div class="shot" data-zoom="prezentacija/slike/serpar-tocno.webp"><div class="bar"></div><img src="prezentacija/slike/serpar-tocno.webp" alt="Vježba" loading="lazy"></div></div>
-    <div class="step rv" style="--i:4"><div class="hd"><span class="num">03</span><h3>Zadaci</h3></div><div class="arrow"></div><p>Zadaci s brojevima: na papiru, uz kalkulator, a rezultat se upiše.</p><div class="shot" data-zoom="prezentacija/slike/zadaci.webp"><div class="bar"></div><img src="prezentacija/slike/zadaci.webp" alt="Zadaci s brojevima" loading="lazy"></div></div>
-    <div class="step rv" style="--i:5"><div class="hd"><span class="num">04</span><h3>Priprema za KZ1</h3></div><div class="arrow" style="background:transparent"></div><p>Stadiji pripreme i probna kontrolna zadaća.</p><div class="shot" data-zoom="prezentacija/slike/kz1.webp"><div class="bar"></div><img src="prezentacija/slike/kz1.webp" alt="Priprema za KZ1" loading="lazy"></div></div>
+    <div class="step rv" style="--i:2"><div class="hd"><span class="num">01</span><h3>Lekcija</h3></div><div class="arrow"></div><p>Kratki slajdovi s primjerima, korak po korak.</p><div class="shot live-tile" data-live="l:ruk" data-title="Lekcija" role="button" tabindex="0" aria-label="Otvori uživo: Lekcija"><div class="bar"></div><span class="play">▶ Otvori uživo</span><img src="prezentacija/slike/lekcija.webp" alt="Lekcija" loading="lazy"></div></div>
+    <div class="step rv" style="--i:3"><div class="hd"><span class="num">02</span><h3>Vježba</h3></div><div class="arrow"></div><p>Pitanja prilagođena razini, s objašnjenjem nakon svakog odgovora.</p><div class="shot live-tile" data-live="p:serpar" data-title="Vježba" role="button" tabindex="0" aria-label="Otvori uživo: Vježba"><div class="bar"></div><span class="play">▶ Otvori uživo</span><img src="prezentacija/slike/serpar-tocno.webp" alt="Vježba" loading="lazy"></div></div>
+    <div class="step rv" style="--i:4"><div class="hd"><span class="num">03</span><h3>Zadaci</h3></div><div class="arrow"></div><p>Zadaci s brojevima: na papiru, uz kalkulator, a rezultat se upiše.</p><div class="shot live-tile" data-live="z:ruk" data-title="Zadaci s brojevima" role="button" tabindex="0" aria-label="Otvori uživo: Zadaci s brojevima"><div class="bar"></div><span class="play">▶ Otvori uživo</span><img src="prezentacija/slike/zadaci.webp" alt="Zadaci s brojevima" loading="lazy"></div></div>
+    <div class="step rv" style="--i:5"><div class="hd"><span class="num">04</span><h3>Priprema za KZ1</h3></div><div class="arrow" style="background:transparent"></div><p>Stadiji pripreme i probna kontrolna zadaća.</p><div class="shot live-tile" data-live="v:kz" data-title="Priprema za KZ1" role="button" tabindex="0" aria-label="Otvori uživo: Priprema za KZ1"><div class="bar"></div><span class="play">▶ Otvori uživo</span><img src="prezentacija/slike/kz1.webp" alt="Priprema za KZ1" loading="lazy"></div></div>
   </div>
 </section>
 
@@ -461,7 +498,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
         <li class="rv" style="--i:4">Pogrešan korak odmah dobiva objašnjenje</li>
       </ul>
     </div>
-    <figure class="rv" style="--i:2;margin:0"><div class="shot" data-zoom="prezentacija/slike/ukupni-otpor.webp"><div class="bar"><i></i><i></i><i></i><u>alenjakoplic.github.io/elektrotehnika</u></div><img src="prezentacija/slike/ukupni-otpor.webp" alt="Ukupni otpor korak po korak" loading="lazy"></div></figure>
+    <figure class="rv" style="--i:2;margin:0"><div class="shot live-tile" data-live="p:ruk" data-title="Vježba: Ukupni otpor" role="button" tabindex="0" aria-label="Otvori uživo: Ukupni otpor"><div class="bar"><i></i><i></i><i></i><u>alenjakoplic.github.io/elektrotehnika</u></div><span class="play">▶ Otvori uživo</span><img src="prezentacija/slike/ukupni-otpor.webp" alt="Ukupni otpor korak po korak" loading="lazy"></div></figure>
   </div>
 </section>
 
@@ -483,14 +520,14 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
     <div>
       <h2 class="rv" style="--i:1">Većina vježba <em>s mobitela</em></h2>
       <ul class="list">
-        <li class="rv" style="--i:2">U tramvaju, između predavanja, pet minuta prije spavanja</li>
+        <li class="rv" style="--i:2">U autobusu, između predavanja, pet minuta prije spavanja</li>
         <li class="rv" style="--i:3">Sheme se povećavaju s dva prsta</li>
         <li class="rv" style="--i:4">Na računalu sve radi i s tipkovnice</li>
       </ul>
     </div>
     <div style="display:flex;gap:50px;justify-content:center;align-items:flex-start">
-      <div class="phone rv" style="--i:2" data-zoom="prezentacija/slike/mob-vjezba.webp"><img src="prezentacija/slike/mob-vjezba.webp" alt="Vježba na mobitelu" loading="lazy"></div>
-      <div class="phone rv" style="--i:3;margin-top:60px" data-zoom="prezentacija/slike/mob-pocetna.webp"><img src="prezentacija/slike/mob-pocetna.webp" alt="Početna na mobitelu" loading="lazy"></div>
+      <div class="phone rv live-tile" style="--i:2;position:relative" data-live="p:serpar" data-phone="1" data-title="Vježba na mobitelu" role="button" tabindex="0"><span class="play">▶ Uživo</span><img src="prezentacija/slike/mob-vjezba.webp" alt="Vježba na mobitelu" loading="lazy"></div>
+      <div class="phone rv live-tile" style="--i:3;margin-top:60px;position:relative" data-live="v:home" data-phone="1" data-title="Početna na mobitelu" role="button" tabindex="0"><span class="play">▶ Uživo</span><img src="prezentacija/slike/mob-pocetna.webp" alt="Početna na mobitelu" loading="lazy"></div>
     </div>
   </div>
 </section>
@@ -507,7 +544,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
         <li class="f"><b>3. stadij: Probna KZ1</b><span>Kao prava: 4 zadatka, 60 minuta, pregled svakog zadatka nakon predaje.</span></li>
       </ul>
     </div>
-    <figure class="rv" style="--i:2;margin:0"><div class="shot" data-zoom="prezentacija/slike/kz1.webp"><div class="bar"><i></i><i></i><i></i><u>alenjakoplic.github.io/elektrotehnika</u></div><img src="prezentacija/slike/kz1.webp" alt="Priprema za KZ1" loading="lazy"></div></figure>
+    <figure class="rv" style="--i:2;margin:0"><div class="shot live-tile" data-live="v:kz" data-title="Priprema za KZ1" role="button" tabindex="0"><div class="bar"><i></i><i></i><i></i><u>alenjakoplic.github.io/elektrotehnika</u></div><span class="play">▶ Otvori uživo</span><img src="prezentacija/slike/kz1.webp" alt="Priprema za KZ1" loading="lazy"></div></figure>
   </div>
 </section>
 
@@ -526,7 +563,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <h2 class="rv" style="--i:1;margin-bottom:40px">Što ih vraća svaki dan</h2>
   <div class="tiles">
     <div class="tile rv" style="--i:2"><svg class="ico" viewBox="0 0 64 64"><path d="M12 50V36M26 50V26M40 50V18M54 50V10"/></svg><h3>Razina 1–10</h3><p>Kao rejting u šahu: raste s težim pitanjima.</p></div>
-    <div class="tile rv" style="--i:3"><svg class="ico" viewBox="0 0 64 64"><path d="M22 54V30h20v24M8 54V40h14M42 54V36h14M6 54h52"/></svg><h3>Ljestvice</h3><p>Po gradivu, ukupno, tjedna, zadaci, probna KZ1, redovitost.</p></div>
+    <div class="tile rv" style="--i:3"><svg class="ico" viewBox="0 0 64 64"><path d="M22 54V30h20v24M8 54V40h14M42 36h14v18M4 54h56"/></svg><h3>Ljestvice</h3><p>Po gradivu, ukupno, tjedna, zadaci, probna KZ1, redovitost.</p></div>
     <div class="tile rv" style="--i:4"><svg class="ico" viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="40" rx="4"/><path d="M10 26h44M22 8v10M42 8v10"/><path d="M24 40l6 6 11-12"/></svg><h3>Dnevni izazov</h3><p>5 težih pitanja, ista za sve, s ljestvicom dana.</p></div>
     <div class="tile rv" style="--i:5"><svg class="ico" viewBox="0 0 64 64"><path d="M14 18h36M14 32h36M14 46h22"/><path d="M42 44l5 5 9-10"/></svg><h3>Zadaci dana</h3><p>Tri mala cilja i bonus tjedni bodovi.</p></div>
     <div class="tile rv" style="--i:6"><svg class="ico" viewBox="0 0 64 64"><circle cx="32" cy="26" r="14"/><path d="M24 38l-6 18 14-7 14 7-6-18"/></svg><h3>Značke</h3><p>Za prve korake, svestranost, svladana gradiva.</p></div>
@@ -710,6 +747,10 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <div id="nav"><button id="bTheme" title="Tema (T)">Tema</button><button id="bFull" title="Cijeli zaslon (F)">Cijeli zaslon</button></div>
 <div id="hint"><kbd>→</kbd> ili razmak za dalje · <kbd>F</kbd> cijeli zaslon · <kbd>T</kbd> tema</div>
 <div id="lb" aria-hidden="true"><img alt=""></div>
+<div id="live" aria-hidden="true"><div class="lv-panel" role="dialog" aria-label="Aplikacija uživo">
+  <div class="lv-bar"><b id="lvT">Aplikacija</b><span class="lv-sp">alenjakoplic.github.io/elektrotehnika · uživo</span><a id="lvNew" href="index.html" target="_blank" rel="noopener">Nova kartica ↗</a><button id="lvX" aria-label="Zatvori">Zatvori <kbd>Esc</kbd></button></div>
+  <div class="lv-body"><div class="lv-load" id="lvL">Učitavam aplikaciju…</div></div>
+</div></div>
 
 <script>
 (()=>{
@@ -720,7 +761,7 @@ const store={get(k){try{return localStorage.getItem('prezentacija:'+k)}catch(e){
 
 /* tema */
 const th=store.get('tema');if(th)document.documentElement.dataset.theme=th;
-function toggleTheme(){const cur=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const n=cur==='dark'?'light':'dark';document.documentElement.dataset.theme=n;store.set('tema',n);drawElo()}
+function toggleTheme(){const cur=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');const n=cur==='dark'?'light':'dark';document.documentElement.dataset.theme=n;store.set('tema',n);drawElo();try{lvTheme();lvV&&lvTheme(lvV)}catch(e){}}
 
 /* skaliranje pozornice */
 function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(${(innerWidth-1920*s)/2}px,${(innerHeight-1080*s)/2}px) scale(${s})`}
@@ -745,10 +786,11 @@ function go(n,dir){n=Math.max(0,Math.min(N-1,n));if(n===cur)return;const prev=sl
   history.replaceState(null,'','#'+(n+1));
   onEnter(s);
   if(n>0)$('#hint').classList.add('off')}
-function next(){const s=slides[cur],f=frags(s).find(x=>!x.classList.contains('in'));if(f){f.classList.add('in');$$('[data-count]',f).forEach(countUp);return}go(cur+1,1)}
-function prev(){const s=slides[cur],shown=frags(s).filter(x=>x.classList.contains('in'));if(shown.length){shown.at(-1).classList.remove('in');return}go(cur-1,-1)}
+function next(){const s=slides[cur],F=frags(s),k=F.findIndex(x=>!x.classList.contains('in'));if(k>=0){for(let i=k;i<F.length&&(i===k||F[i].classList.contains('fw'));i++){F[i].classList.add('in');$$('[data-count]',F[i]).forEach(countUp)}return}go(cur+1,1)}
+function prev(){const s=slides[cur],shown=frags(s).filter(x=>x.classList.contains('in'));if(shown.length){let i=shown.length-1;while(i>0&&shown[i].classList.contains('fw'))shown[i--].classList.remove('in');shown[i].classList.remove('in');return}go(cur-1,-1)}
 
 addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;
+  if($('#live').classList.contains('on')){if(e.key==='Escape'){e.preventDefault();liveClose()}return}
   if($('#lb').classList.contains('on')){if(e.key==='Escape'||e.key===' '||e.key==='Enter'){e.preventDefault();lbClose()}return}
   const k=e.key;
   if(['ArrowRight','ArrowDown','PageDown',' ','Enter','n'].includes(k)){if(k==='Enter'&&e.target.closest('button,a,input'))return;e.preventDefault();next()}
@@ -763,7 +805,7 @@ function full(){if(document.fullscreenElement)document.exitFullscreen();else doc
 $('#bFull').onclick=e=>{e.stopPropagation();full()};$('#bTheme').onclick=e=>{e.stopPropagation();toggleTheme()};
 
 /* klik i povlačenje prstom */
-const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav';
+const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live';
 let px=null,py=0,pt=0;
 addEventListener('pointerdown',e=>{if(e.target.closest(INTER))return;px=e.clientX;py=e.clientY;pt=Date.now()});
 addEventListener('pointerup',e=>{if(px===null)return;const dx=e.clientX-px,dy=e.clientY-py;px=null;
@@ -772,6 +814,35 @@ addEventListener('pointerup',e=>{if(px===null)return;const dx=e.clientX-px,dy=e.
   else if(Math.abs(dx)<8&&Math.abs(dy)<8&&e.pointerType!=='mouse'){e.clientX<innerWidth/3?prev():next()}});
 addEventListener('pointercancel',()=>px=null);
 addEventListener('hashchange',()=>{const n=parseInt(location.hash.slice(1))-1;if(!isNaN(n)&&n!==cur)go(n,n<cur?-1:1)});
+
+/* aplikacija uživo (slajd 9): prava aplikacija u prozoru, odmah na odabranom dijelu */
+const live=$('#live');let lvF=null,lvTok=0;
+function lvTheme(fr){fr=fr||lvF;try{fr.contentDocument.documentElement.dataset.theme=document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}}
+function liveLoad(){if(lvF)return;lvF=document.createElement('iframe');lvF.title='Aplikacija uživo';lvF.src='index.html';lvF.onload=()=>{$('#lvL')?.remove();lvTheme();attachEsc(lvF)};live.querySelector('.lv-body').appendChild(lvF)}
+function liveGo(code){const t=++lvTok,t0=Date.now();
+  (function tryGo(){if(t!==lvTok||!live.classList.contains('on'))return;let ok=false;
+    try{const w=lvF.contentWindow,p=w.prof&&w.prof();if(p&&w.newsGo){w.document.querySelectorAll('#fbm,#tourask').forEach(x=>x.remove());lvTheme();w.newsGo(code);w.scrollTo(0,0);ok=true}}catch(e){}
+    if(!ok&&Date.now()-t0<120000)setTimeout(tryGo,400)})()}  // ako treba prijava, čeka dok se ne prijaviš
+function liveOpen(tile){if(tile.dataset.src)return verOpen(tile.dataset.src,tile.dataset.title);lvV&&(lvV.hidden=true);if(lvF)lvF.hidden=false;$('#lvNew').href='index.html';liveLoad();$('#lvT').textContent=tile.dataset.title;live.classList.toggle('mob',!!tile.dataset.phone);live.classList.add('on');live.setAttribute('aria-hidden','false');liveGo(tile.dataset.live);setTimeout(()=>{try{lvF.focus()}catch(e){}},300)}
+/* stare verzije (slajd 8): snimke iz repozitorija, bez prave baze, s vlastitom lokalnom pohranom */
+let lvV=null;
+function verOpen(src,title){if(lvF)lvF.hidden=true;if(!lvV){lvV=document.createElement('iframe');lvV.title='Stara verzija';live.querySelector('.lv-body').appendChild(lvV);
+    lvV.onload=()=>{$('#lvL')?.remove();lvTheme(lvV);attachEsc(lvV);try{const d=lvV.contentDocument,n=d.getElementById('nick'),g=d.getElementById('go');if(n&&g){n.value='Demo';n.dispatchEvent(new Event('input',{bubbles:true}));g.click()}
+      setTimeout(()=>{try{d.querySelectorAll('#fbm,#tourask').forEach(x=>x.remove())}catch(e){}},500)}catch(e){}}}
+  lvV.hidden=false;if(!lvV.src.endsWith(src))lvV.src=src;$('#lvNew').href=src;$('#lvT').textContent=title;live.classList.remove('mob');live.classList.add('on');live.setAttribute('aria-hidden','false');setTimeout(()=>{try{lvV.focus()}catch(e){}},300)}
+function liveClose(){lvTok++;live.classList.remove('on');live.setAttribute('aria-hidden','true');document.activeElement?.blur?.();window.focus()}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-live]');if(t){e.stopPropagation();liveOpen(t)}},true);
+document.addEventListener('keydown',e=>{const t=e.target.closest?.('[data-live]');if(t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopPropagation();liveOpen(t)}},true);
+$('#lvX').onclick=e=>{e.stopPropagation();liveClose()};
+live.addEventListener('click',e=>{if(e.target===live)liveClose()});
+function attachEsc(fr){try{fr.contentWindow.addEventListener('keydown',e=>{if(e.key==='Escape'&&!fr.contentWindow.document.getElementById('fbm'))liveClose()})}catch(e){}}
+
+/* klik na datum na vremenskoj crti otvara verziju iz tog dana */
+const VERS_SRC={'7. 10.':['prezentacija/prva-verzija.html','najranija sačuvana, 9. 10. ujutro'],'8. 10.':['prezentacija/prva-verzija.html','najranija sačuvana, 9. 10. ujutro'],
+ '9. 10.':['prezentacija/verzije/09-10.html'],'10. 10.':['prezentacija/verzije/10-10.html'],'12. 10.':['prezentacija/verzije/12-10.html'],'15. 10.':['prezentacija/verzije/15-10.html'],
+ '16. 10.':['prezentacija/verzije/16-10.html'],'18. 10.':['prezentacija/verzije/18-10.html'],'21. 10.':['prezentacija/verzije/21-10.html'],'24. 10.':['prezentacija/verzije/24-10.html']};
+$$('.tl .v').forEach(v=>{const d=v.querySelector('.d').textContent.trim(),n=v.querySelector('.n').textContent.trim(),m=VERS_SRC[d];if(!m)return;
+  v.classList.add('click');v.dataset.live='';v.dataset.src=m[0];v.dataset.title=(n==='danas'?'Danas':'Verzija '+n)+' · '+d+' 2026.'+(m[1]?' (verzija od tog dana nije sačuvana; prikazana je '+m[1]+')':'')});
 
 /* povećanje snimke */
 const lb=$('#lb');
@@ -783,6 +854,7 @@ lb.onclick=lbClose;
 function onEnter(s){
   $$('[data-count]',s).filter(e=>!e.closest('.f:not(.in)')).forEach(countUp);
   if(s.id==='s-v1')loadV1();
+  if(s.querySelector('[data-live]'))setTimeout(liveLoad,600);
   if(s.id==='s-title')heroRun();
   if(s.id==='s-elo')drawElo()}
 function countUp(el){const to=+el.dataset.count,suf=el.dataset.suf||'';if(RM||to<5){el.textContent=to+suf;return}const t0=performance.now(),D=1100;
