@@ -570,7 +570,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>06</b> Gamifikacija</p>
   <h2 class="rv" style="--i:1;margin-bottom:40px">Što ih vraća svaki dan</h2>
   <div class="tiles">
-    <div class="tile rv" style="--i:2"><svg class="ico" viewBox="0 0 64 64"><path d="M12 50V36M26 50V26M40 50V18M54 50V10"/></svg><h3 class="try" data-live="v:progress" data-title="Napredak: razina po gradivima" role="button" tabindex="0">Razina 1–10<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Kao rejting u šahu: raste s težim pitanjima.</p></div>
+    <div class="tile rv" style="--i:2"><svg class="ico" viewBox="0 0 64 64"><path d="M12 50V36M26 50V26M40 50V18M54 50V10"/></svg><h3 class="try" data-live="v:progress|c:Kako te drugi vide" data-title="Kako te drugi vide: razine po gradivima" role="button" tabindex="0">Razina 1–10<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Kao rejting u šahu: raste s težim pitanjima.</p></div>
     <div class="tile rv" style="--i:3"><svg class="ico" viewBox="0 0 64 64"><path d="M22 54V30h20v24M8 54V40h14M42 36h14v18M4 54h56"/></svg><h3 class="try" data-live="v:board" data-title="Ljestvice" role="button" tabindex="0">Ljestvice<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Po gradivu, ukupno, tjedna, zadaci, probna KZ1, redovitost.</p></div>
     <div class="tile rv" style="--i:4"><svg class="ico" viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="40" rx="4"/><path d="M10 26h44M22 8v10M42 8v10"/><path d="M24 40l6 6 11-12"/></svg><h3 class="try" data-live="v:home|#chbox" data-title="Dnevni izazov" role="button" tabindex="0">Dnevni izazov<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>5 težih pitanja, ista za sve, s ljestvicom dana.</p></div>
     <div class="tile rv" style="--i:5"><svg class="ico" viewBox="0 0 64 64"><path d="M14 18h36M14 32h36M14 46h22"/><path d="M42 44l5 5 9-10"/></svg><h3 class="try" data-live="v:home|#qbox" data-title="Zadaci dana" role="button" tabindex="0">Zadaci dana<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Tri mala cilja i bonus tjedni bodovi.</p></div>
@@ -837,6 +837,7 @@ function liveGo(code){const t=++lvTok,t0=Date.now();
 function lvFocus(w,x){try{const D=w.document;let el=null;
   if(x[0]==='#')el=D.querySelector(x);
   else if(x.startsWith('t:')){const t=x.slice(2);el=[...D.querySelectorAll('#main summary,#main h2,#main h3,#main label,#main b,#main span,#main p')].find(e=>e.textContent.trim().startsWith(t)||(e.tagName==='LABEL'&&e.textContent.includes(t)))}
+  else if(x.startsWith('c:')){const t=x.slice(2),b=[...D.querySelectorAll('#main button,#main a')].find(e=>e.textContent.trim().startsWith(t));if(b)b.click();return}
   if(!el)return;const d=el.closest('details');if(d)d.open=true;el.scrollIntoView({block:'center'});
   const tg=el.closest('.sheet,details,label')||el;tg.animate([{outline:'4px solid #F2C230',outlineOffset:'4px'},{outline:'4px solid rgba(242,194,48,0)',outlineOffset:'4px'}],{duration:2200,easing:'ease-out'})}catch(e){}}
 function liveOpen(tile){if(tile.dataset.src)return verOpen(tile.dataset.src,tile.dataset.title);lvV&&(lvV.hidden=true);if(lvF)lvF.hidden=false;$('#lvNew').href='index.html';liveLoad();$('#lvT').textContent=tile.dataset.title;live.classList.toggle('mob',!!tile.dataset.phone);live.classList.add('on');live.setAttribute('aria-hidden','false');liveGo(tile.dataset.live);setTimeout(()=>{try{lvF.focus()}catch(e){}},300)}
@@ -884,7 +885,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:34};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:35};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
