@@ -173,6 +173,9 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .btn.ghost{background:var(--btn);color:var(--ink);font-weight:400}
 
 .dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:30px}
+.dstats.f{opacity:1;transform:none}
+.dstats p{opacity:0;transform:translateY(16px);transition:opacity .45s var(--ease-out),transform .6s var(--ease-out);transition-delay:calc(var(--i,0)*110ms)}
+.dstats.in p{opacity:1;transform:none}
 .dstats p{margin:0;font-size:22px;color:var(--muted);line-height:1.3}
 .dstats b{display:block;font-family:var(--f-head);font-weight:700;font-size:68px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
 .dstats .now{padding-left:28px;border-left:1px solid var(--line)}
@@ -338,11 +341,11 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <div class="demo">
     <div>
       <div class="board rv" style="--i:1"><svg id="dm" viewBox="0 0 800 460" aria-label="Mreža otpornika"></svg></div>
-    <div class="dstats">
-    <p class="rv" style="--i:3"><b data-count="220">220</b>generiranih mreža</p>
-    <p class="rv" style="--i:4"><b data-count="451">451</b>pitanje „serija ili paralela”</p>
-    <p class="rv" style="--i:5"><b data-count="740">740</b>pitanja ukupno u prvoj verziji</p>
-    <p class="rv now" style="--i:6"><b>2 909</b>pitanja danas</p>
+    <div class="dstats f">
+    <p style="--i:0"><b data-count="220">220</b>generiranih mreža</p>
+    <p style="--i:1"><b data-count="451">451</b>pitanje „serija ili paralela”</p>
+    <p style="--i:2"><b data-count="740">740</b>pitanja ukupno u prvoj verziji</p>
+    <p class="now" style="--i:3"><b>2 909</b>pitanja danas</p>
   </div>
     </div>
     <div class="rv" style="--i:2">
@@ -723,7 +726,7 @@ function go(n,dir){n=Math.max(0,Math.min(N-1,n));if(n===cur)return;const prev=sl
   history.replaceState(null,'','#'+(n+1));
   onEnter(s);
   if(n>0)$('#hint').classList.add('off')}
-function next(){const s=slides[cur],f=frags(s).find(x=>!x.classList.contains('in'));if(f){f.classList.add('in');return}go(cur+1,1)}
+function next(){const s=slides[cur],f=frags(s).find(x=>!x.classList.contains('in'));if(f){f.classList.add('in');$$('[data-count]',f).forEach(countUp);return}go(cur+1,1)}
 function prev(){const s=slides[cur],shown=frags(s).filter(x=>x.classList.contains('in'));if(shown.length){shown.at(-1).classList.remove('in');return}go(cur-1,-1)}
 
 addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;
@@ -759,7 +762,7 @@ lb.onclick=lbClose;
 
 /* ulazak na slajd */
 function onEnter(s){
-  $$('[data-count]',s).forEach(countUp);
+  $$('[data-count]',s).filter(e=>!e.closest('.f:not(.in)')).forEach(countUp);
   if(s.id==='s-v1')loadV1();
   if(s.id==='s-title')heroRun();
   if(s.id==='s-elo')drawElo()}
