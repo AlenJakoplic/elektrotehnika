@@ -902,7 +902,10 @@ function lvTheme(fr){fr=fr||lvF;try{fr.contentDocument.documentElement.dataset.t
 function liveLoad(){if(lvF)return;lvF=document.createElement('iframe');lvF.title='Aplikacija uživo';lvF.src='index.html';lvF.onload=()=>{$('#lvL')?.remove();lvTheme();attachEsc(lvF)};live.querySelector('.lv-body').appendChild(lvF)}
 function liveGo(code){const t=++lvTok,t0=Date.now();
   (function tryGo(){if(t!==lvTok||!live.classList.contains('on'))return;let ok=false;
-    try{const w=lvF.contentWindow,p=w.prof&&w.prof();if(p&&w.newsGo){w.document.querySelectorAll('#fbm,#tourask').forEach(x=>x.remove());lvTheme();const [c,x]=code.split('|');w.newsGo(c);w.scrollTo(0,0);if(x)setTimeout(()=>lvFocus(w,x),450);ok=true}}catch(e){}
+    try{const w=lvF.contentWindow,p=w.prof&&w.prof();if(p&&w.newsGo){w.document.querySelectorAll('#fbm,#tourask').forEach(x=>x.remove());lvTheme();const [c,x]=code.split('|');
+      // nastavnički dio: tko nije administrator, vidi snimku s primjernim podacima
+      if(c==='v:fb'&&!w.eval('isAdmin')){if(Date.now()-t0<3500)return setTimeout(tryGo,400);liveClose();lb.querySelector('img').src='prezentacija/slike/analitika.webp';lb.classList.add('on');return}
+      w.newsGo(c);w.scrollTo(0,0);if(x)setTimeout(()=>lvFocus(w,x),450);ok=true}}catch(e){}
     if(!ok&&Date.now()-t0<120000)setTimeout(tryGo,400)})()}  // ako treba prijava, čeka dok se ne prijaviš
 // u aplikaciji pokaže traženi dio: '#id' ili 't:tekst' (otvori <details>, pomakni i kratko istakni)
 function lvFocus(w,x){try{const D=w.document;let el=null;
@@ -957,7 +960,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:44};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:46};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
