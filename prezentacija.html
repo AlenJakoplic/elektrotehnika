@@ -310,6 +310,11 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .tile h3{font-family:var(--f-head);font-size:42px;margin:18px 0 8px;line-height:1}
 .tile p{font-size:23px;line-height:1.38;color:var(--muted);margin:0}
 .tile .ico{width:52px;height:52px}
+.tile h3.try{cursor:pointer;display:flex;align-items:center;gap:6px;width:fit-content}
+.tile h3.try svg{width:26px;height:26px;fill:none;stroke:var(--muted);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s var(--ease-out),stroke .2s}
+.tile h3.try:hover{text-decoration:underline;text-decoration-color:var(--mark);text-decoration-thickness:4px;text-underline-offset:6px}
+.tile h3.try:hover svg{transform:translateX(4px);stroke:var(--ink)}
+.tile:has(h3.try:hover){border-color:var(--ink)}
 
 /* demografija */
 .chartD{display:flex;align-items:flex-end;gap:34px;height:470px;padding-top:60px}
@@ -565,14 +570,14 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>06</b> Gamifikacija</p>
   <h2 class="rv" style="--i:1;margin-bottom:40px">Što ih vraća svaki dan</h2>
   <div class="tiles">
-    <div class="tile rv" style="--i:2"><svg class="ico" viewBox="0 0 64 64"><path d="M12 50V36M26 50V26M40 50V18M54 50V10"/></svg><h3>Razina 1–10</h3><p>Kao rejting u šahu: raste s težim pitanjima.</p></div>
-    <div class="tile rv" style="--i:3"><svg class="ico" viewBox="0 0 64 64"><path d="M22 54V30h20v24M8 54V40h14M42 36h14v18M4 54h56"/></svg><h3>Ljestvice</h3><p>Po gradivu, ukupno, tjedna, zadaci, probna KZ1, redovitost.</p></div>
-    <div class="tile rv" style="--i:4"><svg class="ico" viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="40" rx="4"/><path d="M10 26h44M22 8v10M42 8v10"/><path d="M24 40l6 6 11-12"/></svg><h3>Dnevni izazov</h3><p>5 težih pitanja, ista za sve, s ljestvicom dana.</p></div>
-    <div class="tile rv" style="--i:5"><svg class="ico" viewBox="0 0 64 64"><path d="M14 18h36M14 32h36M14 46h22"/><path d="M42 44l5 5 9-10"/></svg><h3>Zadaci dana</h3><p>Tri mala cilja i bonus tjedni bodovi.</p></div>
-    <div class="tile rv" style="--i:6"><svg class="ico" viewBox="0 0 64 64"><circle cx="32" cy="26" r="14"/><path d="M24 38l-6 18 14-7 14 7-6-18"/></svg><h3>Značke</h3><p>Za prve korake, svestranost, svladana gradiva.</p></div>
-    <div class="tile rv" style="--i:7"><svg class="ico" viewBox="0 0 64 64"><path d="M32 8c4 10 14 14 14 28a14 14 0 0 1-28 0c0-8 4-12 6-16 2 6 4 8 8 8-2-8-2-14 0-20z"/></svg><h3>Niz dana</h3><p>Uz slobodne dane, da jedan propušten dan ne obeshrabri.</p></div>
-    <div class="tile rv" style="--i:8"><svg class="ico" viewBox="0 0 64 64"><path d="M20 10h24v12a12 12 0 0 1-24 0z"/><path d="M20 14H10c0 10 4 14 10 14M44 14h10c0 10-4 14-10 14M32 34v10M22 54h20M26 44h12v10H26z"/></svg><h3>Tjedni vrh</h3><p>Tjedni bodovi, svaki tjedan iznova; najboljih 10 % dobiva značku.</p></div>
-    <div class="tile rv" style="--i:9"><svg class="ico" viewBox="0 0 64 64"><path d="M14 32a18 18 0 1 0 6-13"/><path d="M12 10v10h10"/></svg><h3>Bez bodovanja</h3><p>Vježba i ponavljanje grešaka bez straha za razinu.</p></div>
+    <div class="tile rv" style="--i:2"><svg class="ico" viewBox="0 0 64 64"><path d="M12 50V36M26 50V26M40 50V18M54 50V10"/></svg><h3 class="try" data-live="v:progress" data-title="Napredak: razina po gradivima" role="button" tabindex="0">Razina 1–10<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Kao rejting u šahu: raste s težim pitanjima.</p></div>
+    <div class="tile rv" style="--i:3"><svg class="ico" viewBox="0 0 64 64"><path d="M22 54V30h20v24M8 54V40h14M42 36h14v18M4 54h56"/></svg><h3 class="try" data-live="v:board" data-title="Ljestvice" role="button" tabindex="0">Ljestvice<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Po gradivu, ukupno, tjedna, zadaci, probna KZ1, redovitost.</p></div>
+    <div class="tile rv" style="--i:4"><svg class="ico" viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="40" rx="4"/><path d="M10 26h44M22 8v10M42 8v10"/><path d="M24 40l6 6 11-12"/></svg><h3 class="try" data-live="v:home|#chbox" data-title="Dnevni izazov" role="button" tabindex="0">Dnevni izazov<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>5 težih pitanja, ista za sve, s ljestvicom dana.</p></div>
+    <div class="tile rv" style="--i:5"><svg class="ico" viewBox="0 0 64 64"><path d="M14 18h36M14 32h36M14 46h22"/><path d="M42 44l5 5 9-10"/></svg><h3 class="try" data-live="v:home|#qbox" data-title="Zadaci dana" role="button" tabindex="0">Zadaci dana<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Tri mala cilja i bonus tjedni bodovi.</p></div>
+    <div class="tile rv" style="--i:6"><svg class="ico" viewBox="0 0 64 64"><circle cx="32" cy="26" r="14"/><path d="M24 38l-6 18 14-7 14 7-6-18"/></svg><h3 class="try" data-live="v:progress|t:Značke" data-title="Značke" role="button" tabindex="0">Značke<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Za prve korake, svestranost, svladana gradiva.</p></div>
+    <div class="tile rv" style="--i:7"><svg class="ico" viewBox="0 0 64 64"><path d="M32 8c4 10 14 14 14 28a14 14 0 0 1-28 0c0-8 4-12 6-16 2 6 4 8 8 8-2-8-2-14 0-20z"/></svg><h3 class="try" data-live="v:home|t:dana zaredom" data-title="Niz dana" role="button" tabindex="0">Niz dana<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Uz slobodne dane, da jedan propušten dan ne obeshrabri.</p></div>
+    <div class="tile rv" style="--i:8"><svg class="ico" viewBox="0 0 64 64"><path d="M20 10h24v12a12 12 0 0 1-24 0z"/><path d="M20 14H10c0 10 4 14 10 14M44 14h10c0 10-4 14-10 14M32 34v10M22 54h20M26 44h12v10H26z"/></svg><h3 class="try" data-live="v:board:week" data-title="Tjedna ljestvica i tjedni vrh" role="button" tabindex="0">Tjedni vrh<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Tjedni bodovi, svaki tjedan iznova; najboljih 10 % dobiva značku.</p></div>
+    <div class="tile rv" style="--i:9"><svg class="ico" viewBox="0 0 64 64"><path d="M14 32a18 18 0 1 0 6-13"/><path d="M12 10v10h10"/></svg><h3 class="try" data-live="p:serpar|t:Vježbam bez bodovanja" data-title="Vježbam bez bodovanja" role="button" tabindex="0">Bez bodovanja<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></h3><p>Vježba i ponavljanje grešaka bez straha za razinu.</p></div>
   </div>
 </section>
 
@@ -823,8 +828,14 @@ function lvTheme(fr){fr=fr||lvF;try{fr.contentDocument.documentElement.dataset.t
 function liveLoad(){if(lvF)return;lvF=document.createElement('iframe');lvF.title='Aplikacija uživo';lvF.src='index.html';lvF.onload=()=>{$('#lvL')?.remove();lvTheme();attachEsc(lvF)};live.querySelector('.lv-body').appendChild(lvF)}
 function liveGo(code){const t=++lvTok,t0=Date.now();
   (function tryGo(){if(t!==lvTok||!live.classList.contains('on'))return;let ok=false;
-    try{const w=lvF.contentWindow,p=w.prof&&w.prof();if(p&&w.newsGo){w.document.querySelectorAll('#fbm,#tourask').forEach(x=>x.remove());lvTheme();w.newsGo(code);w.scrollTo(0,0);ok=true}}catch(e){}
+    try{const w=lvF.contentWindow,p=w.prof&&w.prof();if(p&&w.newsGo){w.document.querySelectorAll('#fbm,#tourask').forEach(x=>x.remove());lvTheme();const [c,x]=code.split('|');w.newsGo(c);w.scrollTo(0,0);if(x)setTimeout(()=>lvFocus(w,x),450);ok=true}}catch(e){}
     if(!ok&&Date.now()-t0<120000)setTimeout(tryGo,400)})()}  // ako treba prijava, čeka dok se ne prijaviš
+// u aplikaciji pokaže traženi dio: '#id' ili 't:tekst' (otvori <details>, pomakni i kratko istakni)
+function lvFocus(w,x){try{const D=w.document;let el=null;
+  if(x[0]==='#')el=D.querySelector(x);
+  else if(x.startsWith('t:')){const t=x.slice(2);el=[...D.querySelectorAll('#main summary,#main h2,#main h3,#main label,#main b,#main span,#main p')].find(e=>e.textContent.trim().startsWith(t)||(e.tagName==='LABEL'&&e.textContent.includes(t)))}
+  if(!el)return;const d=el.closest('details');if(d)d.open=true;el.scrollIntoView({block:'center'});
+  const tg=el.closest('.sheet,details,label')||el;tg.animate([{outline:'4px solid #F2C230',outlineOffset:'4px'},{outline:'4px solid rgba(242,194,48,0)',outlineOffset:'4px'}],{duration:2200,easing:'ease-out'})}catch(e){}}
 function liveOpen(tile){if(tile.dataset.src)return verOpen(tile.dataset.src,tile.dataset.title);lvV&&(lvV.hidden=true);if(lvF)lvF.hidden=false;$('#lvNew').href='index.html';liveLoad();$('#lvT').textContent=tile.dataset.title;live.classList.toggle('mob',!!tile.dataset.phone);live.classList.add('on');live.setAttribute('aria-hidden','false');liveGo(tile.dataset.live);setTimeout(()=>{try{lvF.focus()}catch(e){}},300)}
 /* stare verzije (slajd 8): snimke iz repozitorija, bez prave baze, s vlastitom lokalnom pohranom */
 let lvV=null;
@@ -870,7 +881,7 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
 
 /* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
 // git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:31};
+const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:32};
 // što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
 const CMT={
  9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
