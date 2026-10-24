@@ -194,9 +194,9 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .tl .v .hit{top:96px;left:-48px;width:96px;height:140px}
 .tl .v .x{left:-95px;width:190px;top:224px;font-size:22px;line-height:1.3;color:var(--ink);text-wrap:balance;transition:opacity .2s ease,color .2s ease}
 .tl .v.lo .x{top:auto;bottom:calc(100% - 98px)}
-.tl .v .x b{font-weight:400;transition:font-weight .1s}
+.tl .v .x b{font-weight:400;-webkit-text-stroke:0 currentColor;transition:-webkit-text-stroke-width .15s ease}
 .tl:has(.v:hover) .v:not(:hover) .x{opacity:.35}
-.tl .v:hover .x b{font-weight:700}
+.tl .v:hover .x b{-webkit-text-stroke-width:.75px}
 .tl .v:hover .o{transform:scale(1.35);background:var(--mark)}
 .tl .v:hover .n{color:var(--ink)}
 .tl .v:hover .d{color:var(--ink)}
