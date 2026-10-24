@@ -772,24 +772,26 @@ $('#births').innerHTML=BR.map(([y,v,p],i)=>`<div class="c"><div class="val">${nf
 
 /* ---------- demo: serija ili paralela ---------- */
 const POT={A:'var(--pA)',n1:'var(--pD)',n2:'var(--pC)',B:'var(--pB)'};
-// žice po čvorovima
-const W={A:'M60 230 H140 M140 100 V360 M140 100 H200 M140 360 H200',
- n1:'M300 100 H500',
- n2:'M300 360 H420 M420 300 V420 M420 300 H470 M420 420 H470',
- B:'M600 100 H680 V420 M570 300 H680 M570 420 H680 M680 230 H740'};
-const RS={R1:[200,100,'h','A','n1'],R2:[500,100,'h','n1','B'],R3:[200,360,'h','A','n2'],R4:[470,300,'h','n2','B'],R5:[470,420,'h','n2','B']};
-const DOTS=[[140,230,'A'],[420,360,'n2'],[680,230,'B'],[680,300,'B']];
+// ista mreža kao na naslovnom slajdu, ali bez desnog otpornika: R2 i R3 izgledaju kao paralela, a u seriji su
+const W={A:'M60 110 H180',
+ n1:'M280 110 H520 M420 110 V190',
+ n2:'M620 110 H740 V370 H620',
+ B:'M520 370 H60 M420 290 V370'};
+// [x, y, smjer]: h – vodoravno (y je os), v – okomito (x je os, y je vrh)
+const RS={R1:[180,110,'h'],R2:[520,110,'h'],R3:[520,370,'h'],R4:[420,190,'v']};
+const DOTS=[[420,110,'n1'],[420,370,'B']];
 const QD=[
- {a:'R1',b:'R2',ans:'s',why:'R<sub>1</sub> i R<sub>2</sub> dijele čvor na koji ništa drugo nije spojeno: kroz oba teče ista struja.'},
- {a:'R4',b:'R5',ans:'p',why:'R<sub>4</sub> i R<sub>5</sub> spojeni su na isti par čvorova (zeleni i plavi): imaju isti napon.'},
- {a:'R1',b:'R3',ans:'n',why:'Dijele samo crveni čvor, a na njega je spojena i stezaljka A. Nisu ni na istom paru čvorova.'},
- {a:'R3',b:'R4',ans:'n',why:'Zeleni čvor dijele s R<sub>5</sub>, pa struja kroz R<sub>3</sub> nije ista kao kroz R<sub>4</sub>.'}];
+ {a:'R2',b:'R3',ans:'s',why:'Izgledaju kao paralela jer su jedan iznad drugoga, ali desni (zeleni) čvor spaja samo njih dvoje: kroz oba teče ista struja.'},
+ {a:'R1',b:'R2',ans:'n',why:'Izgledaju kao serija, ali se u narančastom čvoru između njih struja grana i kroz R<sub>4</sub>.'},
+ {a:'R1',b:'R4',ans:'n',why:'Dijele narančasti čvor, ali na njega je spojen i R<sub>2</sub>. Nisu ni na istom paru čvorova.'}];
 let qi=0,done=false;
 function dmDraw(reveal){const q=QD[qi];let s='';
   for(const k in W)s+=`<path class="w" d="${W[k]}" style="stroke:${reveal?POT[k]:'var(--ink)'}"/>`;
-  for(const [n,[x,y]] of Object.entries(RS)){const hl=n===q.a||n===q.b;s+=`<rect class="r${hl?' hl':''}" x="${x}" y="${y-20}" width="100" height="40" rx="3"/><text class="lbl" x="${x+38}" y="${y-30}">R<tspan font-size="22" dy="8">${n.slice(1)}</tspan></text>`}
+  for(const [n,[x,y,o]] of Object.entries(RS)){const hl=n===q.a||n===q.b,t=`R<tspan font-size="22" dy="8">${n.slice(1)}</tspan>`;
+    s+=o==='h'?`<rect class="r${hl?' hl':''}" x="${x}" y="${y-20}" width="100" height="40" rx="3"/><text class="lbl" x="${x+38}" y="${y>200?y+58:y-30}">${t}</text>`
+              :`<rect class="r${hl?' hl':''}" x="${x-20}" y="${y}" width="40" height="100" rx="3"/><text class="lbl" x="${x+32}" y="${y+60}">${t}</text>`}
   for(const [x,y,k] of DOTS)s+=`<circle class="dot" cx="${x}" cy="${y}" r="8" style="fill:${reveal?POT[k]:'var(--ink)'}"/>`;
-  s+=`<circle class="term" cx="60" cy="230" r="13"/><circle class="term" cx="740" cy="230" r="13"/><text class="lbl" x="40" y="200">A</text><text class="lbl" x="728" y="200">B</text>`;
+  s+=`<circle class="term" cx="60" cy="110" r="13"/><circle class="term" cx="60" cy="370" r="13"/><text class="lbl" x="14" y="122">A</text><text class="lbl" x="14" y="382">B</text>`;
   $('#dm').innerHTML=s}
 function dmQ(){const q=QD[qi];done=false;$('#dq').innerHTML=`Kako su spojeni otpornici <b>R<sub>${q.a.slice(1)}</sub></b> i <b>R<sub>${q.b.slice(1)}</sub></b> gledano sa stezaljki A i B?`;
   $$('#dopts .opt').forEach(b=>{b.disabled=false;b.className='opt'});$('#dfb').className='fbk';$('#dfb').innerHTML='';dmDraw(false)}
