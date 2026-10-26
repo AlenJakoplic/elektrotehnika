@@ -306,6 +306,15 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .who28{text-align:right;max-width:640px}
 .mail28{display:block;font-size:28px;font-weight:700;color:var(--ink);text-decoration:none;margin-top:6px}
 .mail28:hover{text-decoration:underline;text-decoration-color:var(--mark);text-decoration-thickness:3px}.who28 b{font-size:34px}
+.more-card{cursor:pointer;transition:transform .2s var(--ease-out),border-color .2s}
+@media (hover:hover){.more-card:hover{transform:translateY(-4px);border-color:var(--ink)}}
+.more-card::after{content:"Više ›";display:block;margin-top:18px;font-size:20px;font-weight:700;color:var(--muted)}
+#pop{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;background:rgba(10,16,22,.45)}
+#pop[hidden]{display:none}
+.pop-b{background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.4);padding:26px 30px;max-width:560px;margin:16px;animation:pop21 .25s var(--ease-out)}
+.pop-b h4{font-family:var(--f-head);font-size:30px;margin:0 0 8px}
+.pop-b p{font-size:19px;line-height:1.5;margin:0 0 16px;color:var(--ink)}
+.pop-b .btn{font-size:16px;padding:8px 16px}
 /* veliki brojevi */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
 .stat .v{font-family:var(--f-head);font-weight:700;font-size:150px;line-height:.9;font-variant-numeric:tabular-nums}
@@ -421,9 +430,9 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>01</b> Zašto modernizirati</p>
   <h2 class="rv" style="--i:1">Došlo je <em>AI doba</em></h2>
   <div class="cards">
-    <div class="card rv" style="--i:2"><svg class="ico" viewBox="0 0 64 64"><path d="M10 14h44v28H30l-10 9v-9H10z"/><path d="M20 25h24M20 32h16"/></svg><h3>Studenti već uče uz AI</h3><p>Navikli su postaviti pitanje i odmah dobiti odgovor.</p></div>
-    <div class="card rv" style="--i:3"><svg class="ico" viewBox="0 0 64 64"><circle cx="28" cy="28" r="15"/><path d="M39 39l14 14"/><path d="M22 28h12M28 22v12"/></svg><h3>Informacija je na dohvat ruke</h3><p>Dovoljno kvalitetno objašnjenje udaljeno je jedan upit.</p></div>
-    <div class="card rv" style="--i:4"><svg class="ico" viewBox="0 0 64 64"><path d="M14 46l18-18M38 12l14 14-8 8-14-14z"/><path d="M10 54l6-2 2-6"/><path d="M44 42v12M38 48h12"/></svg><h3>Alati se rade brže nego ikad</h3><p>Lakše je učiti, ali i izraditi alat koji pomaže u učenju.</p></div>
+    <div class="card rv more-card" role="button" tabindex="0" style="--i:2"><svg class="ico" viewBox="0 0 64 64"><path d="M10 14h44v28H30l-10 9v-9H10z"/><path d="M20 25h24M20 32h16"/></svg><h3>Studenti već uče uz AI</h3><span class="more" hidden>Uz zadaću danas često otvore i AI: postave pitanje i odmah dobiju objašnjenje. Zato i od učenja očekuju brzu povratnu informaciju, a ne tek na kolokviju.</span><p>Navikli su postaviti pitanje i odmah dobiti odgovor.</p></div>
+    <div class="card rv more-card" role="button" tabindex="0" style="--i:3"><svg class="ico" viewBox="0 0 64 64"><circle cx="28" cy="28" r="15"/><path d="M39 39l14 14"/><path d="M22 28h12M28 22v12"/></svg><h3>Informacija je na dohvat ruke</h3><span class="more" hidden>Objašnjenje Theveninova teorema ili riješen zadatak dostupni su u sekundi. Problem više nije doći do informacije, nego znati je li točna i usklađena s našim kolegijem.</span><p>Dovoljno kvalitetno objašnjenje udaljeno je jedan upit.</p></div>
+    <div class="card rv more-card" role="button" tabindex="0" style="--i:4"><svg class="ico" viewBox="0 0 64 64"><path d="M14 46l18-18M38 12l14 14-8 8-14-14z"/><path d="M10 54l6-2 2-6"/><path d="M44 42v12M38 48h12"/></svg><h3>Alati se rade brže nego ikad</h3><span class="more" hidden>Ova aplikacija nastala je u 17 dana, uz redovnu nastavu, uz pomoć Claudea. Za ono za što je prije trebao tim programera danas je dovoljan nastavnik koji zna što želi.</span><p>Lakše je učiti, ali i izraditi alat koji pomaže u učenju.</p></div>
   </div>
 </section>
 
@@ -432,9 +441,9 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>01</b> Zašto modernizirati</p>
   <h2 class="rv" style="--i:1">Studenti to mogu i sami.<br><em>Zašto onda mi?</em></h2>
   <ul class="list" style="max-width:1450px">
-    <li class="f"><b>Kontrola nad sadržajem</b><span>Zadaci prate naša predavanja i auditorne vježbe: iste oznake (E, R<sub>1</sub>, R<sub>T</sub>, U<sub>AB</sub>), isto nazivlje, isti redoslijed.</span></li>
-    <li class="f"><b>Mogućnost provjere</b><span>Generirana pitanja provjeravaju se izračunom, a greške koje studenti prijave ispravljamo isti dan.</span></li>
-    <li class="f"><b>Uvid prije kolokvija, ne nakon</b><span>Vidimo gdje zapinju dok još ima vremena da se nešto promijeni.</span></li>
+    <li class="rv" style="--i:2"><b>Kontrola nad sadržajem</b><span>Zadaci prate naša predavanja i auditorne vježbe: iste oznake (E, R<sub>1</sub>, R<sub>T</sub>, U<sub>AB</sub>), isto nazivlje, isti redoslijed.</span></li>
+    <li class="rv" style="--i:3"><b>Mogućnost provjere</b><span>Generirana pitanja provjeravaju se izračunom, a greške koje studenti prijave ispravljamo isti dan.</span></li>
+    <li class="rv" style="--i:4"><b>Uvid prije kolokvija, ne nakon</b><span>Vidimo gdje zapinju dok još ima vremena da se nešto promijeni.</span></li>
   </ul>
 </section>
 
@@ -828,6 +837,7 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <div id="prog"><i></i></div>
 <div id="nav"><button id="bTheme" title="Tema (T)">Tema</button><button id="bFull" title="Cijeli zaslon (F)">Cijeli zaslon</button></div>
 <div id="hint"><kbd>→</kbd> ili razmak za dalje · <kbd>F</kbd> cijeli zaslon · <kbd>T</kbd> tema</div>
+<div id="pop" hidden><div class="pop-b"><h4></h4><p></p><button class="btn ghost" id="popX">Zatvori</button></div></div>
 <div id="lb" aria-hidden="true"><img alt=""></div>
 <div id="live" aria-hidden="true"><div class="lv-panel" role="dialog" aria-label="Aplikacija uživo">
   <div class="lv-bar"><b id="lvT">Aplikacija</b><span class="lv-sp">alenjakoplic.github.io/elektrotehnika · uživo</span><a id="lvNew" href="index.html" target="_blank" rel="noopener">Nova kartica ↗</a><button id="lvX" aria-label="Zatvori">Zatvori <kbd>Esc</kbd></button></div>
@@ -872,6 +882,7 @@ function next(){const s=slides[cur],F=frags(s),k=F.findIndex(x=>!x.classList.con
 function prev(){const s=slides[cur],shown=frags(s).filter(x=>x.classList.contains('in'));if(shown.length){let i=shown.length-1;while(i>0&&shown[i].classList.contains('fw'))shown[i--].classList.remove('in');shown[i].classList.remove('in');return}go(cur-1,-1)}
 
 addEventListener('keydown',e=>{if(e.altKey||e.ctrlKey||e.metaKey)return;
+  if(!pop.hidden){if(e.key==='Escape'||e.key===' '||e.key==='Enter'){e.preventDefault();popClose()}return}
   if($('#live').classList.contains('on')){if(e.key==='Escape'){e.preventDefault();liveClose()}return}
   if($('#lb').classList.contains('on')){if(e.key==='Escape'||e.key===' '||e.key==='Enter'){e.preventDefault();lbClose()}return}
   const k=e.key;
@@ -887,7 +898,7 @@ function full(){if(document.fullscreenElement)document.exitFullscreen();else doc
 $('#bFull').onclick=e=>{e.stopPropagation();full()};$('#bTheme').onclick=e=>{e.stopPropagation();toggleTheme()};
 
 /* klik i povlačenje prstom */
-const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live,.qm,#hero .r';
+const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live,.qm,#hero .r,.more-card,#pop';
 let px=null,py=0,pt=0;
 addEventListener('pointerdown',e=>{if(e.target.closest(INTER))return;px=e.clientX;py=e.clientY;pt=Date.now()});
 addEventListener('pointerup',e=>{if(px===null)return;const dx=e.clientX-px,dy=e.clientY-py;px=null;
@@ -935,6 +946,11 @@ const VERS_SRC={'7. 10.':['prezentacija/prva-verzija.html','najranija sačuvana,
  '16. 10.':['prezentacija/verzije/16-10.html'],'18. 10.':['prezentacija/verzije/18-10.html'],'21. 10.':['prezentacija/verzije/21-10.html'],'24. 10.':['prezentacija/verzije/24-10.html']};
 $$('.tl .v').forEach(v=>{const d=v.querySelector('.d').textContent.trim(),n=v.querySelector('.n').textContent.trim(),m=VERS_SRC[d];if(!m)return;
   v.classList.add('click');v.dataset.live='';v.dataset.src=m[0];v.dataset.title=(n==='danas'?'Danas':'Verzija '+n)+' · '+d+' 2026.'+(m[1]?' (verzija od tog dana nije sačuvana; prikazana je '+m[1]+')':'')});
+
+// slajd 2: klik na karticu otvara mali prozor s pojašnjenjem
+const pop=$('#pop');function popClose(){pop.hidden=true}
+document.addEventListener('click',e=>{const c=e.target.closest('.more-card');if(!c)return;e.stopPropagation();pop.querySelector('h4').textContent=c.querySelector('h3').textContent;pop.querySelector('p').textContent=c.querySelector('.more').textContent;pop.hidden=false});
+pop.addEventListener('click',e=>{if(e.target===pop||e.target.id==='popX')popClose()});
 
 /* povećanje snimke */
 const lb=$('#lb');
