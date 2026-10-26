@@ -229,6 +229,8 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .tl .v .d,.tl .v .n{left:-48px;width:96px;overflow:visible;white-space:nowrap}
 .tl .v .x{left:-95px;width:190px;top:224px;font-size:22px;line-height:1.3;color:var(--ink);text-wrap:balance;transition:opacity .2s ease,color .2s ease}
 .tl .v.lo .x{top:auto;bottom:calc(100% - 98px)}
+.tl .v.cr-d .d,.tl .v.cr-d .n,.tl .v.cr-x .x{opacity:0;transition:opacity .15s}
+.tl .v.cr-d:hover .d,.tl .v.cr-d:hover .n,.tl .v.cr-x:hover .x{opacity:1;background:var(--paper);z-index:3}
 .tl .v .x b{font-weight:400;-webkit-text-stroke:0 currentColor;transition:-webkit-text-stroke-width .15s ease}
 .tl:has(.v:hover) .v:not(:hover) .x{opacity:.35}
 .tl .v:hover .x b{-webkit-text-stroke-width:.75px}
@@ -518,25 +520,12 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
   <p class="kick rv"><b>04</b> Rast aplikacije</p>
   <h2 class="rv" style="--i:1">Iz tjedna u tjedan, uz nastavu</h2>
   <p class="tlk rv" style="--i:2"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 3l11 10-5 1 3 6-2 1-3-6-4 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>klik na datum ili stupac otvara verziju koja je tada bila objavljena</p>
-  <div class="tl rv" style="--i:2;height:330px">
-    <div class="axis"><i></i></div>
-    <!-- raspon 7. 10. – 24. 10. (17 dana); tekstovi naizmjence ispod i iznad crte -->
-    <div class="v big" style="left:0%"><div class="hit"></div><div class="d">7. 10.</div><div class="n">0.10</div><div class="o"></div><div class="x"><b>Serija ili paralela, Ukupni otpor, Elektrostatika</b></div></div>
-    <div class="v lo" style="left:5.9%"><div class="hit"></div><div class="d">8. 10.</div><div class="n">0.11</div><div class="o"></div><div class="x"><b>Kondenzatori, metode, zadaci s brojevima</b></div></div>
-    <div class="v" style="left:11.8%"><div class="hit"></div><div class="d">9. 10.</div><div class="n">0.12</div><div class="o"></div><div class="x"><b>Prijava nadimkom i PIN-om, zajednička ljestvica</b></div></div>
-    <div class="v lo" style="left:17.6%"><div class="hit"></div><div class="d">10. 10.</div><div class="n">0.13</div><div class="o"></div><div class="x"><b>Niz dana, značke, tjedna liga</b></div></div>
-    <div class="v" style="left:29.4%"><div class="hit"></div><div class="d">12. 10.</div><div class="n">0.14</div><div class="o"></div><div class="x"><b>Promjena nadimka, bolji vodič</b></div></div>
-    <div class="v big lo" style="left:47%"><div class="hit"></div><div class="d">15. 10.</div><div class="n">0.15</div><div class="o"></div><div class="x"><b>Magnetsko polje, Thevenin i Norton</b></div></div>
-    <div class="v big" style="left:52.9%"><div class="hit"></div><div class="d">16. 10.</div><div class="n">0.16</div><div class="o"></div><div class="x"><b>Priprema i Probna KZ1, Pitaj nastavnika</b></div></div>
-    <div class="v lo" style="left:64.7%"><div class="hit"></div><div class="d">18. 10.</div><div class="n">0.17</div><div class="o"></div><div class="x"><b>Zadaci dana, tjedni vrh</b></div></div>
-    <div class="v big" style="left:82.4%"><div class="hit"></div><div class="d">21. 10.</div><div class="n">0.18</div><div class="o"></div><div class="x"><b>Dnevni izazov, prsteni napretka</b></div></div>
-    <div class="v lo" style="left:100%"><div class="hit"></div><div class="d">24. 10.</div><div class="n">danas</div><div class="o" style="background:var(--ink)"></div><div class="x"><b>Animacije, postupno objašnjenje, statistika</b></div></div>
-  </div>
+  <div class="tl rv" style="--i:2;height:330px" id="tl8"><div class="axis"><i></i></div></div>
   <div class="cm rv" style="--i:4">
     <div class="cmb" id="cbars"></div>
     <p class="small muted" style="margin:0">Izmjene u repozitoriju po danu (commitovi)</p>
   </div>
-  <div class="big17 rv" style="--i:2"><b data-count="17">17</b><span>dana od prve verzije do danas, uz redovnu nastavu</span></div>
+  <div class="big17 rv" style="--i:2"><b data-count="17" id="days8">17</b><span>dana od prve verzije do danas, uz redovnu nastavu</span></div>
 </section>
 
 <!-- 9 · Struktura -->
@@ -571,10 +560,10 @@ iframe.live{width:100%;height:100%;border:0;display:block;background:#fff}
 <section class="slide" data-sec="Rast">
   <p class="kick rv"><b>04</b> Gradiva do KZ1</p>
   <div class="gal">
-    <figure class="rv" style="--i:1"><p class="lab">Serija ili paralela</p><div class="shot" data-zoom="prezentacija/slike/serpar.webp"><img src="prezentacija/slike/serpar.webp" alt="" loading="lazy"></div></figure>
-    <figure class="rv" style="--i:2"><p class="lab">Elektrostatika</p><div class="shot" data-zoom="prezentacija/slike/elektrostatika.webp"><img src="prezentacija/slike/elektrostatika.webp" alt="" loading="lazy"></div></figure>
-    <figure class="rv" style="--i:3"><p class="lab">Konturne struje i naponi čvorova</p><div class="shot" data-zoom="prezentacija/slike/metode.webp"><img src="prezentacija/slike/metode.webp" alt="" loading="lazy"></div></figure>
-    <figure class="rv" style="--i:4"><p class="lab">Ukupni otpor, teoremi mreža, magnetsko polje…</p><div class="shot" data-zoom="prezentacija/slike/ukupni-otpor.webp"><img src="prezentacija/slike/ukupni-otpor.webp" alt="" loading="lazy"></div></figure>
+    <figure class="rv" style="--i:1"><p class="lab">Serija ili paralela</p><div class="shot live-tile" data-live="p:serpar" data-title="Vježba: Serija ili paralela" role="button" tabindex="0"><span class="play" style="z-index:2">▶ Otvori uživo</span><img src="prezentacija/slike/serpar.webp" alt="" loading="lazy"></div></figure>
+    <figure class="rv" style="--i:2"><p class="lab">Elektrostatika</p><div class="shot live-tile" data-live="p:estat" data-title="Vježba: Elektrostatika" role="button" tabindex="0"><span class="play" style="z-index:2">▶ Otvori uživo</span><img src="prezentacija/slike/elektrostatika.webp" alt="" loading="lazy"></div></figure>
+    <figure class="rv" style="--i:3"><p class="lab">Konturne struje i naponi čvorova</p><div class="shot live-tile" data-live="p:kont" data-title="Vježba: Konturne struje i naponi čvorova" role="button" tabindex="0"><span class="play" style="z-index:2">▶ Otvori uživo</span><img src="prezentacija/slike/metode.webp" alt="" loading="lazy"></div></figure>
+    <figure class="rv" style="--i:4"><p class="lab">Ukupni otpor, teoremi mreža, magnetsko polje…</p><div class="shot live-tile" data-live="p:ruk" data-title="Vježba: Ukupni otpor" role="button" tabindex="0"><span class="play" style="z-index:2">▶ Otvori uživo</span><img src="prezentacija/slike/ukupni-otpor.webp" alt="" loading="lazy"></div></figure>
   </div>
 </section>
 
@@ -941,13 +930,6 @@ $('#lvX').onclick=e=>{e.stopPropagation();liveClose()};
 live.addEventListener('click',e=>{if(e.target===live)liveClose()});
 function attachEsc(fr){try{fr.contentWindow.addEventListener('keydown',e=>{if(e.key==='Escape'&&!fr.contentWindow.document.getElementById('fbm'))liveClose()})}catch(e){}}
 
-/* klik na datum na vremenskoj crti otvara verziju iz tog dana */
-const VERS_SRC={'7. 10.':['prezentacija/prva-verzija.html','najranija sačuvana, 9. 10. ujutro'],'8. 10.':['prezentacija/prva-verzija.html','najranija sačuvana, 9. 10. ujutro'],
- '9. 10.':['prezentacija/verzije/09-10.html'],'10. 10.':['prezentacija/verzije/10-10.html'],'12. 10.':['prezentacija/verzije/12-10.html'],'15. 10.':['prezentacija/verzije/15-10.html'],
- '16. 10.':['prezentacija/verzije/16-10.html'],'18. 10.':['prezentacija/verzije/18-10.html'],'21. 10.':['prezentacija/verzije/21-10.html'],'24. 10.':['prezentacija/verzije/24-10.html']};
-$$('.tl .v').forEach(v=>{const d=v.querySelector('.d').textContent.trim(),n=v.querySelector('.n').textContent.trim(),m=VERS_SRC[d];if(!m)return;
-  v.classList.add('click');v.dataset.live='';v.dataset.src=m[0];v.dataset.title=(n==='danas'?'Danas':'Verzija '+n)+' · '+d+' 2026.'+(m[1]?' (verzija od tog dana nije sačuvana; prikazana je '+m[1]+')':'')});
-
 // slajd 2: klik na karticu otvara mali prozor s pojašnjenjem
 const pop=$('#pop');function popClose(){pop.hidden=true}
 document.addEventListener('click',e=>{const c=e.target.closest('.more-card');if(!c)return;e.stopPropagation();pop.querySelector('h4').textContent=c.querySelector('h3').textContent;pop.querySelector('p').textContent=c.querySelector('.more').textContent;pop.hidden=false});
@@ -964,7 +946,7 @@ function onEnter(s){
   $$('[data-count]',s).filter(e=>!e.closest('.f:not(.in)')).forEach(countUp);
   if(s.id==='s-v1')loadV1();
   if(s.id==='s-num')anLive();
-  if(s.querySelector('[data-live]:not([data-src])'))setTimeout(liveLoad,600);
+  if(s.querySelector('.live-tile,h3.try'))setTimeout(liveLoad,600);
   if(s.id==='s-title')heroRun();
   if(s.id==='s-elo')drawElo()}
 function countUp(el){const to=+el.dataset.count,suf=el.dataset.suf||'';if(RM||to<5){el.textContent=to+suf;return}const t0=performance.now(),D=1100;
@@ -976,35 +958,73 @@ function loadV1(){if(v1)return;v1=true;const f=document.createElement('iframe');
   f.onload=()=>{$('#v1ov')?.remove();try{const d=f.contentDocument,n=d.getElementById('nick'),g=d.getElementById('go');if(n&&g){n.value='Demo';n.dispatchEvent(new Event('input',{bubbles:true}));g.click();setTimeout(()=>{try{const x=[...d.querySelectorAll('button')].find(b=>b.textContent.trim()==='Ne, hvala');if(x)x.click()}catch(e){}},400)}}catch(e){}};
   $('#s-v1 .frame .body').appendChild(f)}
 
-/* povijest izmjena po danu (git log, 9.–24. 10. 2026.) */
-// git log --date=format:%d, broj commitova po danu (7. i 8. 10. prije repozitorija)
-const CM={9:12,10:3,12:19,13:6,15:57,16:30,18:5,19:11,20:19,21:31,22:2,24:48};
-// što je dodano pojedinog dana (popis verzija u aplikaciji i poruke izmjena)
-const CMT={
- 9:['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
- 10:['Skriveni PIN s okom za prikaz','Niz dana i slobodni dani','Upis rezultata u Zadacima','Značke, tjedna liga, javni profil'],
- 12:['Promjena nadimka','Točnost zadano skrivena','Poboljšan vodič kroz aplikaciju','Popis verzija u O aplikaciji','Brojač posjeta, easter egg'],
- 13:['Ljestvica Zadataka sa statistikom','Bodovi iz Zadataka na profilu','Ikona aplikacije'],
- 15:['Teoremi mreža: Thevenin i Norton','Zadaci: naboji, kondenzatori, magnetsko polje','Nove vrste pitanja u svim gradivima','Animacije točno/netočno, traka napretka koraka','Prva priprema za KZ1, povratne informacije, Pitaj nastavnika','Odabir kolegija'],
- 16:['Probna KZ1 s pregledom svakog zadatka','Formule otvaraju se u pregledniku','Kartica Nastavnik: povratne informacije i analitika','Analitika: gdje zapinju u pripremi za KZ1','Pregled anketa'],
- 18:['Zadaci dana','Tjedni vrh i povijest tjedana','Potpuni anonimizirani izvoz'],
- 19:['Preporuka za danas predlaže i zadatke s brojevima','Preskakanje koraka i cijelog zadatka','Serija ili paralela: mreže s izvorima','Teoremi: E_T i I_N, prazni hod i kratki spoj'],
- 20:['Probna KZ1: novi raspored i vrste zadataka','μᵣ zadan u svim zadacima s magnetskim poljem','Tvoja mjesta na ljestvicama, ljestvica Redovitost','Moji bodovi KZ1','Prva inačica dnevnog izazova, prsteni napretka'],
- 21:['Dnevni izazov: 5 težih pitanja, traka, ljestvica','Ukupni otpor: zadaci s trikom','Elektrostatika: 109 novih pitanja','Ankete po gradivu','Vježbam bez bodovanja, Ponovi moje greške, povećanje slika','Simulacija razine: vraćena stara formula','Statistika korištenja funkcija'],
- 22:['Ljestvica dnevnog izazova za prijašnje dane'],
- 24:['Lagane animacije','Tipkovnica, postupno objašnjenje, sažetak vježbanja','Upute za kolege i CLAUDE.md','Ova prezentacija']};
-const mx=Math.max(...Object.values(CM));let ch='';
-for(let d=7;d<=24;d++){const v=CM[d]||0,x=(d-7)/17*100,h=v/mx*100;
-  if(v){const it=CMT[d]||[],side=d<=10?' l':d>=21?' r':'';
-    ch+=`<div class="col" data-day="${d}" style="--i:${d-7};left:${x}%"><i style="height:${h}%"></i>${v>=15?`<span class="val" style="bottom:${h}%">${v}</span>`:''}`+
-      (it.length?`<div class="tip${side}" style="bottom:calc(${h}% + ${v>=15?40:14}px)"><h4>${d}. 10.<small>${v} ${v%10>=2&&v%10<=4&&(v%100<12||v%100>14)?'izmjene':'izmjena'}</small></h4><ul>${it.map(t=>`<li>${t}</li>`).join('')}</ul></div>`:'')+'</div>'}
-  ch+=`<em data-day="${d}" style="left:${x}%">${d}.</em>`}
-$('#cbars').innerHTML=ch;
-// stupci izmjena i datumi ispod njih: snimka aplikacije s kraja tog dana
-const DAYV={9:'0.12',10:'0.13',12:'0.14',15:'0.15',16:'0.16',18:'0.17',21:'0.18'};
-$$('#cbars [data-day]').forEach(el=>{const d=+el.dataset.day,src=d<9?'prezentacija/prva-verzija.html':CM[d]?`prezentacija/verzije/${String(d).padStart(2,'0')}-10.html`:null;if(!src)return;
-  el.classList.add('click');el.dataset.live='';el.dataset.src=src;el.dataset.title=(d===24?'Danas':DAYV[d]?'Verzija '+DAYV[d]:'Stanje')+' · '+d+'. 10. 2026.'+(d<9?' (verzija od tog dana nije sačuvana; prikazana je najranija sačuvana, 9. 10. ujutro)':'')});
+/* ---------- slajd 8: vremenska crta i izmjene, automatski (verzije iz žive aplikacije, izmjene s GitHuba) ---------- */
+const T0=Date.UTC(2026,9,7),dayIx=iso=>Math.round((Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))-T0)/864e5);
+const zgISO=d=>d.toLocaleDateString('sv-SE',{timeZone:'Europe/Zagreb'});
+const ixDate=i=>{const d=new Date(T0+i*864e5);return d.getUTCDate()+'. '+(d.getUTCMonth()+1)+'.'};
+// kratki opisi poznatih verzija (za nove se uzima prva stavka iz popisa verzija)
+const VSHORT={'0.10':['2026-10-07','Serija ili paralela, Ukupni otpor, Elektrostatika',1],'0.11':['2026-10-08','Kondenzatori, metode, zadaci s brojevima'],'0.12':['2026-10-09','Prijava nadimkom i PIN-om, zajednička ljestvica'],
+ '0.13':['2026-10-10','Niz dana, značke, tjedna liga'],'0.14':['2026-10-12','Promjena nadimka, bolji vodič'],'0.15':['2026-10-15','Magnetsko polje, Thevenin i Norton',1],'0.16':['2026-10-16','Priprema i Probna KZ1, Pitaj nastavnika',1],
+ '0.17':['2026-10-18','Zadaci dana, tjedni vrh'],'0.18':['2026-10-21','Dnevni izazov, prsteni napretka',1]};
+let V8=Object.entries(VSHORT).map(([v,[d,t,big]])=>({v,d,t,big:!!big}));
+// snimke aplikacije po danima (bez baze); za dane bez snimke otvara se živa aplikacija
+const SNAP=new Set(['2026-10-09','2026-10-10','2026-10-12','2026-10-13','2026-10-15','2026-10-16','2026-10-18','2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-24']);
+const snapOf=iso=>iso<'2026-10-09'?['prezentacija/prva-verzija.html',' (verzija od tog dana nije sačuvana; prikazana je najranija sačuvana, 9. 10. ujutro)']:SNAP.has(iso)?[`prezentacija/verzije/${iso.slice(8)}-${iso.slice(5,7)}.html`,'']:null;
+// izmjene po danu (rezerva iz git loga; uživo s GitHuba)
+let CM8={'2026-10-09':12,'2026-10-10':3,'2026-10-12':19,'2026-10-13':6,'2026-10-15':57,'2026-10-16':30,'2026-10-18':5,'2026-10-19':11,'2026-10-20':19,'2026-10-21':31,'2026-10-22':2,'2026-10-24':48},MSG8={};
+const CMT8={
+ '2026-10-09':['Prva verzija na GitHubu: index.html i test.html','Supabase baza: prijava nadimkom i PIN-om, napredak na poslužitelju','Zajednička i ukupna ljestvica sa statistikom','Brisanje profila'],
+ '2026-10-10':['Skriveni PIN s okom za prikaz','Niz dana i slobodni dani','Upis rezultata u Zadacima','Značke, tjedna liga, javni profil'],
+ '2026-10-12':['Promjena nadimka','Točnost zadano skrivena','Poboljšan vodič kroz aplikaciju','Popis verzija u O aplikaciji','Brojač posjeta, easter egg'],
+ '2026-10-13':['Ljestvica Zadataka sa statistikom','Bodovi iz Zadataka na profilu','Ikona aplikacije'],
+ '2026-10-15':['Teoremi mreža: Thevenin i Norton','Zadaci: naboji, kondenzatori, magnetsko polje','Nove vrste pitanja u svim gradivima','Animacije točno/netočno, traka napretka koraka','Prva priprema za KZ1, povratne informacije, Pitaj nastavnika','Odabir kolegija'],
+ '2026-10-16':['Probna KZ1 s pregledom svakog zadatka','Formule otvaraju se u pregledniku','Kartica Nastavnik: povratne informacije i analitika','Analitika: gdje zapinju u pripremi za KZ1','Pregled anketa'],
+ '2026-10-18':['Zadaci dana','Tjedni vrh i povijest tjedana','Potpuni anonimizirani izvoz'],
+ '2026-10-19':['Preporuka za danas predlaže i zadatke s brojevima','Preskakanje koraka i cijelog zadatka','Serija ili paralela: mreže s izvorima','Teoremi: E_T i I_N, prazni hod i kratki spoj'],
+ '2026-10-20':['Probna KZ1: novi raspored i vrste zadataka','μᵣ zadan u svim zadacima s magnetskim poljem','Tvoja mjesta na ljestvicama, ljestvica Redovitost','Moji bodovi KZ1','Prva inačica dnevnog izazova, prsteni napretka'],
+ '2026-10-21':['Dnevni izazov: 5 težih pitanja, traka, ljestvica','Ukupni otpor: zadaci s trikom','Elektrostatika: 109 novih pitanja','Ankete po gradivu','Vježbam bez bodovanja, Ponovi moje greške, povećanje slika','Simulacija razine: vraćena stara formula','Statistika korištenja funkcija'],
+ '2026-10-22':['Ljestvica dnevnog izazova za prijašnje dane'],
+ '2026-10-24':['Lagane animacije','Tipkovnica, postupno objašnjenje, sažetak vježbanja','Upute za kolege i CLAUDE.md','Ova prezentacija']};
 
+const pl8=v=>v%10>=2&&v%10<=4&&(v%100<12||v%100>14)?'izmjene':'izmjena';
+function liveAttrs(el,iso,title){const sn=snapOf(iso),today=zgISO(new Date());el.classList.add('click');el.dataset.live=sn?'':'v:home';if(sn){el.dataset.src=sn[0];el.dataset.title=title+sn[1]}else{delete el.dataset.src;el.dataset.title=title+(iso===today?'':' (otvara se trenutna verzija)')}}
+function render8(){const today=zgISO(new Date()),N=Math.max(17,dayIx(today)),X=i=>i/N*100;
+  $('#days8').dataset.count=N;$('#days8').textContent=N;
+  // vremenska crta
+  const pts=V8.filter(p=>p.d<=today).sort((a,b)=>a.d.localeCompare(b.d));const lastV=pts[pts.length-1];
+  const after=Object.entries(CM8).filter(([d])=>d>lastV.d&&d<=today).reduce((a,[,n])=>a+n,0);
+  const all=[...pts.map(p=>({...p,i:dayIx(p.d)})),{v:'danas',d:today,i:N,t:after?`${after} ${pl8(after)} nakon ${lastV.v}`:'',today:1}];
+  let h='<div class="axis"><i></i></div>';
+  all.forEach((p,k)=>{h+=`<div class="v${p.big?' big':''}${k%2?' lo':''}" style="left:${X(p.i)}%" data-iso="${p.d}" data-ver="${p.v}"><div class="hit"></div><div class="d">${ixDate(p.i)}</div><div class="n">${p.v}</div><div class="o"${p.today?' style="background:var(--ink)"':''}></div><div class="x"><b>${p.t}</b></div></div>`});
+  $('#tl8').innerHTML=h;
+  // preguste točke: datum ili opis koji bi se preklopio vidi se tek pod mišem (zadnja točka uvijek)
+  {const vs=$$('#tl8 .v'),px=vs.map(v=>parseFloat(v.style.left)/100*1640),n=vs.length;let ld=-1e9;const lx=[-1e9,-1e9];
+   vs.forEach((v,k)=>{const end=k===n-1,dOk=end||(px[k]-ld>=78&&px[n-1]-px[k]>=78),r=k%2,xOk=end||(px[k]-lx[r]>=180&&(r!==(n-1)%2||px[n-1]-px[k]>=180));
+     if(dOk)ld=px[k];else v.classList.add('cr-d');if(xOk)lx[r]=px[k];else v.classList.add('cr-x')})}
+  $$('#tl8 .v').forEach(v=>liveAttrs(v,v.dataset.iso,(v.dataset.ver==='danas'?'Danas':'Verzija '+v.dataset.ver)+' · '+ixDate(dayIx(v.dataset.iso))+' '+v.dataset.iso.slice(0,4)+'.'));
+  // stupci: po danu, a nakon 5 tjedana po tjednu
+  const wk=N>35,bucket=i=>wk?Math.floor(i/7):i,B={};
+  for(const [d,n] of Object.entries(CM8)){const i=dayIx(d);if(i<0||i>N)continue;const b=bucket(i);(B[b]=B[b]||{n:0,days:[]}).n+=n;B[b].days.push(d)}
+  const mx=Math.max(1,...Object.values(B).map(x=>x.n)),w=Math.max(10,Math.min(48,1640/(N+1)*0.75));let ch='';
+  for(const [b,o] of Object.entries(B)){const i=wk?(+b*7+3):+b,x=X(Math.min(i,N)),hh=o.n/mx*100,side=x<15?' l':x>80?' r':'';
+    const items=wk?[]:(CMT8[o.days[0]]||MSG8[o.days[0]]||[]),lab=wk?`${ixDate(+b*7)} – ${ixDate(+b*7+6)}`:ixDate(i);
+    const tipItems=wk?o.days.sort().map(d=>`${ixDate(dayIx(d))}: ${CM8[d]} ${pl8(CM8[d])}`):items;
+    ch+=`<div class="col" data-iso="${o.days.sort().pop()}" style="--i:${+b};left:${x}%;width:${w+16}px;margin-left:-${(w+16)/2}px"><i style="height:${hh}%"></i>${o.n>=15?`<span class="val" style="bottom:${hh}%">${o.n}</span>`:''}`+
+      (tipItems.length?`<div class="tip${side}" style="bottom:calc(${hh}% + ${o.n>=15?40:14}px)"><h4>${lab}<small>${o.n} ${pl8(o.n)}</small></h4><ul>${tipItems.map(t=>`<li>${t}</li>`).join('')}</ul></div>`:'')+'</div>'}
+  const step=Math.ceil((N+1)/19);for(let i=0;i<=N;i+=step)ch+=`<em data-iso="${zgISO(new Date(T0+i*864e5+12*36e5))}" style="left:${X(i)}%">${new Date(T0+i*864e5).getUTCDate()}.</em>`;
+  $('#cbars').innerHTML=ch;
+  $$('#cbars [data-iso]').forEach(el=>{const iso=el.dataset.iso;if(!CM8[iso]&&iso>='2026-10-09')return;liveAttrs(el,iso,'Stanje · '+ixDate(dayIx(iso))+' '+iso.slice(0,4)+'.')})}
+render8();
+// uživo: popis verzija iz žive aplikacije i izmjene s GitHuba (spremaju se za rad bez interneta)
+(async()=>{try{const c=JSON.parse(localStorage.getItem('prezentacija:cm8')||'null');if(c){CM8=c.cm;MSG8=c.msg||{};render8()}}catch(e){}
+  try{const t=await (await fetch('index.html',{cache:'no-store'})).text(),m=t.match(/const VERS=(\[[\s\S]*?\]\]);/);
+    if(m){const L=Function('return '+m[1])();for(const [v,d,items] of L){if(VSHORT[v])continue;const [dd,mm,yy]=d.split('.').map(x=>x.trim());const iso=`${yy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+      if(!V8.some(p=>p.v===v))V8.push({v,d:iso,t:(items[0]||'').replace(/:.*$/,'').slice(0,48),big:false})}render8()}}catch(e){}
+  try{const c=JSON.parse(localStorage.getItem('prezentacija:cm8')||'null');if(c&&Date.now()-c.t<36e5)return;
+    const all=[];for(let pg=1;pg<=10;pg++){const r=await fetch(`https://api.github.com/repos/alenjakoplic/elektrotehnika/commits?per_page=100&page=${pg}`);if(!r.ok)throw 0;const j=await r.json();all.push(...j);if(j.length<100)break}
+    const cm={},msg={};for(const x of all){const d=zgISO(new Date(x.commit.author.date));cm[d]=(cm[d]||0)+1;
+      const t=x.commit.message.split('\n')[0].replace(/^(test|Test|Objava|objava)[^:]*:\s*/,'');(msg[d]=msg[d]||[]);if(msg[d].length<5&&!msg[d].includes(t))msg[d].push(t)}
+    if(Object.keys(cm).length){CM8=cm;MSG8=msg;localStorage.setItem('prezentacija:cm8',JSON.stringify({t:Date.now(),cm,msg}));render8()}}catch(e){}})();
 
 /* živorođeni (DZS) */
 const BR=[[1990,55409],[2000,43746],[2010,43361],[2020,35845],[2023,32170],[2024,31858,1]];
