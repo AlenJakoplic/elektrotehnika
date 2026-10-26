@@ -259,7 +259,7 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .tip ul{margin:0;padding-left:20px;font-size:19px;line-height:1.38;color:var(--ink)}
 .tip li{font-size:20px;line-height:1.35}
 .tip li+li{margin-top:4px}
-.big17{position:absolute;right:140px;top:96px;display:flex;align-items:center;gap:26px;max-width:600px}
+.big17{cursor:pointer;position:absolute;right:140px;top:96px;display:flex;align-items:center;gap:26px;max-width:600px}
 .big17 b{font-family:var(--f-head);font-weight:700;font-size:210px;line-height:.8;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .big17 span{font-size:30px;line-height:1.3;color:var(--muted);max-width:280px}
 /* slajd 17: inačice */
@@ -940,7 +940,7 @@ function full(){if(document.fullscreenElement)document.exitFullscreen();else doc
 $('#bFull').onclick=e=>{e.stopPropagation();full()};$('#bTheme').onclick=e=>{e.stopPropagation();toggleTheme()};
 
 /* klik i povlačenje prstom */
-const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live,.qm,#hero .r,.more-card,#pop';
+const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live,.qm,#hero .r,.more-card,#pop,.big17';
 let px=null,py=0,pt=0;
 addEventListener('pointerdown',e=>{if(e.target.closest(INTER))return;px=e.clientX;py=e.clientY;pt=Date.now()});
 addEventListener('pointerup',e=>{if(px===null)return;const dx=e.clientX-px,dy=e.clientY-py;px=null;
@@ -981,6 +981,13 @@ document.addEventListener('keydown',e=>{const t=e.target.closest?.('[data-live]'
 $('#lvX').onclick=e=>{e.stopPropagation();liveClose()};
 live.addEventListener('click',e=>{if(e.target===live)liveClose()});
 function attachEsc(fr){try{fr.contentWindow.addEventListener('keydown',e=>{if(e.key==='Escape'&&!fr.contentWindow.document.getElementById('fbm'))liveClose()})}catch(e){}}
+
+// slajd 8: klik na broj dana otvara izbor dana do kojeg se prikazuje razvoj
+document.addEventListener('click',e=>{if(!e.target.closest('.big17'))return;e.stopPropagation();const t=zgISO(new Date()),cur=end8();
+  pop.querySelector('h4').textContent='Do kojeg dana prikazati razvoj?';
+  pop.querySelector('p').innerHTML=`<input type="date" id="end8i" min="2026-10-08" max="${t}" value="${cur}" style="font:inherit;font-size:20px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink)"><span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn ghost" data-e="${t}">Danas</button><button class="btn ghost" data-e="2026-10-24">24. 10. (17 dana)</button><button class="btn ghost" data-e="2026-11-06">Prvi mjesec</button></span>`;
+  pop.hidden=false;const set=v=>{try{if(v>=t)localStorage.removeItem('prezentacija:end8');else localStorage.setItem('prezentacija:end8',v)}catch(x){}render8();countUp($('#days8'));popClose()};
+  pop.querySelector('#end8i').onchange=ev=>set(ev.target.value);pop.querySelectorAll('[data-e]').forEach(b=>{if(b.dataset.e>t)b.disabled=true;b.onclick=()=>set(b.dataset.e)})});
 
 // slajd 2: klik na karticu otvara mali prozor s pojašnjenjem
 const pop=$('#pop');function popClose(){pop.hidden=true}
@@ -1040,12 +1047,15 @@ const CMT8={
 
 const pl8=v=>v%10>=2&&v%10<=4&&(v%100<12||v%100>14)?'izmjene':'izmjena';
 function liveAttrs(el,iso,title){const sn=snapOf(iso),today=zgISO(new Date());el.classList.add('click');el.dataset.live=sn?'':'v:home';if(sn){el.dataset.src=sn[0];el.dataset.title=title+sn[1]}else{delete el.dataset.src;el.dataset.title=title+(iso===today?'':' (otvara se trenutna verzija)')}}
-function render8(){const today=zgISO(new Date()),N=Math.max(17,dayIx(today)),X=i=>i/N*100;
-  $('#days8').dataset.count=N;$('#days8').textContent=N;
+// kraj razdoblja na 8. slajdu: zadano danas, a klikom na broj dana može se odabrati drugi dan (pamti se u pregledniku)
+function end8(){let e=null;try{e=localStorage.getItem('prezentacija:end8')}catch(x){}const t=zgISO(new Date());return e&&e<t?e:t}
+function render8(){const today=end8(),N=Math.max(17,dayIx(today)),X=i=>i/N*100;
+  $('#days8').dataset.count=N;$('#days8').textContent=N;$('#days8').style.fontSize=N>99?'150px':'';
+  const fix=end8()<zgISO(new Date());$('.big17 span').textContent=fix?`dana od prve verzije do ${ixDate(dayIx(today))} ${today.slice(0,4)}.`:'dana od prve verzije do danas, uz redovnu nastavu';
   // vremenska crta
   const pts=V8.filter(p=>p.d<=today).sort((a,b)=>a.d.localeCompare(b.d));const lastV=pts[pts.length-1];
   const after=Object.entries(CM8).filter(([d])=>d>lastV.d&&d<=today).reduce((a,[,n])=>a+n,0);
-  const all=[...pts.map(p=>({...p,i:dayIx(p.d)})),{v:'danas',d:today,i:N,t:after?`${after} ${pl8(after)} nakon ${lastV.v}`:'',today:1}];
+  const all=[...pts.map(p=>({...p,i:dayIx(p.d)})),{v:end8()<zgISO(new Date())?'stanje':'danas',d:today,i:N,t:after?`${after} ${pl8(after)} nakon ${lastV.v}`:'',today:1}];
   let h='<div class="axis"><i></i></div>';
   all.forEach((p,k)=>{h+=`<div class="v${p.big?' big':''}${k%2?' lo':''}" style="left:${X(p.i)}%" data-iso="${p.d}" data-ver="${p.v}"><div class="hit"></div><div class="d">${ixDate(p.i)}</div><div class="n">${p.v}</div><div class="o"${p.today?' style="background:var(--ink)"':''}></div><div class="x"><b>${p.t}</b></div></div>`});
   $('#tl8').innerHTML=h;
