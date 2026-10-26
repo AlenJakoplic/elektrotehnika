@@ -156,6 +156,7 @@ body:hover #nav,#nav:focus-within{opacity:1}
 .hero .w{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .6s ease}
 .hero .r{fill:var(--sheet);stroke:var(--ink);stroke-width:5;stroke-linejoin:round;transition:fill .45s ease}
 .hero .r.hl{fill:var(--mark)}
+.hero .r{cursor:pointer;pointer-events:all}
 .hero .j{fill:var(--ink);transition:fill .6s ease}
 .hero .t{fill:var(--paper);stroke:var(--ink);stroke-width:5}
 .hero .e{fill:var(--mark);stroke:var(--ink);stroke-width:3}
@@ -886,7 +887,7 @@ function full(){if(document.fullscreenElement)document.exitFullscreen();else doc
 $('#bFull').onclick=e=>{e.stopPropagation();full()};$('#bTheme').onclick=e=>{e.stopPropagation();toggleTheme()};
 
 /* klik i povlačenje prstom */
-const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live,.qm';
+const INTER='a,button,input,iframe,.shot,.phone,.demo,.chart,#nav,[data-live],#live,.qm,#hero .r';
 let px=null,py=0,pt=0;
 addEventListener('pointerdown',e=>{if(e.target.closest(INTER))return;px=e.clientX;py=e.clientY;pt=Date.now()});
 addEventListener('pointerup',e=>{if(px===null)return;const dx=e.clientX-px,dy=e.clientY-py;px=null;
@@ -1047,7 +1048,7 @@ const lbl=(x,y,sb)=>`<text x="${x}" y="${y}">R<tspan font-size="22" dy="8">${sb}
 function heroSvg(){
   const W=['M60 130 H180','M280 130 H520','M620 130 H740 V210','M740 310 V390 H620','M520 390 H60','M420 130 V210','M420 310 V390'];
   let s=W.map(d=>`<path class="w" d="${d}"/>`).join('');
-  s+=`<path class="r" data-k="r1" d="${rh(180,130)}"/><path class="r" data-k="r2" d="${rh(520,130)}"/><path class="r" d="${rv(740,210)}"/><path class="r" d="${rh(520,390)}"/><path class="r" d="${rv(420,210)}"/>`;
+  s+=`<path class="r" data-k="r1" d="${rh(180,130)}"/><path class="r" data-k="r2" d="${rh(520,130)}"/><path class="r" data-k="r3" d="${rv(740,210)}"/><path class="r" data-k="r4" d="${rh(520,390)}"/><path class="r" data-k="r5" d="${rv(420,210)}"/>`;
   s+='<circle class="j" cx="420" cy="130" r="7"/><circle class="j" cx="420" cy="390" r="7"/>';
   s+='<circle class="t" cx="60" cy="130" r="12"/><circle class="t" cx="60" cy="390" r="12"/><text x="14" y="142">A</text><text x="14" y="402">B</text>';
   s+=lbl(206,94,1)+lbl(546,94,2)+lbl(774,272,3)+lbl(546,456,4)+lbl(454,272,5);return s}
@@ -1055,6 +1056,11 @@ function heroRun(){const t=++heroTok;hero.getAnimations?.().forEach(a=>a.cancel(
   const hl=(k,ms)=>setTimeout(()=>{if(t===heroTok)hero.querySelector(`[data-k="${k}"]`).classList.add('hl')},RM?0:ms);
   if(!RM)hero.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:900,easing:'cubic-bezier(.23,1,.32,1)',fill:'both'});
   hl('r1',1000);hl('r2',1160)}
+// naslovni slajd: klik na otpornik istakne par (R5: 1 i 5, R4: 2 i 4, R2 ili R1: 1 i 2, R3: 3 i 5)
+const HPAIR={r1:['r1','r2'],r2:['r1','r2'],r3:['r3','r5'],r4:['r2','r4'],r5:['r1','r5']};
+hero.addEventListener('click',e=>{const r=e.target.closest('.r');if(!r||!HPAIR[r.dataset.k])return;e.stopPropagation();heroTok++;
+  hero.querySelectorAll('.r').forEach(x=>x.classList.toggle('hl',HPAIR[r.dataset.k].includes(x.dataset.k)))});
+
 
 /* slajd 22: do 7. 11. brojke do sada; poslije prvi mjesec (7. 10. – 6. 11.) i stanje u trenutku gledanja */
 const AN_START=new Date('2026-10-07T00:00:00+02:00'),AN_MONTH=new Date('2026-11-07T00:00:00+01:00');
