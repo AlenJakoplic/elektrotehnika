@@ -28,6 +28,7 @@ Redoslijed kako su nastajali (za novu bazu: prvo `supabase.sql`, zatim ovim redo
 | 21. 10. | supabase-dodatak-slobodno.sql | ukupna ljestvica: sva gradiva + vježba bez bodovanja u „Riješeno“ |
 | 21. 10. | supabase-dodatak-funkcije.sql | statistika korištenja funkcija (feature_events) |
 | 23. 10. | supabase-dodatak-admin-mare912.sql | dodaje mare912 kao administratora |
+| 26. 10. | supabase-dodatak-odgovori.sql | odgovori nastavnika na prijave i poruke (s nadimkom privatno, anonimne javno uz zadatak) |
 
 Administrator se dodaje ovako (profil mora postojati):
 
