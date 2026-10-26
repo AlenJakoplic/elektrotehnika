@@ -2,7 +2,7 @@
 -- Poruka s nadimkom: odgovor vidi taj student (Napredak → Moja pitanja i prijave).
 -- Anonimna poruka: baza uz nju sprema skrivenu vezu na pošiljatelja (owner_id). Nastavnik u aplikaciji
 --   i dalje vidi samo „anonimno”, a odgovor stiže pošiljatelju na Napredak.
---   Ankete se ne vežu ni na koga.
+--   Isto vrijedi i za ankete.
 -- Nastavnik može odgovor prikazati i svima (uz zadatak ili na Napretku, bez teksta poruke).
 -- Starije anonimne poruke nemaju vezu, pa je za njih odgovor uvijek javan.
 
@@ -12,7 +12,7 @@ alter table public.feedback add column if not exists public_reply boolean not nu
 create or replace function public.feedback_send(p_token uuid, p_anon boolean, p_kind text, p_qid text, p_page text, p_msg text, p_rating integer, p_extra jsonb)
 returns void
 language plpgsql security definer set search_path = public as $$
-declare pid uuid; cnt integer; k text := left(coalesce(p_kind,''),20);
+declare pid uuid; cnt integer;
 begin
   select id into pid from profiles where token = p_token;
   if pid is null then raise exception 'no_session'; end if;
@@ -20,7 +20,7 @@ begin
     on conflict (profile_id, day) do update set n = feedback_rl.n + 1 returning n into cnt;
   if cnt > 30 then raise exception 'too_many'; end if;
   insert into feedback(profile_id, owner_id, kind, qid, page, msg, rating, extra)
-  values (case when p_anon then null else pid end, case when k = 'anketa' then null else pid end, k, left(p_qid,40), left(p_page,40),
+  values (case when p_anon then null else pid end, pid, left(coalesce(p_kind,''),20), left(p_qid,40), left(p_page,40),
           left(p_msg,3000), case when p_rating between 1 and 5 then p_rating end, coalesce(p_extra,'{}'::jsonb));
 end $$;
 
@@ -48,14 +48,14 @@ begin
     from feedback f left join profiles p on p.id = f.profile_id order by f.created_at desc limit 1000;
 end $$;
 
--- Moja pitanja i prijave: pitanja nastavniku i moje poruke (i anonimne) na koje je stigao odgovor.
+-- Moja pitanja i prijave: pitanja nastavniku i moje poruke i ankete (i anonimne) na koje je stigao odgovor.
 drop function if exists public.my_questions(uuid);
 create or replace function public.my_questions(p_token uuid)
 returns table(id bigint, created_at timestamptz, kind text, qid text, msg text, reply text, replied_at timestamptz, seen boolean, anon boolean)
 language sql security definer set search_path = public as $$
   select f.id, f.created_at, f.kind, f.qid, f.msg, f.reply, f.replied_at, f.seen, f.profile_id is null
   from feedback f join profiles p on p.id = coalesce(f.profile_id, f.owner_id)
-  where p.token = p_token and (f.kind = 'pitanje' or (f.reply is not null and f.kind <> 'anketa'))
+  where p.token = p_token and (f.kind = 'pitanje' or f.reply is not null)
   order by f.created_at desc limit 200;
 $$;
 
@@ -63,14 +63,14 @@ create or replace function public.my_questions_seen(p_token uuid)
 returns void
 language sql security definer set search_path = public as $$
   update feedback f set seen = true from profiles p
-  where p.id = coalesce(f.profile_id, f.owner_id) and p.token = p_token and f.reply is not null and f.kind <> 'anketa';
+  where p.id = coalesce(f.profile_id, f.owner_id) and p.token = p_token and f.reply is not null;
 $$;
 
 create or replace function public.my_question_delete(p_token uuid, p_id bigint)
 returns void
 language sql security definer set search_path = public as $$
   delete from feedback f using profiles p
-  where f.id = p_id and p.id = coalesce(f.profile_id, f.owner_id) and p.token = p_token and f.kind <> 'anketa';
+  where f.id = p_id and p.id = coalesce(f.profile_id, f.owner_id) and p.token = p_token;
 $$;
 
 -- Javni odgovori (samo odgovor i oznaka zadatka, bez teksta poruke).
@@ -80,7 +80,7 @@ language plpgsql security definer set search_path = public as $$
 begin
   if not exists(select 1 from profiles where token = p_token) then raise exception 'no_session'; end if;
   return query select f.id, f.qid, f.reply, f.replied_at from feedback f
-    where f.reply is not null and f.kind not in ('anketa','pitanje')
+    where f.reply is not null and f.kind <> 'pitanje'
       and (f.public_reply or (f.profile_id is null and f.owner_id is null))
     order by f.replied_at desc limit 300;
 end $$;
