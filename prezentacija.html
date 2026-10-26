@@ -1027,7 +1027,7 @@ const VSHORT={'0.10':['2026-10-07','Serija ili paralela, Ukupni otpor, Elektrost
  '0.17':['2026-10-18','Zadaci dana, tjedni vrh'],'0.18':['2026-10-21','Dnevni izazov, prsteni napretka',1]};
 let V8=Object.entries(VSHORT).map(([v,[d,t,big]])=>({v,d,t,big:!!big}));
 // snimke aplikacije po danima (bez baze); za dane bez snimke otvara se živa aplikacija
-const SNAP=new Set(['2026-10-09','2026-10-10','2026-10-12','2026-10-13','2026-10-15','2026-10-16','2026-10-18','2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-24']);
+const SNAP=new Set(['2026-10-09','2026-10-10','2026-10-12','2026-10-13','2026-10-15','2026-10-16','2026-10-18','2026-10-19','2026-10-20','2026-10-21','2026-10-22','2026-10-24','2026-10-26']);
 const snapOf=iso=>iso<'2026-10-09'?['prezentacija/prva-verzija.html',' (verzija od tog dana nije sačuvana; prikazana je najranija sačuvana, 9. 10. ujutro)']:SNAP.has(iso)?[`prezentacija/verzije/${iso.slice(8)}-${iso.slice(5,7)}.html`,'']:null;
 // izmjene po danu (rezerva iz git loga; uživo s GitHuba)
 let CM8={'2026-10-09':12,'2026-10-10':3,'2026-10-12':19,'2026-10-13':6,'2026-10-15':57,'2026-10-16':30,'2026-10-18':5,'2026-10-19':11,'2026-10-20':19,'2026-10-21':31,'2026-10-22':2,'2026-10-24':48},MSG8={};
