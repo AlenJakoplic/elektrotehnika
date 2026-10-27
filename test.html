@@ -3500,6 +3500,10 @@ if(IS_TEST){
   {const _rhX=renderHome;renderHome=function(){const r=_rhX.apply(this,arguments);try{const bx=document.getElementById('nwbox');if(bx){const n=bx.querySelector('.note'),b=bx.querySelector('b');if(n)n.textContent=NEWS_NEXT_SUM;if(b)b.textContent='Sljedeća verzija (priprema, samo na testu)';const btn=bx.querySelector('#nwbtn');if(btn&&!n)btn.textContent='Što je novo (priprema)'}}catch(e){}return r}}
 }
 
+/* ---------- Probna KZ1 otključana svima do početka KZ1 (uvjeti pripreme i dalje se prikazuju) ---------- */
+const KZ_OPEN_ALL=true;
+{const _rkO=renderKZ;renderKZ=function(){const r=_rkO.apply(this,arguments);try{const b=document.getElementById('kzgo');if(KZ_OPEN_ALL&&b&&b.disabled&&Date.now()<KZ1.getTime()){b.disabled=false;b.onclick=kzStart;
+  b.insertAdjacentHTML('afterend','<p class="note" style="margin:8px 0 0">Do KZ1 probna KZ1 otključana je svima, i bez ispunjenih stadija pripreme.</p>');const box=b.closest('[data-stg]');if(box){box.style.opacity='1';box.style.borderLeftColor='var(--mark)';box.querySelectorAll('span').forEach(x=>{if(x.textContent.includes('zaključano'))x.textContent='otključano do KZ1'});box.querySelectorAll('p.note').forEach(x=>{if(x.textContent.startsWith('Ovaj stadij otključava'))x.remove()})}}}catch(e){}return r}}
 /* ---------- O aplikaciji: poveznica na prezentaciju na dnu ---------- */
 {const _rhP=renderHelp;renderHelp=function(){const r=_rhP.apply(this,arguments);try{const l=document.getElementById('verlist');if(l&&!document.getElementById('prezlink'))l.insertAdjacentHTML('afterend',`<p class="note" id="prezlink" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><a href="prezentacija.html" target="_blank" rel="noopener" style="color:var(--ink);font-weight:700">Prezentacija o aplikaciji ↗</a><br>Kako je aplikacija nastala i kako radi, s primjerima koji se mogu isprobati. Najbolje se vidi na računalu.</p>`)}catch(e){}return r}}
 /* ---------- Prezentacija za nastavnike: 5 brzih klikova na naslov novosti verzije 0.10 (samo administrator) ---------- */
