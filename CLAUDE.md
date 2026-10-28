@@ -12,7 +12,7 @@ Na ovom projektu rade dvije Claude sesije (Claude Code na računalu i Claude u o
 - **Adresa:** https://alenjakoplic.github.io/elektrotehnika/ (živa) i …/test.html (testna).
 - **Što je:** web-aplikacija za vježbanje gradiva: lekcije, Vježba s prilagodljivom razinom (Elo, 1–10), Zadaci s brojevima, priprema i probna KZ1, ljestvice, dnevni izazov, zadaci dana, značke, ankete, povratne informacije, analitika za nastavnika.
 - **Korisnici:** oko 30–50 aktivnih studenata, većina s mobitela.
-- **Administratori:** profili u tablici `admins` (Alen, mare912). Vide karticu **Nastavnik** (Povratne, Analitika).
+- **Administratori:** profili u tablici `admins` (Alen, mare912, ns). Vide karticu **Nastavnik** (Povratne, Analitika).
 
 ---
 
