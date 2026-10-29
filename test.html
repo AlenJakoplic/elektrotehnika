@@ -3019,9 +3019,9 @@ async function renderBoardStreak(){const me=prof().nick,esc=s=>String(s).replace
 {const _ml=mpLoad;mpLoad=async function(){if(!Remote||MPload||(MP&&Date.now()-MPt<120000))return _ml.apply(this,arguments);await _ml.apply(this,arguments);try{const me=prof().nick,{data}=await Remote.rpc('leaderboard_streak');const rs=(data||[]).map(r=>({...r,cur:stCur(r)})).filter(r=>r.cur>=2).sort((a,b)=>b.cur-a.cur||b.best-a.best),i=rs.findIndex(r=>r.nick===me);if(MP&&!MP.some(x=>x.k==='streak')){MP.push({k:'streak',l:'Redovitost',i:i<0?null:i+1,n:rs.length});if(view==='board'){document.getElementById('mypos')?.remove();mpShow()}}}catch(e){}}}
 
 /* ---------- Rezultati KZ: upis bodova i izračun ---------- */
-const KZRES={kz1:true,kz2:false,kz3:false},KZRES_URL='';let kzSub='prep';
+const KZRES={kz1:true,kz2:false,kz3:false},KZRES_URL='https://moodle.srce.hr/2026-2027/mod/folder/view.php?id=5576423';let kzSub='prep';
 const kzResOn=()=>IS_TEST||KZRES.kz1;
-const grWhere=()=>`Rezultati KZ1 objavljeni su na stranicama kolegija${KZRES_URL?`, a mogu se vidjeti i <a href="${KZRES_URL}" target="_blank" rel="noopener" style="color:var(--ok);font-weight:700">klikom ovdje</a>`:''}.`;
+const grWhere=()=>`Rezultati KZ1 objavljeni su na stranicama kolegija${KZRES_URL?`, a mogu se vidjeti i <a href="${KZRES_URL}" target="_blank" rel="noopener" style="color:var(--ok);font-weight:700">klikom ovdje</a> (Merlin, mapa Dokumenti, datoteka EtR_ocjena_2627.pdf)`:''}.`;
 const grAsk='Molimo upiši ostvarene bodove u aplikaciju: tako nastavnik može napraviti analizu i statistiku za potrebe nastave. Profili su anonimni pa nastavnik inače ne zna tko je koliko ostvario. Upisane bodove vidiš samo ti i nastavnik, a anonimni profil nigdje se javno ne povezuje sa stvarno ostvarenim bodovima.';
 function grCalc(G){const v=k=>G[k]===''||G[k]==null||isNaN(+G[k])?null:+G[k],K=['kz1','kz2','kz3'].map(v),lab=v('lab'),labA=lab==null?10:lab,known=K.filter(x=>x!=null),rem=K.filter(x=>x==null).length,S=known.reduce((a,b)=>a+b,0)+labA;
   const lines=[],fmtB=x=>zN(Math.round(x*2)/2);
