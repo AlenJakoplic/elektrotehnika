@@ -4555,10 +4555,10 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
 #novo{position:fixed;left:12px;bottom:12px;z-index:9990;width:300px;max-width:calc(100vw - 24px);background:var(--sheet);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18);font-size:13px}
 #novo>button{display:flex;width:100%;align-items:center;gap:8px;font:inherit;font-weight:700;background:none;border:0;color:inherit;padding:9px 12px;cursor:pointer}
 #novo>button i{font-style:normal;margin-left:auto;color:var(--muted)}
-#novo ul{list-style:none;margin:0;padding:0 8px 8px}
+#novo ul{list-style:none;margin:0;padding:0 8px 8px;max-height:min(70vh,520px);overflow:auto}
 #novo li{display:flex;gap:8px;align-items:center;padding:7px 4px;border-top:1px solid var(--line)}
 #novo li div{flex:1;line-height:1.3}#novo li small{display:block;color:var(--muted)}
-#novo li .ghost{padding:5px 10px;font-size:13px;margin:0}
+#novo li .ghost{padding:5px 10px;font-size:13px;margin:0;flex:none}
 #novo.zatv ul{display:none}
 #novotoast{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:9991;max-width:min(520px,calc(100vw - 24px));background:var(--ink);color:var(--sheet);padding:10px 14px;border-radius:8px;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
 </style>
@@ -4673,6 +4673,17 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
     ['Postupno objašnjenje','nakon krivog odgovora',()=>{go('practice','estat');toast('Odgovori namjerno krivo, pa klikni „Pokaži cijelo objašnjenje”.')}],
     ['Sažetak vježbanja','pri izlasku iz Vježbe',()=>{sesDemo();if(!document.getElementById('sesov'))return;toast('Ovo je primjer. Pravi se pojavi kad izađeš iz Vježbe nakon barem 3 odgovora.')}],
     ['Animacije','prijelazi i prelazak mišem',()=>{go('home');toast('Mijenjaj kartice gore i prelazi mišem preko gumba i ponuđenih odgovora.')}],
+    ['KZ izbornik','KZ1, KZ2, KZ3 ili Sve',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';save();view='home';render();scrollTo(0,0);toast('Traka „Kontrolna zadaća” iznad sadržaja. Odabir se pamti. KZ1 ostavlja samo staro gradivo, Sve pokazuje sve.')}],
+    ['Obavijest o sljedećoj KZ','datum i tekst iz KZCFG',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');view='home';render();const b=document.getElementById('kzban');if(b)b.scrollIntoView({block:'center'});else scrollTo(0,0);toast('Sljedeći termin, trajanje i gradivo čitaju se s jednog mjesta.')}],
+    ['Probna po kolokviju','zasebne ljestvice KZ1, KZ2 i KZ3',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');view='board';boardAll='kz2';render();scrollTo(0,0);toast('Probna KZ2 i Probna KZ3 su zasebne kartice. Rezultati KZ1 ostaju na Probna KZ1.')}],
+    ['Prilagođenje preko struje','I = E_T / (2 R_T), zatim P = I² R_t',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz1';save();const Z=zProf();zTestKind='';Z.type='pril';zad=null;view='zad';render();zShow=true;render();const h=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Rješenje');if(h)h.scrollIntoView({block:'center'});else scrollTo(0,0);toast('Postupak je otvoren radi pregleda. Bodovi se ne upisuju. Snaga ide preko struje.')}],
+    ['Gradivo KZ2','10 modula: lekcija, vježba, zadaci',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';save();view='home';render();const h=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Gradiva');if(h)h.scrollIntoView({block:'start'});else scrollTo(0,0);toast('Indukcija, izmjenične veličine, spojevi, snaga, kompleksni račun, metode, teoremi, prilagođenje i rezonancija.')}],
+    ['Zadaci KZ2','zadatak s brojevima, izbornik vrste',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';save();const Z=zProf();zTestKind='eL';Z.type='zind';zad=null;view='zad';render();scrollTo(0,0);toast('Indukcija. Vrsta se bira u padajućem izborniku. Traka iznad su ostala gradiva KZ2.')}],
+    ['Metode i teoremi (AC)','podtraka, razina na podvrstama',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='akont';save();testType='';exam=null;view='practice';render();scrollTo(0,0);toast('Metode (AC): konturne struje i naponi čvorova. Teoremi (AC): Thevenin, Norton (traži se Y_N) i superpozicija.')}],
+    ['Kartica KZ2','gradivo je tu, probna još uskoro',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';save();view='kz';render();scrollTo(0,0);toast('Gradivo je u Lekciji, Vježbi i Zadacima. Probna KZ2 još nije uključena.')}],
+    ['Kartica KZ3','gradivo još nije u aplikaciji',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz3';save();view='kz';render();scrollTo(0,0);toast('KZ3 još nema gradivo. Početna, lekcija i vježba pišu uskoro.')}],
+    ['Ukupna razina','bez neodrađenog gradiva; prazan profil 1,0',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='sve';save();view='home';render();scrollTo(0,0);toast('U prosjek ulazi samo gradivo s barem jednim odgovorom. Prazan profil je 1,0. Kartice i dalje kreću od 2,0.')}],
+    ['Pomoć: kontrolne zadaće','tekst u O aplikaciji',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');view='help';render();const h=document.getElementById('kzhelp')||document.getElementById('k2help');if(h)h.scrollIntoView({block:'start'});else scrollTo(0,0);toast('Ovdje je opis izbornika, obavijesti, probne i prilagođenja. KZ2 ima i zaseban odlomak.')}],
   ];
   const adm=()=>typeof isAdmin!=='undefined'&&isAdmin;
   const box=document.createElement('div');box.id='novo';
