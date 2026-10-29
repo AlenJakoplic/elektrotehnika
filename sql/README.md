@@ -30,6 +30,8 @@ Redoslijed kako su nastajali (za novu bazu: prvo `supabase.sql`, zatim ovim redo
 | 23. 10. | supabase-dodatak-admin-mare912.sql | dodaje mare912 kao administratora |
 | 26. 10. | supabase-dodatak-odgovori.sql | odgovori nastavnika na prijave, poruke i ankete: stižu pošiljatelju i kad je anoniman (skrivena veza), po želji i svima |
 | 28. 10. | supabase-dodatak-admin-ns.sql | dodaje ns kao administratora |
+| 29. 10. | supabase-dodatak-kz-po-kolokviju.sql | ljestvica probne po kolokviju (KZ1/KZ2/KZ3); stari leaderboard_kz ostaje |
+| 29. 10. | supabase-dodatak-kz2-gradiva.sql | ukupna ljestvica: gradiva KZ2 i preskok gradiva bez odgovora (n = 0); nije pokrenuto |
 
 Administrator se dodaje ovako (profil mora postojati):
 
