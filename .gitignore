@@ -1,1 +1,14 @@
+# Materijali kolegija ne smiju u repozitorij (repozitorij je javan): predavanja, AV, skripte, izvedbeni, rezultati.
 kontekst/
+materijali/
+*.docx
+*.doc
+*.pptx
+*.ppt
+*.xlsx
+*.xls
+EtRpred*
+ETR_AV*
+EtRskripta*
+*izvedbeni*
+EtR_ocjena*

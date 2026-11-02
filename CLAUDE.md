@@ -42,6 +42,7 @@ Na ovom projektu rade dvije Claude sesije (Claude Code na računalu i Claude u o
   if not exists(select 1 from admins a join profiles p on p.id = a.profile_id where p.token = p_token) then raise exception 'forbidden'; end if;
   ```
   Administratorski gumbi i prikazi vidljivi su samo kad `isAdmin` (RPC `is_admin`) vrati true.
+- **Repozitorij je javan.** Materijale kolegija koje Alen pošalje (tekstovi i snimke predavanja, AV, skripte, izvedbeni plan, rezultati, popisi studenata) **nikad ne stavljaj u repozitorij**, ni privremeno. Drži ih samo izvan repozitorija (npr. u scratchpadu sesije). `.gitignore` ih blokira (`kontekst/`, `*.docx`, `EtRpred*`, `ETR_AV*`…), ali prije svakog commita provjeri `git status` da nema takvih datoteka. U aplikaciju ide samo sadržaj napisan na temelju njih (pitanja, lekcije). (2. 11. 2026. tekstovi predavanja greškom su bili javni 40 min, povijest je prepisana.)
 - **Izvozi su anonimizirani:** bez nadimka, imena, PIN-a, tokena i e-maila (nadimci → S001, S002…).
 - **Tijekom probne KZ studenti ne mogu mijenjati zadatke** (gumb „Drugi zadatak” samo za administratora / test).
 - **Sadržaj koji se otključava** (npr. dnevni izazov nakon 100 riješenih pitanja) skriva se i na poslužitelju (`daily_ok`), ne samo u sučelju.
