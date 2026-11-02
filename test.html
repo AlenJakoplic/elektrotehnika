@@ -3606,9 +3606,9 @@ function kzOf(m){m=modBase(m);for(const k in KZMODS)if(KZMODS[k].includes(m))ret
 {const _rd=render;render=function(){try{const p=prof();if(p){if(p.kzSel==null&&Date.now()>=KZ1.getTime()+864e5){p.kzSel='kz2';if(!kzIn(p.module,'kz2'))p.module=KZMODS.kz2[0];save()}
   if(['practice','lesson','exam','bank'].includes(view)&&!(view==='lesson'&&lessonX)&&!kzIn(p.module)){p.kzSel=kzOf(p.module);save()}}}catch(e){}return _rd.apply(this,arguments)}}
 function kzPick(s){const p=prof();p.kzSel=s;if(!kzIn(p.module,s)&&KZMODS[s]&&KZMODS[s].length)p.module=KZMODS[s][0];save();lessonX=null;render()}
-function kzChips(cls){const s=kzSel();return `<div class="modbar ${cls||''}" role="group" aria-label="Kolokvij" style="margin:0">${['kz1','kz2','kz3','sve'].map(k=>`<button data-kzs="${k}" aria-current="${s===k}" ${k!=='sve'&&!KZMODS[k].length?'disabled title="Gradivo za KZ3 dolazi kasnije"':''}>${KZNAMES[k]}</button>`).join('')}</div>`}
+function kzChips(cls){const s=kzSel();return `<div class="modbar ${cls||''}" role="group" aria-label="Kolokvij" style="margin:0">${['kz1','kz2','kz3','sve'].map(k=>`<button data-kzs="${k}" aria-current="${s===k}" ${k!=='sve'&&!KZMODS[k].length?'style="opacity:.55" title="Gradivo još nije dodano"':''}>${KZNAMES[k]}</button>`).join('')}</div>`}
 const KZNAMES={kz1:'KZ1',kz2:'KZ2',kz3:'KZ3',sve:'Sve'};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-kzs]');if(!b||b.disabled)return;e.preventDefault();if(exam&&exam.running)return;kzPick(b.dataset.kzs)});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-kzs]');if(!b)return;e.preventDefault();if(exam&&exam.running)return;const k=b.dataset.kzs;if(k!=='sve'&&!KZMODS[k].length){toast(`Gradivo za ${KZNAMES[k]} još nije dodano. Dolazi uskoro.`);return}kzPick(k)});
 {const _mb=modbar;modbar=function(){const r=_mb.apply(this,arguments);try{const w=main.querySelector('.modwrap');if(!w)return r;const s=kzSel();
   w.querySelectorAll('.modbar button[data-m]').forEach(b=>{if(!kzIn(b.dataset.m,s))b.style.display='none'});
   w.insertAdjacentHTML('afterbegin',`<span class="modlabel">Kolokvij:</span>${kzChips()}<span style="flex-basis:100%;height:0"></span>`)}catch(e){}return r}}
