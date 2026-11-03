@@ -30,8 +30,8 @@ Redoslijed kako su nastajali (za novu bazu: prvo `supabase.sql`, zatim ovim redo
 | 23. 10. | supabase-dodatak-admin-mare912.sql | dodaje mare912 kao administratora |
 | 26. 10. | supabase-dodatak-odgovori.sql | odgovori nastavnika na prijave, poruke i ankete: stižu pošiljatelju i kad je anoniman (skrivena veza), po želji i svima |
 | 28. 10. | supabase-dodatak-admin-ns.sql | dodaje ns kao administratora |
-| 3. 11. | supabase-dodatak-bodovi-kz.sql | nastavnik vidi bodove KZ koje su studenti upisali (admin_grades) |
 | 2. 11. | supabase-dodatak-kz2-ljestvica.sql | ukupna ljestvica s gradivima KZ2 (auvod, aser, apar, akom; ulaze tek kad je riješeno barem jedno pitanje) |
+| 3. 11. | supabase-dodatak-bodovi-kz.sql | nastavnik vidi bodove KZ koje su studenti upisali (admin_grades) |
 | 29. 10. | supabase-dodatak-kz-po-kolokviju.sql | GrokBOT verzija (test-grokbot.html), ne koristi se – ne pokretati |
 | 29. 10. | supabase-dodatak-kz2-gradiva.sql | GrokBOT verzija (test-grokbot.html), ne koristi se – ne pokretati |
 
