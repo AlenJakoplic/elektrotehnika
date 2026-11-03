@@ -3977,6 +3977,17 @@ async function anGrLoad(){const box=document.getElementById('angr');if(!box)retu
   bar.insertAdjacentHTML('beforeend',`<button data-ansec="bod" aria-current="${anSec==='bod'}">Upisani bodovi KZ</button>`);bar.querySelector('[data-ansec="bod"]').onclick=()=>{anSec='bod';renderAn()};
   if(anSec==='bod'){bar.insertAdjacentHTML('afterend','<div id="angr"><p class="note">Učitavam…</p></div>');anGrLoad()}}catch(e){}return r}}
 
+/* Detalji studenta (Analitika): upisani bodovi KZ */
+{const _ras=renderAnStudent;renderAnStudent=async function(nick){const r=await _ras.apply(this,arguments);try{
+  if(view!=='fb'||anNick!==nick||document.getElementById('angrst'))return r;const pan=main.querySelector('.panel');if(!pan)return r;
+  const s=(anData||[]).find(x=>x.nick.toLowerCase()===nick.toLowerCase());let G=s&&s.P&&s.P.grades;
+  if(!G){try{const {data}=await Remote.rpc('admin_grades',{p_token:session.token});const row=(data||[]).find(x=>x.nick.toLowerCase()===nick.toLowerCase());G=row&&row.grades}catch(e){}}
+  if(view!=='fb'||anNick!==nick||document.getElementById('angrst'))return r;G=G||{};
+  const num=x=>x===''||x==null||isNaN(+x)?null:+x,fb=x=>x==null?'–':zN(Math.round(x*2)/2),g=['kz1','kz2','kz3','lab'].map(k=>num(G[k])),vals=g.filter(x=>x!=null);
+  const html=vals.length?(()=>{const [st,so]=anGrStatus(G);return `<table style="margin:4px 0 0"><tr><th>KZ1</th><th>KZ2</th><th>KZ3</th><th>Lab</th><th>Ukupno</th><th>Status</th></tr><tr>${g.map(x=>`<td class="num">${fb(x)}</td>`).join('')}<td class="num"><b>${fb(vals.reduce((a,b)=>a+b,0))}</b></td><td style="color:${so<=1?'var(--bad)':so>=3?'var(--ok)':'inherit'}">${st}</td></tr></table>`})():'<p class="note" style="margin:4px 0 0">Bodovi još nisu upisani u „Moji bodovi”.</p>';
+  const h=pan.querySelector('h2');(h||pan.firstElementChild).insertAdjacentHTML('afterend',`<div id="angrst" style="border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:10px 14px;margin:8px 0 14px"><b>Upisani bodovi KZ</b> <span class="note">(upisano u „Moji bodovi”, nije službeno)</span>${html}</div>`);
+}catch(e){}return r}}
+
 view='home';
 boot();
 
