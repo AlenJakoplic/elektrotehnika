@@ -3953,6 +3953,30 @@ const ACZX={
   const h=_hz.apply(this,arguments);if(s==='sve')return h.replace(/<\/div>$/,cards+'</div>');const k=h.indexOf('gap:12px">');return h.slice(0,k+10)+cards+'</div>'}}
 {const _kp=kzPick;kzPick=function(s){try{if(view==='zad'){const Z=zProf();if(s==='kz2'&&!ACZ.includes(Z.type)){Z.type='aser';zad=null}if(s==='kz1'&&ACZ.includes(Z.type)){Z.type='ruk';zad=null}}}catch(e){}return _kp.apply(this,arguments)}}
 
+/* ===== Nastavnik → Analitika → Upisani bodovi KZ (samo administrator) ===== */
+let anGrSort='nick',anGrDir=1;
+function anGrStatus(G){const v=k=>G[k]===''||G[k]==null||isNaN(+G[k])?null:+G[k],K=['kz1','kz2','kz3'].map(v),known=K.filter(x=>x!=null),c=grCalc(G);
+  if(known.some(x=>x<6))return['ispod praga 6 (popravak)',0];
+  if(known.length===3){const okEx=K.every(x=>x>=12)&&c.S>=46,okAll=K.every(x=>x>=6)&&c.S>=35;return okEx?['oslobođenje',4]:okAll?['prolaz (pristup završnom)',3]:['bez pristupa završnom',1]}
+  return known.length&&known.every(x=>x>=12)?['u tijeku, na putu za oslobođenje',2.5]:['u tijeku, na putu za prolaz',2]}
+async function anGrLoad(){const box=document.getElementById('angr');if(!box)return;const esc=s=>String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  let rows=[];try{const {data,error}=await Remote.rpc('admin_grades',{p_token:session.token});if(error)throw error;rows=data||[]}catch(e){box.innerHTML='<p class="msg bad">Podaci se ne mogu učitati. Je li pokrenut <code>supabase-dodatak-bodovi-kz.sql</code>?</p>';return}
+  if(!document.getElementById('angr'))return;
+  const num=x=>x===''||x==null||isNaN(+x)?null:+x,fb=x=>x==null?'–':zN(Math.round(x*2)/2);
+  const L=rows.map(r=>{const G=r.grades||{},g={kz1:num(G.kz1),kz2:num(G.kz2),kz3:num(G.kz3),lab:num(G.lab)},vals=Object.values(g).filter(x=>x!=null);const [st,so]=anGrStatus(G);return{nick:r.nick,...g,uk:vals.length?vals.reduce((a,b)=>a+b,0):null,st,so,any:vals.length>0}}).filter(r=>r.any);
+  const avg=k=>{const a=L.map(r=>r[k]).filter(x=>x!=null);return a.length?`${fb(a.reduce((x,y)=>x+y,0)/a.length)} (${a.length})`:'–'};
+  const key=anGrSort==='st'?'so':anGrSort;
+  L.sort((a,b)=>{const x=a[key],y=b[key];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return (typeof x==='string'?x.localeCompare(y,'hr'):x-y)*anGrDir});
+  const th=(k,l)=>`<th><a href="#" data-grs="${k}" style="color:inherit;${anGrSort===k?'text-decoration:underline':''}">${l}${anGrSort===k?(anGrDir>0?' ▲':' ▼'):''}</a></th>`;
+  box.innerHTML=`<h3 style="margin:4px 0 6px">Upisani bodovi KZ</h3><p class="note" style="margin:0 0 10px">Bodove su studenti sami upisali u „Moji bodovi” (nisu službeni). Upisalo je <b>${L.length}</b> od <b>${rows.length}</b> studenata (administratori se ne broje).</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px">${anTile(avg('kz1'),'prosjek KZ1 (broj upisa)')}${anTile(avg('kz2'),'prosjek KZ2')}${anTile(avg('kz3'),'prosjek KZ3')}${anTile(avg('lab'),'prosjek laboratorija')}</div>
+  <table><tr>${th('nick','Nadimak')}${th('kz1','KZ1')}${th('kz2','KZ2')}${th('kz3','KZ3')}${th('lab','Lab')}${th('uk','Ukupno')}${th('st','Status')}</tr>${L.map(r=>`<tr><td>${esc(r.nick)}</td><td class="num">${fb(r.kz1)}</td><td class="num">${fb(r.kz2)}</td><td class="num">${fb(r.kz3)}</td><td class="num">${fb(r.lab)}</td><td class="num"><b>${fb(r.uk)}</b></td><td style="color:${r.so===0||r.so===1?'var(--bad)':r.so>=3?'var(--ok)':'inherit'}">${r.st}</td></tr>`).join('')||'<tr><td colspan="7">Još nitko nije upisao bodove.</td></tr>'}</table>
+  <p class="note" style="margin:8px 0 0">Ukupno = zbroj upisanih bodova. Status prema pravilima iz „Moji bodovi”: prag 6 na svakoj KZ i 35 ukupno za pristup završnom, 12 na svakoj KZ i 46 ukupno za oslobođenje (neupisani laboratorij računa se kao 10).</p>`;
+  box.querySelectorAll('[data-grs]').forEach(a=>a.onclick=e=>{e.preventDefault();const k=a.dataset.grs;if(anGrSort===k)anGrDir=-anGrDir;else{anGrSort=k;anGrDir=k==='nick'?1:-1}anGrLoad()})}
+{const _raG=renderAn;renderAn=async function(){const r=await _raG.apply(this,arguments);try{if(view!=='fb'||adTab!=='an'||!isAdmin)return r;const bar=main.querySelector('[data-ansec]')?.parentElement;if(!bar||bar.querySelector('[data-ansec="bod"]'))return r;
+  bar.insertAdjacentHTML('beforeend',`<button data-ansec="bod" aria-current="${anSec==='bod'}">Upisani bodovi KZ</button>`);bar.querySelector('[data-ansec="bod"]').onclick=()=>{anSec='bod';renderAn()};
+  if(anSec==='bod'){bar.insertAdjacentHTML('afterend','<div id="angr"><p class="note">Učitavam…</p></div>');anGrLoad()}}catch(e){}return r}}
+
 view='home';
 boot();
 
@@ -4139,7 +4163,7 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
   const adm=()=>typeof isAdmin!=='undefined'&&isAdmin;
   const box=document.createElement('div');box.id='novo';
   let zatv=false;try{zatv=localStorage.getItem('cvoriste-test:novo-zatv')==='1'}catch(e){}
-  const draw=()=>{const L=adm()?[...T,['Najteža pitanja','Nastavnik → Analitika',()=>{view='fb';adTab='an';anSec='grp';anNick=null;render();scrollTo(0,0)}]]:T;
+  const draw=()=>{const L=adm()?[...T,['Najteža pitanja','Nastavnik → Analitika',()=>{view='fb';adTab='an';anSec='grp';anNick=null;render();scrollTo(0,0)}],['Upisani bodovi KZ','Nastavnik → Analitika',()=>{view='fb';adTab='an';anSec='bod';anNick=null;render();scrollTo(0,0)}]]:T;
     box.className=zatv?'zatv':'';
     box.innerHTML=`<button type="button" aria-expanded="${!zatv}">✨ Novo u testu <i>${zatv?'▴':'▾'}</i></button><ul>${L.map(([t,s],i)=>`<li><div>${t}<small>${s}</small></div><button class="ghost" data-i="${i}">Pokaži</button></li>`).join('')}</ul>`;
     box.firstChild.onclick=()=>{zatv=!zatv;try{localStorage.setItem('cvoriste-test:novo-zatv',zatv?'1':'0')}catch(e){}draw()};
