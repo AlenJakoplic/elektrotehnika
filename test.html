@@ -3988,6 +3988,44 @@ async function anGrLoad(){const box=document.getElementById('angr');if(!box)retu
   const h=pan.querySelector('h2');(h||pan.firstElementChild).insertAdjacentHTML('afterend',`<div id="angrst" style="border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:10px 14px;margin:8px 0 14px"><b>Upisani bodovi KZ</b> <span class="note">(upisano u „Moji bodovi”, nije službeno)</span>${html}</div>`);
 }catch(e){}return r}}
 
+/* ===== Lekcija: trenutna snaga p(t) = u(t)·i(t) za R, L, C i kombinacije (slajderi) ===== */
+const PW={R:50,XL:0,XC:0,U:100,t:0,run:false,last:0};
+function pwCalc(){const X=PW.XL-PW.XC,Z=Math.hypot(PW.R,X),z=Math.max(Z,1e-9),phi=Math.atan2(X,PW.R),I=Z<0.5?null:PW.U/z;return{X,Z,phi,I,cos:Math.cos(phi)}}
+function pwSvg(){const c=pwCalc(),T=AC_T,W=760,x0=60,x1=W-20,pw=x1-x0,yU=105,hU=70,yP=290,N=240,per=2;const Um=PW.U*Math.SQRT2,Im=c.I==null?0:c.I*Math.SQRT2,S=c.I==null?0:PW.U*c.I,P=S*c.cos,pmax=Math.max(S*(1+Math.abs(c.cos)),1),hP=80;
+  const X=k=>x0+pw*k/N,wt=k=>2*Math.PI*per*k/N,u=k=>Um*Math.sin(wt(k)),i=k=>Im*Math.sin(wt(k)-c.phi),p=k=>u(k)*i(k);
+  const path=(f,y0,h,m)=>Array.from({length:N+1},(_,k)=>`${k?'L':'M'}${X(k).toFixed(1)} ${(y0-h*f(k)/m).toFixed(1)}`).join('');
+  let s=`<svg id="pwsvg" viewBox="0 0 ${W} 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">`;
+  s+=`<line x1="${x0}" y1="${yU}" x2="${x1}" y2="${yU}" stroke="var(--line)" stroke-width="1.4"/><line x1="${x0}" y1="${yU-hU-12}" x2="${x0}" y2="${yU+hU+8}" stroke="var(--line)"/>`;
+  s+=`<path d="${path(u,yU,hU,Um)}" fill="none" stroke="${ACC.U}" stroke-width="3"/>`;if(Im)s+=`<path d="${path(i,yU,hU*0.7,Im)}" fill="none" stroke="${ACC.I}" stroke-width="3"/>`;
+  s+=`<text x="${x0-8}" y="${yU-hU+4}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ACC.U}">u</text><text x="${x0-8}" y="${yU-hU+28}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ACC.I}">i</text><text x="${x1}" y="${yU+20}" text-anchor="end" ${T} font-size="17" fill="var(--muted)">ωt</text>`;
+  // p(t): pozitivno (energija ide u trošilo) zeleno, negativno (vraća se izvoru) crveno
+  const pos=[],neg=[];for(let k=0;k<=N;k++){const v=p(k)/pmax;pos.push(`${X(k).toFixed(1)} ${(yP-hP*Math.max(v,0)).toFixed(1)}`);neg.push(`${X(k).toFixed(1)} ${(yP-hP*Math.min(v,0)).toFixed(1)}`)}
+  s+=`<path d="M${x0} ${yP}L${pos.join('L')}L${x1} ${yP}Z" fill="${ACC.R}" opacity=".22"/><path d="M${x0} ${yP}L${neg.join('L')}L${x1} ${yP}Z" fill="${ACC.U}" opacity=".22"/>`;
+  s+=`<line x1="${x0}" y1="${yP}" x2="${x1}" y2="${yP}" stroke="var(--line)" stroke-width="1.4"/><line x1="${x0}" y1="${yP-hP-12}" x2="${x0}" y2="${yP+hP+8}" stroke="var(--line)"/>`;
+  if(Im)s+=`<path d="${path(p,yP,hP,pmax)}" fill="none" stroke="${ACC.S}" stroke-width="3.4"/>`;
+  const yPm=yP-hP*P/pmax;s+=`<line x1="${x0}" y1="${yPm.toFixed(1)}" x2="${x1}" y2="${yPm.toFixed(1)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="7 6"/><text x="${x1-4}" y="${(yPm-8).toFixed(1)}" text-anchor="end" ${T} font-size="18" font-weight="700" fill="var(--ink)" paint-order="stroke" stroke="var(--sheet)" stroke-width="6">P = ${zN(Math.round(P*10)/10)} W (srednja vrijednost)</text>`;
+  s+=`<text x="${x0-8}" y="${yP-hP+4}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ACC.S}">p</text>`;
+  // pokazivač vremena
+  const kc=Math.round(PW.t*N)%(N+1),xc=X(kc);s+=`<line x1="${xc.toFixed(1)}" y1="${yU-hU-10}" x2="${xc.toFixed(1)}" y2="${yP+hP+6}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="3 4"/>`;
+  s+=`<circle cx="${xc.toFixed(1)}" cy="${(yU-hU*u(kc)/Um).toFixed(1)}" r="5" fill="${ACC.U}"/>`;if(Im)s+=`<circle cx="${xc.toFixed(1)}" cy="${(yU-hU*0.7*i(kc)/Im).toFixed(1)}" r="5" fill="${ACC.I}"/><circle cx="${xc.toFixed(1)}" cy="${(yP-hP*p(kc)/pmax).toFixed(1)}" r="6" fill="${ACC.S}"/>`;
+  const f1=v=>zN(Math.round(v*10)/10);s+=`<text x="${x0}" y="392" ${T} font-size="17" fill="var(--ink)"><tspan fill="${ACC.U}" font-weight="700">u = ${f1(u(kc))} V</tspan>   ·   <tspan fill="${ACC.I}" font-weight="700">i = ${f1(i(kc))} A</tspan>   =   <tspan fill="${ACC.S}" font-weight="700">p = ${f1(p(kc))} W</tspan>${Im?`   <tspan fill="var(--muted)">(${p(kc)>=0.05?'energija ide u trošilo':p(kc)<=-0.05?'energija se vraća izvoru':'nula'})</tspan>`:''}</text>`;
+  return s+'</svg>'}
+function pwInfo(){const c=pwCalc(),d=x=>zN(Math.round(x*10)/10),deg=Math.round(c.phi*180/Math.PI);if(c.I==null)return '<b>Z = 0</b>: kratki spoj (struja bi bila beskonačna). Povećaj R ili razliku X<sub>L</sub> − X<sub>C</sub>.';
+  const S=PW.U*c.I,P=S*c.cos,Q=S*Math.sin(c.phi),kar=Math.abs(c.X)<0.5?(PW.R?'radno (čisti otpor ili X<sub>L</sub> = X<sub>C</sub>, rezonancija)':'—'):c.X>0?'induktivno: struja kasni za naponom':'kapacitivno: struja prethodi naponu';
+  return `Z = ${d(c.Z)} Ω · φ = ${deg}° · cos φ = ${zN(Math.round(c.cos*100)/100)} · I = ${d(c.I)} A · ${kar}<br><b style="color:${ACC.S}">P = U·I·cos φ = ${d(P)} W</b> · Q = ${d(Q)} var · S = ${d(S)} VA${Math.abs(P)<0.05?' · <b>srednja snaga je nula: energija samo putuje naprijed-natrag</b>':''}`}
+function pwDraw(){const el=document.getElementById('pwsvg');if(el)el.outerHTML=pwSvg();const inf=document.getElementById('pwinfo');if(inf)inf.innerHTML=pwInfo();['R','XL','XC'].forEach(k=>{const o=document.querySelector(`[data-pwv="${k}"]`);if(o)o.textContent=PW[k];const r=document.querySelector(`[data-pw="${k}"]`);if(r&&+r.value!==PW[k])r.value=PW[k]})}
+function pwStep(t){if(!PW.run)return;if(!document.getElementById('pwsvg')){PW.run=false;return}const dt=PW.last?Math.min(80,t-PW.last):16;PW.last=t;PW.t=(PW.t+dt/9000)%1;pwDraw();requestAnimationFrame(pwStep)}
+const PWSL=(k,l,c)=>`<label style="display:flex;align-items:center;gap:8px;margin:4px 0"><b style="min-width:62px;color:${c}">${l}</b><input type="range" min="0" max="100" step="1" data-pw="${k}" value="${PW[k]}" style="flex:1;accent-color:${c}"><span style="min-width:52px;text-align:right"><span data-pwv="${k}">${PW[k]}</span> Ω</span></label>`;
+const ACPWR={get svg(){return `<div id="pwbox">${pwSvg()}</div>`},t:'Trenutna snaga p = u · i',h:`<p>Trenutna snaga je umnožak trenutnog napona i trenutne struje: <b>p(t) = u(t) · i(t)</b>. Kad su u i i istog predznaka, p &gt; 0 (zeleno: energija ide u trošilo), a kad su suprotnog, p &lt; 0 (crveno: energija se vraća izvoru). Snaga titra <b>dvostrukom</b> frekvencijom.</p>
+<div style="margin:8px 0">${PWSL('R','R',ACC.R)}${PWSL('XL','X<sub>L</sub>',ACC.L)}${PWSL('XC','X<sub>C</sub>',ACC.C)}</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">${[['R','Čisti R',[50,0,0]],['L','Čisti L',[0,50,0]],['C','Čisti C',[0,0,50]],['RL','R + L',[40,30,0]],['RC','R + C',[40,0,30]],['LC','L + C',[0,60,20]],['RLC','R + L + C',[40,60,30]]].map(([k,l,v])=>`<button class="ghost" data-pwp="${v.join(',')}" style="margin:0;padding:5px 10px">${l}</button>`).join('')}<button class="primary" data-pwrun="1" style="margin:0;padding:5px 12px">${PW.run?'⏸ Zaustavi':'▶ Pokreni vrijeme'}</button></div>
+<p id="pwinfo" style="margin:8px 0 0">${pwInfo()}</p><div class="rule">Srednja (radna) snaga <b>P = U·I·cos φ</b>. Kod čistog L ili C je φ = ±90°, cos φ = 0, pa je <b>P = 0</b>: koliko energije trošilo primi, toliko vrati.</div><p class="note">U = ${PW.U} V (efektivno), spoj u seriji: Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²).</p>`};
+document.addEventListener('input',e=>{const r=e.target.closest('[data-pw]');if(!r)return;PW[r.dataset.pw]=+r.value;pwDraw()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pwp],[data-pwrun]');if(!b)return;e.preventDefault();
+  if(b.dataset.pwp){const [R,XL,XC]=b.dataset.pwp.split(',').map(Number);Object.assign(PW,{R,XL,XC});pwDraw()}
+  else{PW.run=!PW.run;PW.last=0;b.textContent=PW.run?'⏸ Zaustavi':'▶ Pokreni vrijeme';if(PW.run)requestAnimationFrame(pwStep)}});
+LESSONS.auvod.push(ACPWR);
+
 view='home';
 boot();
 
