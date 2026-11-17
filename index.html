@@ -513,7 +513,7 @@ function renderHelp(){
   <p><b>Vrste pitanja.</b> Osim osnovnih zadataka, u Vježbi se pojavljuju i kratka pitanja: ista struja ili isti napon, pronađi uljeza, koji par možeš odmah spojiti, zapis ukupnog otpora, točna jednadžba, pronađi grešku, koja metoda daje manje jednadžbi, prilagođenje i druga. Izbornikom <b>Vrsta pitanja</b> možeš se usredotočiti na jednu vrstu. Svaki put kad promijeniš gradivo, izbor se vraća na sve.</p>
   <p><b>Magnetsko polje ravnih vodiča.</b> Lekcija o polju oko ravnog vodiča, pravilu desne ruke, zbrajanju polja više vodiča i silama, uz zadatke s brojevima. U zadacima prijeđi mišem preko vodiča pa ćeš vidjeti njegove silnice.</p>
   <p><b>Izbor kolokvija.</b> Iznad gradiva (u Vježbi, Lekciji i na Početnoj) biraš <b>KZ1</b>, <b>KZ2</b>, <b>KZ3</b> ili <b>Sve</b>. Prikazuju se samo gradiva odabranog kolokvija, a izbor se pamti. Nakon KZ1 zadano je KZ2.</p>
-  <p><b>Gradiva KZ2 (izmjenične struje).</b> <b>Uvod u izmjenične krugove</b> (izmjenični napon, R, L i C pojedinačno), <b>Serijski RLC spoj</b> (AV 6), <b>Paralelni RLC spoj</b> i <b>Kompleksni račun</b> (AV 7). Svako ima kratku lekciju, a u Vježbi su pitanja o pojmovima bez računanja: prethodi ili kasni (medo prelazi ULICU), ovisnost o frekvenciji, induktivno ili kapacitivno, vektorski dijagram, snage, kompleksne impedancije. Zadaci s brojevima (impedancija, struje, naponi, snage, dva trošila, pretvorbe, mješoviti spoj, konturne struje i napon čvora u izmjeničnoj mreži) su u kartici <b>Zadaci</b> kad je odabran KZ2.</p>
+  <p><b>Gradiva KZ2 (izmjenične struje).</b> <b>Uvod u izmjenične krugove</b> (izmjenični napon, R, L i C pojedinačno), <b>Serijski RLC spoj</b> (AV 6), <b>Paralelni RLC spoj</b> i <b>Kompleksni račun</b> (AV 7). Svako ima kratku lekciju, a u Vježbi su pitanja o pojmovima bez računanja: prethodi ili kasni (medo prelazi ULICU), ovisnost o frekvenciji, induktivno ili kapacitivno, vektorski dijagram, snage, kompleksne impedancije, maksimalna i efektivna vrijednost, ω, f i T iz izraza u(t), vremenski i fazorski prikaz, nazivi i formule (impedancija, admitancija, konduktancija, susceptancija), koji vektor prethodi kojem. U Serijskom i Paralelnom RLC spoju su i <b>zadaci korak po korak</b>, bez brojeva i bez kalkulatora: u svakom se koraku bira točan izraz (referentni vektor, naponi ili struje na elementima i njihov fazni odnos, Z ili Y, vektorski zbroj, φ, karakter, P), a postupak se ispisuje kao u bilježnici. U Lekciji i Vježbi Kompleksnog računa na vrhu je <b>šalabahter</b>: impedancija i admitancija otpornika, zavojnice i kondenzatora na jednom mjestu (Ż = R + jX, Ẏ = G + jB, zašto je 1/j = −j), s objašnjenjem na dodir; može se sakriti. Pitanje na koje se dvaput zaredom odgovori točno smatra se <b>naučenim</b> i više se ne postavlja dok ima nenaučenih (u Vježbi piše „naučeno X od Y”); pogrešan odgovor ga vraća. Zadaci s brojevima (impedancija, struje, naponi, snage, dva trošila, pretvorbe, mješoviti spoj, konturne struje i napon čvora u izmjeničnoj mreži) su u kartici <b>Zadaci</b> kad je odabran KZ2.</p>
   <h3>Razina</h3>
   <p>Svako gradivo ima svoju razinu od 1,0 do 10,0, a gore desno je ukupna razina. Točan odgovor podiže razinu, a pogrešan je spušta. Teža pitanja donose više. Aplikacija ti zadaje pitanja prilagođena tvojoj razini. Pitanja na kojima pogriješiš vratit će se kasnije, a vrste zamki koje ti ne idu dobivat ćeš češće. Razina radi kao rejting u šahu (Elo): pitanja su protivnici različite jačine, pa do 10,0 dolazi samo onaj tko redovito rješava najteža pitanja. Uz <b>Vježbam bez bodovanja</b> odgovori ne mijenjaju razinu (ali se broje u riješene zadatke i tjedne bodove), a <b>Ponovi moje greške</b> daje niz pitanja na kojima je ranije bila greška, također bez bodovanja.</p>
   <h3>Bojice potencijala</h3>
@@ -3988,6 +3988,228 @@ async function anGrLoad(){const box=document.getElementById('angr');if(!box)retu
   const h=pan.querySelector('h2');(h||pan.firstElementChild).insertAdjacentHTML('afterend',`<div id="angrst" style="border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:10px 14px;margin:8px 0 14px"><b>Upisani bodovi KZ</b> <span class="note">(upisano u „Moji bodovi”, nije službeno)</span>${html}</div>`);
 }catch(e){}return r}}
 
+/* ===== Lekcija: trenutna snaga p(t) = u(t)·i(t) za R, L, C i kombinacije (slajderi) ===== */
+const PW={R:50,XL:0,XC:0,U:100,t:0,run:false,last:0};
+function pwCalc(){const X=PW.XL-PW.XC,Z=Math.hypot(PW.R,X),z=Math.max(Z,1e-9),phi=Math.atan2(X,PW.R),I=Z<0.5?null:PW.U/z;return{X,Z,phi,I,cos:Math.cos(phi)}}
+function pwSvg(){const c=pwCalc(),T=AC_T,W=760,x0=60,x1=W-20,pw=x1-x0,yU=105,hU=70,yP=290,N=240,per=2;const Um=PW.U*Math.SQRT2,Im=c.I==null?0:c.I*Math.SQRT2,S=c.I==null?0:PW.U*c.I,P=S*c.cos,pmax=Math.max(S*(1+Math.abs(c.cos)),1),hP=80;
+  const X=k=>x0+pw*k/N,wt=k=>2*Math.PI*per*k/N,u=k=>Um*Math.sin(wt(k)),i=k=>Im*Math.sin(wt(k)-c.phi),p=k=>u(k)*i(k);
+  const path=(f,y0,h,m)=>Array.from({length:N+1},(_,k)=>`${k?'L':'M'}${X(k).toFixed(1)} ${(y0-h*f(k)/m).toFixed(1)}`).join('');
+  let s=`<svg id="pwsvg" viewBox="0 0 ${W} 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">`;
+  s+=`<line x1="${x0}" y1="${yU}" x2="${x1}" y2="${yU}" stroke="var(--line)" stroke-width="1.4"/><line x1="${x0}" y1="${yU-hU-12}" x2="${x0}" y2="${yU+hU+8}" stroke="var(--line)"/>`;
+  s+=`<path d="${path(u,yU,hU,Um)}" fill="none" stroke="${ACC.U}" stroke-width="3"/>`;if(Im)s+=`<path d="${path(i,yU,hU*0.7,Im)}" fill="none" stroke="${ACC.I}" stroke-width="3"/>`;
+  s+=`<text x="${x0-8}" y="${yU-hU+4}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ACC.U}">u</text><text x="${x0-8}" y="${yU-hU+28}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ACC.I}">i</text><text x="${x1}" y="${yU+20}" text-anchor="end" ${T} font-size="17" fill="var(--muted)">ωt</text>`;
+  // p(t): pozitivno (energija ide u trošilo) zeleno, negativno (vraća se izvoru) crveno
+  const pos=[],neg=[];for(let k=0;k<=N;k++){const v=p(k)/pmax;pos.push(`${X(k).toFixed(1)} ${(yP-hP*Math.max(v,0)).toFixed(1)}`);neg.push(`${X(k).toFixed(1)} ${(yP-hP*Math.min(v,0)).toFixed(1)}`)}
+  s+=`<path d="M${x0} ${yP}L${pos.join('L')}L${x1} ${yP}Z" fill="${ACC.R}" opacity=".22"/><path d="M${x0} ${yP}L${neg.join('L')}L${x1} ${yP}Z" fill="${ACC.U}" opacity=".22"/>`;
+  s+=`<line x1="${x0}" y1="${yP}" x2="${x1}" y2="${yP}" stroke="var(--line)" stroke-width="1.4"/><line x1="${x0}" y1="${yP-hP-12}" x2="${x0}" y2="${yP+hP+8}" stroke="var(--line)"/>`;
+  if(Im)s+=`<path d="${path(p,yP,hP,pmax)}" fill="none" stroke="${ACC.S}" stroke-width="3.4"/>`;
+  const yPm=yP-hP*P/pmax;s+=`<line x1="${x0}" y1="${yPm.toFixed(1)}" x2="${x1}" y2="${yPm.toFixed(1)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="7 6"/><text x="${x1-4}" y="${(yPm-8).toFixed(1)}" text-anchor="end" ${T} font-size="18" font-weight="700" fill="var(--ink)" paint-order="stroke" stroke="var(--sheet)" stroke-width="6">P = ${zN(Math.round(P*10)/10)} W (srednja vrijednost)</text>`;
+  s+=`<text x="${x0-8}" y="${yP-hP+4}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ACC.S}">p</text>`;
+  // pokazivač vremena
+  const kc=Math.round(PW.t*N)%(N+1),xc=X(kc);s+=`<line x1="${xc.toFixed(1)}" y1="${yU-hU-10}" x2="${xc.toFixed(1)}" y2="${yP+hP+6}" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="3 4"/>`;
+  s+=`<circle cx="${xc.toFixed(1)}" cy="${(yU-hU*u(kc)/Um).toFixed(1)}" r="5" fill="${ACC.U}"/>`;if(Im)s+=`<circle cx="${xc.toFixed(1)}" cy="${(yU-hU*0.7*i(kc)/Im).toFixed(1)}" r="5" fill="${ACC.I}"/><circle cx="${xc.toFixed(1)}" cy="${(yP-hP*p(kc)/pmax).toFixed(1)}" r="6" fill="${ACC.S}"/>`;
+  const f1=v=>zN(Math.round(v*10)/10);s+=`<text x="${x0}" y="392" ${T} font-size="17" fill="var(--ink)"><tspan fill="${ACC.U}" font-weight="700">u = ${f1(u(kc))} V</tspan>   ·   <tspan fill="${ACC.I}" font-weight="700">i = ${f1(i(kc))} A</tspan>   =   <tspan fill="${ACC.S}" font-weight="700">p = ${f1(p(kc))} W</tspan>${Im?`   <tspan fill="var(--muted)">(${p(kc)>=0.05?'energija ide u trošilo':p(kc)<=-0.05?'energija se vraća izvoru':'nula'})</tspan>`:''}</text>`;
+  return s+'</svg>'}
+function pwInfo(){const c=pwCalc(),d=x=>zN(Math.round(x*10)/10),deg=Math.round(c.phi*180/Math.PI);if(c.I==null)return '<b>Z = 0</b>: kratki spoj (struja bi bila beskonačna). Povećaj R ili razliku X<sub>L</sub> − X<sub>C</sub>.';
+  const S=PW.U*c.I,P=S*c.cos,Q=S*Math.sin(c.phi),kar=Math.abs(c.X)<0.5?(PW.R?'radno (čisti otpor ili X<sub>L</sub> = X<sub>C</sub>, rezonancija)':'—'):c.X>0?'induktivno: struja kasni za naponom':'kapacitivno: struja prethodi naponu';
+  return `Z = ${d(c.Z)} Ω · φ = ${deg}° · cos φ = ${zN(Math.round(c.cos*100)/100)} · I = ${d(c.I)} A · ${kar}<br><b style="color:${ACC.S}">P = U·I·cos φ = ${d(P)} W</b> · Q = ${d(Q)} var · S = ${d(S)} VA${Math.abs(P)<0.05?' · <b>srednja snaga je nula: energija samo putuje naprijed-natrag</b>':''}`}
+function pwDraw(){const el=document.getElementById('pwsvg');if(el)el.outerHTML=pwSvg();const inf=document.getElementById('pwinfo');if(inf)inf.innerHTML=pwInfo();['R','XL','XC'].forEach(k=>{const o=document.querySelector(`[data-pwv="${k}"]`);if(o)o.textContent=PW[k];const r=document.querySelector(`[data-pw="${k}"]`);if(r&&+r.value!==PW[k])r.value=PW[k]})}
+function pwStep(t){if(!PW.run)return;if(!document.getElementById('pwsvg')){PW.run=false;return}const dt=PW.last?Math.min(80,t-PW.last):16;PW.last=t;PW.t=(PW.t+dt/9000)%1;pwDraw();requestAnimationFrame(pwStep)}
+const PWSL=(k,l,c)=>`<label style="display:flex;align-items:center;gap:8px;margin:4px 0"><b style="min-width:62px;color:${c}">${l}</b><input type="range" min="0" max="100" step="1" data-pw="${k}" value="${PW[k]}" style="flex:1;accent-color:${c}"><span style="min-width:52px;text-align:right"><span data-pwv="${k}">${PW[k]}</span> Ω</span></label>`;
+const ACPWR={get svg(){return `<div id="pwbox">${pwSvg()}</div>`},t:'Trenutna snaga p = u · i',h:`<p>Trenutna snaga je umnožak trenutnog napona i trenutne struje: <b>p(t) = u(t) · i(t)</b>. Kad su u i i istog predznaka, p &gt; 0 (zeleno: energija ide u trošilo), a kad su suprotnog, p &lt; 0 (crveno: energija se vraća izvoru). Snaga titra <b>dvostrukom</b> frekvencijom.</p>
+<div style="margin:8px 0">${PWSL('R','R',ACC.R)}${PWSL('XL','X<sub>L</sub>',ACC.L)}${PWSL('XC','X<sub>C</sub>',ACC.C)}</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0">${[['R','Čisti R',[50,0,0]],['L','Čisti L',[0,50,0]],['C','Čisti C',[0,0,50]],['RL','R + L',[40,30,0]],['RC','R + C',[40,0,30]],['LC','L + C',[0,60,20]],['RLC','R + L + C',[40,60,30]]].map(([k,l,v])=>`<button class="ghost" data-pwp="${v.join(',')}" style="margin:0;padding:5px 10px">${l}</button>`).join('')}<button class="primary" data-pwrun="1" style="margin:0;padding:5px 12px">${PW.run?'⏸ Zaustavi':'▶ Pokreni vrijeme'}</button></div>
+<p id="pwinfo" style="margin:8px 0 0">${pwInfo()}</p><div class="rule">Srednja (radna) snaga <b>P = U·I·cos φ</b>. Kod čistog L ili C je φ = ±90°, cos φ = 0, pa je <b>P = 0</b>: koliko energije trošilo primi, toliko vrati.</div><p class="note">U = ${PW.U} V (efektivno), spoj u seriji: Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²).</p>`};
+document.addEventListener('input',e=>{const r=e.target.closest('[data-pw]');if(!r)return;PW[r.dataset.pw]=+r.value;pwDraw()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-pwp],[data-pwrun]');if(!b)return;e.preventDefault();
+  if(b.dataset.pwp){const [R,XL,XC]=b.dataset.pwp.split(',').map(Number);Object.assign(PW,{R,XL,XC});pwDraw()}
+  else{PW.run=!PW.run;PW.last=0;b.textContent=PW.run?'⏸ Zaustavi':'▶ Pokreni vrijeme';if(PW.run)requestAnimationFrame(pwStep)}});
+LESSONS.auvod.push(ACPWR);
+
+/* ===== KZ2: male pitalice (vremenski i frekvencijski prikaz, nazivi i formule, fazni odnosi) i zadaci korak po korak ===== */
+(function(){
+  const cnt={};for(const q of QS){const m=/^(AU|AS|AP|AK)(\d+)$/.exec(q.id);if(m)cnt[m[1]]=Math.max(cnt[m[1]]||0,+m[2])}
+  const PFX={auvod:'AU',aser:'AS',apar:'AP',akom:'AK'};
+  const add=(topic,q)=>{const P=PFX[topic];cnt[P]=(cnt[P]||0)+1;q.id=P+String(cnt[P]).padStart(2,'0');q.topic=topic;q.tags=q.tags||[];q.svg=q.svg||'';
+    if(!q.steps){const o=acOpts(q.id,q.good,q.bad);q.opts=o.opts;q.ans=o.ans;delete q.good;delete q.bad}ACQ.push(q);QS.push(q);return q};
+  const n3=x=>{if(!isFinite(x))return '∞';const a=Math.abs(x);return zN(a>=100?Math.round(x):+x.toPrecision(3))};
+  const n1=x=>zN(+x.toFixed(1)),deg=x=>String(zN(+x.toFixed(1))).replace('-','−')+'°';
+  const S_=(a,b)=>`${a}<sub>${b}</sub>`;
+  Object.assign(TYPENAME,{t_ef:'Maksimalna i efektivna vrijednost',t_wf:'ω, f i T',t_ff:'Fazni pomak u(t) i i(t)',t_fz:'Vremenski ↔ fazorski prikaz',s_nf:'Nazivi i formule',p_nf:'Nazivi i formule',s_od:'Fazni odnos vektora',p_od:'Fazni odnos vektora',s_kk:'Zadatak korak po korak',p_kk:'Zadatak korak po korak'});
+  Object.assign(TAGNAMES,{ac_wf:'ω, f i T iz izraza',ac_naz:'Nazivi, oznake i formule'});
+
+  /* --- 1. Maksimalna ↔ efektivna vrijednost (bez kalkulatora: amplitude oblika k·√2) --- */
+  for(const [k,vel,unit] of [[100,'u','V'],[230,'u','V'],[10,'u','V'],[50,'u','V'],[5,'i','A'],[2,'i','A'],[20,'i','A']]){const w=vel==='u'?'Napon':'Struja';
+    add('auvod',{type:'t_ef',diff:1.6,tags:['ac_ef'],text:`${w} je ${vel}(t) = ${k}√2·sin(ωt) ${unit}. Kolika je <b>efektivna</b> vrijednost?`,good:`${k} ${unit}`,bad:[`${k}√2 ${unit}`,`${2*k} ${unit}`,`${k/2} ${unit}`],expl:`Efektivna vrijednost je amplituda podijeljena s √2: ${k}√2/√2 = ${k} ${unit}.`})}
+  for(const [ef,unit,el] of [[230,'V','napon'],[100,'V','napon'],[12,'V','napon'],[10,'A','struja'],[2,'A','struja']])
+    add('auvod',{type:'t_ef',diff:1.9,tags:['ac_ef'],text:`Instrument pokazuje da je ${el} ${ef} ${unit}. Kolika je <b>maksimalna</b> (vršna) vrijednost?`,good:`${ef}√2 ${unit}`,bad:[`${ef}/√2 ${unit}`,`${ef} ${unit}`,`${2*ef} ${unit}`],expl:`Instrument pokazuje efektivnu vrijednost. Amplituda je √2 puta veća: ${ef}√2 ${unit}.`});
+  for(const [q,g,b,ex] of [['Kako se iz maksimalne vrijednosti U<sub>max</sub> dobije efektivna?','U<sub>ef</sub> = U<sub>max</sub>/√2',['U<sub>ef</sub> = U<sub>max</sub>·√2','U<sub>ef</sub> = U<sub>max</sub>/2','U<sub>ef</sub> = 2·U<sub>max</sub>/π'],'Za sinusni oblik U<sub>ef</sub> = U<sub>max</sub>/√2 ≈ 0,707·U<sub>max</sub>.'],
+    ['Koju vrijednost pokazuju voltmetar i ampermetar za izmjeničnu struju?','efektivnu',['maksimalnu','srednju','trenutnu'],'Instrumenti pokazuju efektivnu vrijednost, a s njom se i računa (U, I bez indeksa).']])
+    add('auvod',{type:'t_ef',diff:1.5,tags:['ac_ef'],text:q,good:g,bad:b,expl:ex});
+
+  /* --- 2. ω, f i T iz izraza (brojevi za računanje napamet) --- */
+  for(const k of [100,200,400,1000,2000]){const f=k/2,T=1000/f;
+    add('auvod',{type:'t_wf',diff:2.0,tags:['ac_wf'],text:`Napon je u(t) = 100·sin(${k}πt) V. Kolika je <b>kružna frekvencija</b> ω?`,good:`ω = ${k}π rad/s`,bad:[`ω = ${k} rad/s`,`ω = ${k/2}π rad/s`,`ω = ${2*k}π rad/s`],expl:`ω je ono što množi t unutar sinusa: ω = ${k}π rad/s.`});
+    add('auvod',{type:'t_wf',diff:2.4,tags:['ac_wf'],text:`Napon je u(t) = 100·sin(${k}πt) V. Kolika je <b>frekvencija</b> f?`,good:`f = ${f} Hz`,bad:[`f = ${k} Hz`,`f = ${k}π Hz`,`f = ${f/2} Hz`],expl:`ω = 2πf, pa je f = ω/(2π) = ${k}π/(2π) = ${f} Hz.`});
+    add('auvod',{type:'t_wf',diff:2.8,tags:['ac_wf'],text:`Napon je u(t) = 100·sin(${k}πt) V. Koliki je <b>period</b> T?`,good:`T = ${zN(T)} ms`,bad:[`T = ${zN(T/2)} ms`,`T = ${zN(2*T)} ms`,`T = ${zN(T*10)} ms`],expl:`f = ω/(2π) = ${f} Hz, a T = 1/f = ${zN(T)} ms.`})}
+  for(const f of [50,100,200,500]){
+    add('auvod',{type:'t_wf',diff:1.8,tags:['ac_wf'],text:`Frekvencija napona je f = ${f} Hz. Kolika je kružna frekvencija ω?`,good:`ω = ${2*f}π rad/s`,bad:[`ω = ${f} rad/s`,`ω = ${f}π rad/s`,`ω = ${f}/(2π) rad/s`],expl:`ω = 2πf = 2π·${f} = ${2*f}π rad/s.`});
+    add('auvod',{type:'t_wf',diff:1.9,tags:['ac_wf'],text:`Period napona je T = ${zN(1000/f)} ms. Kolika je frekvencija?`,good:`f = ${f} Hz`,bad:[`f = ${f*2} Hz`,`f = ${zN(1000/f)} Hz`,`f = ${f/2} Hz`],expl:`f = 1/T = 1/(${zN(1000/f)} ms) = ${f} Hz.`})}
+  for(const [q,g,b,ex] of [['Kako su povezane kružna frekvencija ω i frekvencija f?','ω = 2πf',['ω = f/(2π)','ω = 2π/f','ω = πf'],'ω = 2πf, jedinica rad/s.'],['Kako su povezani period T i frekvencija f?','T = 1/f',['T = 2πf','T = f/(2π)','T = 2π/f'],'T = 1/f; iz toga i ω = 2π/T.'],
+    ['Frekvencija se udvostruči. Što se dogodi s periodom?','prepolovi se',['udvostruči se','ostaje isti','poveća se četiri puta'],'T = 1/f: veća frekvencija, kraći period.']])
+    add('auvod',{type:'t_wf',diff:1.7,tags:['ac_wf'],text:q,good:g,bad:b,expl:ex});
+
+  /* --- 3. Fazni pomak u(t) i i(t): tko prethodi i za koliko --- */
+  const sg=a=>a===0?'':(a>0?' + ':' − ')+Math.abs(a)+'°',an=a=>String(a).replace('-','−')+'°';
+  for(const [a,b] of [[30,-20],[0,-90],[0,90],[-15,45],[60,60],[45,0],[-30,-75],[20,-40],[0,-30],[-60,30]]){const d=a-b;
+    const good=d===0?'u i i su u fazi: trošilo je radno':d>0?`u prethodi struji za ${d}°: trošilo je induktivno`:`i prethodi naponu za ${-d}°: trošilo je kapacitivno`;
+    add('auvod',{type:'t_ff',diff:Math.abs(d)===90?2.2:2.7,tags:['ac_faza','ac_kar'],svg:acSin({i:b-a}),text:`u(t) = U<sub>max</sub>·sin(ωt${sg(a)}), i(t) = I<sub>max</sub>·sin(ωt${sg(b)}). Što prethodi i kakvo je trošilo?`,
+      good,bad:[`u prethodi struji za ${Math.abs(d)||30}°: trošilo je induktivno`,`i prethodi naponu za ${Math.abs(d)||30}°: trošilo je kapacitivno`,'u i i su u fazi: trošilo je radno',`${d>=0?'i prethodi naponu':'u prethodi struji'} za ${(Math.abs(a+b)&&Math.abs(a+b)!==Math.abs(d))?Math.abs(a+b):Math.abs(d)+30}°: trošilo je ${d>=0?'kapacitivno':'induktivno'}`],
+      expl:`Fazni pomak φ = ψ<sub>u</sub> − ψ<sub>i</sub> = ${a}° − (${b}°) = ${d}°. ${d>0?'φ > 0: napon prethodi struji, induktivno (U L I).':d<0?'φ < 0: struja prethodi naponu, kapacitivno (I C U).':'φ = 0: u fazi, radno.'}`})}
+  for(const [a,b] of [[40,10],[-20,25],[90,0],[0,-120]]){const d=a-b;
+    add('auvod',{type:'t_ff',diff:2.5,tags:['ac_faza'],text:`u<sub>1</sub>(t) = 50·sin(ωt${sg(a)}) V i u<sub>2</sub>(t) = 80·sin(ωt${sg(b)}) V. Koji napon <b>prethodi</b>?`,good:d>0?`u<sub>1</sub> prethodi u<sub>2</sub> za ${d}°`:`u<sub>2</sub> prethodi u<sub>1</sub> za ${-d}°`,bad:[`u<sub>1</sub> prethodi u<sub>2</sub> za ${Math.abs(d)}°`,`u<sub>2</sub> prethodi u<sub>1</sub> za ${Math.abs(d)}°`,'u fazi su',`u<sub>2</sub> prethodi jer ima veću amplitudu`],expl:`Prethodi veličina s većim faznim kutom: ${a}° ${d>0?'>':'<'} ${b}°. Razlika je ${Math.abs(d)}°. Amplituda ne utječe na to tko prethodi.`})}
+
+  /* --- 4. Vremenski ↔ fazorski prikaz --- */
+  for(const [k,ps] of [[100,30],[230,-45],[50,60],[20,0],[10,-90]])
+    add('auvod',{type:'t_fz',diff:2.4,tags:['ac_fz','ac_ef'],text:`Kako glasi fazor (efektivna vrijednost i kut) napona u(t) = ${k}√2·sin(ωt${sg(ps)}) V?`,good:`U = ${k}∠${an(ps)} V`,bad:[`U = ${k}√2∠${an(ps)} V`,`U = ${k}∠${an(-ps||90)} V`,`U = ${2*k}∠${an(ps)} V`],expl:`Duljina fazora je efektivna vrijednost ${k}√2/√2 = ${k} V, a kut je početna faza ${an(ps)}. Frekvencija se u fazoru ne piše.`});
+  for(const [ef,ps,f] of [[230,-45,50],[100,30,50],[10,90,100],[50,0,50]]){const w=2*f;
+    add('auvod',{type:'t_fz',diff:2.7,tags:['ac_fz','ac_ef'],text:`Fazor napona je U = ${ef}∠${an(ps)} V, a frekvencija f = ${f} Hz. Kako glasi u(t)?`,good:`u(t) = ${ef}√2·sin(${w}πt${sg(ps)}) V`,bad:[`u(t) = ${ef}·sin(${w}πt${sg(ps)}) V`,`u(t) = ${ef}√2·sin(${f}t${sg(ps)}) V`,`u(t) = ${ef}√2·sin(${w}πt${sg(-ps||45)}) V`],expl:`Amplituda je ${ef}√2 V, ω = 2πf = ${w}π rad/s, a početna faza ostaje ${an(ps)}.`})}
+
+  /* --- 5. Nazivi, oznake, jedinice i formule --- */
+  const NZ=[['Z','impedancija','Ω','U/I','aser'],['X','reaktancija','Ω','X<sub>L</sub> − X<sub>C</sub>','aser'],['R','rezistancija (djelatni otpor)','Ω','U<sub>R</sub>/I','aser'],
+    ['Y','admitancija','S','1/Z = I/U','apar'],['G','konduktancija (vodljivost)','S','1/R','apar'],['B','susceptancija','S','1/X','apar']];
+  const names=NZ.map(x=>x[1].split(' (')[0]);
+  for(const [o,nm,u,f,tp] of NZ){const T=tp==='aser'?'s_nf':'p_nf',short=nm.split(' (')[0];
+    add(tp,{type:T,diff:1.5,tags:['ac_naz'],text:`Kako se zove veličina označena slovom <b>${o}</b> (jedinica ${u})?`,good:short,bad:names.filter(x=>x!==short).sort(()=>0).slice(0,5),expl:`${o} je ${nm}, jedinica ${u === 'S'?'S (simens)':'Ω (om)'}, ${o} = ${f}.`});
+    add(tp,{type:T,diff:1.6,tags:['ac_naz'],text:`Koja je oznaka za <b>${short}</b>?`,good:o,bad:NZ.map(x=>x[0]).filter(x=>x!==o),expl:`${short[0].toUpperCase()+short.slice(1)} se označava slovom ${o}.`});
+    add(tp,{type:T,diff:1.8,tags:['ac_naz'],text:`U kojoj se jedinici izražava ${short} ${o}?`,good:u==='S'?'S (simens)':'Ω (om)',bad:['S (simens)','Ω (om)','H (henri)','F (farad)','VA'],expl:`${o} = ${f}, pa je jedinica ${u==='S'?'1/Ω = S (simens)':'Ω (om)'}.`})}
+  const FR=[['X<sub>L</sub>','induktivni otpor','ωL','aser'],['X<sub>C</sub>','kapacitivni otpor','1/(ωC)','aser'],['B<sub>L</sub>','susceptancija zavojnice','1/(ωL)','apar'],['B<sub>C</sub>','susceptancija kondenzatora','ωC','apar']];
+  for(const [o,nm,f,tp] of FR)add(tp,{type:tp==='aser'?'s_nf':'p_nf',diff:2.2,tags:['ac_naz','ac_f'],text:`Čemu je jednak ${nm} ${o}?`,good:f,bad:['ωL','1/(ωC)','1/(ωL)','ωC'],expl:`${o} = ${f}${tp==='apar'?` = 1/X<sub>${o.includes('L')?'L':'C'}</sub>`:''}.`});
+  for(const [q,g,b,ex,tp,d] of [
+    ['Recipročna vrijednost impedancije Z je:','admitancija Y',['konduktancija G','susceptancija B','reaktancija X'],'Y = 1/Z. Admitancija je ukupna vodljivost spoja.','apar',1.7],
+    ['Recipročna vrijednost djelatnog otpora R je:','konduktancija G',['admitancija Y','susceptancija B','impedancija Z'],'G = 1/R, jedinica S.','apar',1.8],
+    ['Recipročna vrijednost reaktancije X je:','susceptancija B',['konduktancija G','admitancija Y','rezistancija R'],'B = 1/X: B<sub>L</sub> = 1/X<sub>L</sub>, B<sub>C</sub> = 1/X<sub>C</sub>.','apar',2.0],
+    ['Modul impedancije serijskog RLC spoja je:','Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²)',['Z = R + X<sub>L</sub> + X<sub>C</sub>','Z = √(R² + X<sub>L</sub>² + X<sub>C</sub>²)','Z = R + X<sub>L</sub> − X<sub>C</sub>'],'R i reaktancija su okomiti (trokut impedancije), a X<sub>L</sub> i X<sub>C</sub> suprotnog smjera.','aser',2.2],
+    ['Modul admitancije paralelnog RLC spoja je:','Y = √(G² + (B<sub>L</sub> − B<sub>C</sub>)²)',['Y = G + B<sub>L</sub> + B<sub>C</sub>','Y = √(G² + B<sub>L</sub>² + B<sub>C</sub>²)','Y = 1/R + 1/X<sub>L</sub> + 1/X<sub>C</sub>'],'Trokut admitancije: G i B su okomiti, B<sub>L</sub> i B<sub>C</sub> suprotnog smjera.','apar',2.4],
+    ['Ohmov zakon za izmjeničnu struju preko admitancije glasi:','I = U·Y',['I = U/Y','I = Y/U','U = I·Y'],'Y = 1/Z, pa je I = U/Z = U·Y.','apar',2.0],
+    ['Fazni kut serijskog RLC spoja računa se kao:','φ = arctan((X<sub>L</sub> − X<sub>C</sub>)/R)',['φ = arctan(R/(X<sub>L</sub> − X<sub>C</sub>))','φ = arccos(X/Z)','φ = arctan(X<sub>L</sub>·X<sub>C</sub>/R)'],'U trokutu impedancije tangens kuta je X/R.','aser',2.4]])
+    add(tp,{type:tp==='aser'?'s_nf':'p_nf',diff:d,tags:['ac_naz'],text:q,good:g,bad:b,expl:ex});
+
+  /* --- 6. Fazni odnos vektora (koji je prije kojeg) --- */
+  const rel=(A,B,d)=>{d=((d%360)+540)%360-180;return d===0?`${A} i ${B} su u fazi`:Math.abs(d)===180?`${A} i ${B} su u protufazi (180°)`:d>0?`${A} prethodi ${B} za ${Math.abs(d)}°`:`${A} kasni za ${B} za ${Math.abs(d)}°`};
+  const ODN=(tp,T,ang,pairs,svg,ctx,why)=>{for(const [a,b] of pairs){const d=ang[a]-ang[b];const A=a.replace(/_(\w)/,'<sub>$1</sub>'),B=b.replace(/_(\w)/,'<sub>$1</sub>');
+    add(tp,{type:T,diff:Math.abs(d)===180?2.6:2.1,tags:['ac_faza','ac_red'],svg,text:`${ctx} U kakvom su odnosu ${A} i ${B}?`,good:rel(A,B,d),bad:[rel(A,B,90),rel(A,B,-90),rel(A,B,0),rel(A,B,180)],expl:why(A,B,d)})}};
+  ODN('aser','s_od',{I:0,U_R:0,U_L:90,U_C:-90},[['U_L','I'],['U_C','I'],['U_R','I'],['U_L','U_C'],['U_L','U_R'],['U_C','U_R'],['I','U_L'],['I','U_C']],acNet({ser:[{k:'R',lab:'R'},{k:'L',lab:sb('X','L')},{k:'C',lab:sb('X','C')}],src:'U'}),'Serijski RLC spoj (struja I je zajednička).',
+    (A,B)=>'U seriji je referenca struja I (0°). U<sub>R</sub> je u fazi s I, U<sub>L</sub> prethodi za 90° (U L I), U<sub>C</sub> kasni za 90° (I C U), pa su U<sub>L</sub> i U<sub>C</sub> u protufazi.');
+  ODN('apar','p_od',{U:0,I_R:0,I_C:90,I_L:-90},[['I_C','U'],['I_L','U'],['I_R','U'],['I_C','I_L'],['I_C','I_R'],['I_L','I_R'],['U','I_L'],['U','I_C']],acNet({par:[{k:'R',lab:'R'},{k:'L',lab:sb('X','L')},{k:'C',lab:sb('X','C')}],src:'U'}),'Paralelni RLC spoj (napon U je zajednički).',
+    ()=>'U paraleli je referenca napon U (0°). I<sub>R</sub> je u fazi s U, I<sub>C</sub> prethodi za 90° (I C U), I<sub>L</sub> kasni za 90° (U L I), pa su I<sub>C</sub> i I<sub>L</sub> u protufazi.');
+
+  /* --- 7. Zadaci korak po korak, bez brojeva: postupak se slaže izrazima (kao konturne struje u KZ1) --- */
+  const xs=(a,b)=>`${a}<sub>${b}</sub>`,plus=L=>L.join(' + '),par=L=>L.length>1?`(${plus(L)})`:L[0];
+  const K=(t,good,bad,ex)=>({t,good,bad,ex:ex||good});
+  const mk=els=>({R:els.filter(e=>e[0]==='R'),L:els.filter(e=>e[0]==='L'),C:els.filter(e=>e[0]==='C')});
+  const el=(e,p)=>p==='R'||p==='G'?(e.length>1?xs(p,e.slice(1)):p):xs(p,e),nm=e=>e.length>1?xs(e[0],e.slice(1)):e;
+  const net=(els,kind)=>acNet({[kind]:els.map(e=>({k:e[0],lab:e.length>1?sb(e[0],e.slice(1)):e})),src:'U'});
+  const nameOf=els=>els.map(e=>e.length>1?xs(e[0],e.slice(1)):e).join(', ');const K0=K;
+  const SERV=[{els:['R','L']},{els:['R','C']},{els:['R','L','C'],rel:1},{els:['R','L','C'],rel:-1},{els:['R1','R2','L']},{els:['R','L1','L2']},{els:['R1','R2','L','C'],rel:-1},{els:['R','L','C1','C2'],rel:1}];
+  for(const v of SERV){const m=mk(v.els),hasL=m.L.length>0,hasC=m.C.length>0,both=hasL&&hasC;
+    const Rl=m.R.map(e=>el(e,'R')),XLl=m.L.map(e=>el(e,'X')),XCl=m.C.map(e=>el(e,'X')),Rs=par(Rl),XL=par(XLl),XC=par(XCl);
+    const X=both?`${plus(XLl)} − ${XC}`:hasL?plus(XLl):plus(XCl),Xp=both||XLl.length+XCl.length>1?`(${X})`:X,all=[...Rl,...XLl,...XCl];
+    const ind=v.rel?v.rel>0:hasL,relT=both?(v.rel>0?`${XL} &gt; ${XC}`:`${XC} &gt; ${XL}`):'';
+    const S=[K('Koja je veličina zajednička svim elementima (referentni vektor)?','struja I',['napon U','napon U<sub>R</sub>','impedancija Z'],'Serija: kroz sve elemente teče ista struja I, ona je referentni vektor.')];
+    m.R.forEach((e,i)=>{const r=Rl[i],u=xs('U',e);S.push(K(`Napon na otporniku ${r}`,`${u} = I·${r}, u fazi sa strujom`,[`${u} = I·${r}, prethodi struji za 90°`,`${u} = I/${r}, u fazi sa strujom`,`${u} = I·${r}, kasni za strujom za 90°`]))});
+    m.L.forEach((e,i)=>{const x=XLl[i],u=xs('U',e);S.push(K(`Napon na zavojnici ${nm(e)}`,`${u} = I·${x}, prethodi struji za 90°`,[`${u} = I·${x}, kasni za strujom za 90°`,`${u} = I/${x}, prethodi struji za 90°`,`${u} = I·${x}, u fazi sa strujom`]))});
+    m.C.forEach((e,i)=>{const x=XCl[i],u=xs('U',e);S.push(K(`Napon na kondenzatoru ${nm(e)}`,`${u} = I·${x}, kasni za strujom za 90°`,[`${u} = I·${x}, prethodi struji za 90°`,`${u} = I/${x}, kasni za strujom za 90°`,`${u} = I·${x}, u fazi sa strujom`]))});
+    if(Rl.length>1)S.push(K('Ukupni djelatni otpor',`R = ${plus(Rl)}`,[`R = ${Rl.join('·')}/(${plus(Rl)})`,`R = √(${Rl.map(r=>r+'²').join(' + ')})`,`R = ${Rl.join(' − ')}`]));
+    if(both||XLl.length+XCl.length>1)S.push(K('Ukupna reaktancija',`X = ${X}`,[`X = ${plus([...XLl,...XCl])}`,`X = √(${[...XLl,...XCl].map(r=>r+'²').join(' + ')})`,both?`X = ${plus(XCl)} + ${XL}`:`X = ${[...XLl,...XCl].join('·')}/(${plus([...XLl,...XCl])})`,`X = ${[...XLl,...XCl].join(' − ')}`].filter((x,i,a)=>a.indexOf(x)===i)));
+    S.push(K('Impedancija spoja',`Z = √(${Rs}² + ${Xp}²)`,[`Z = ${plus(all)}`,`Z = √(${all.map(r=>r+'²').join(' + ')})`,`Z = ${Rs} + ${Xp}`,`Z = √(${Rs}² − ${Xp}²)`,`Z = ${Rs}·${Xp}/(${Rs} + ${Xp})`],`Z = √(${Rs}² + ${Xp}²): djelatni otpor i reaktancija su okomiti (trokut impedancije).`));
+    S.push(K('Struja u krugu','I = U/Z',['I = U·Z',`I = U/${Rs}`,`I = U/(${plus(all)})`]));
+    const UR=par(m.R.map(e=>xs('U',e))),UL=par(m.L.map(e=>xs('U',e))),UC=par(m.C.map(e=>xs('U',e))),UX=both?`(${plus(m.L.map(e=>xs('U',e)))} − ${UC})`:hasL?UL:UC,allU=[...m.R,...m.L,...m.C].map(e=>xs('U',e));
+    S.push(K('Napon izvora iz napona na elementima',`U = √(${UR}² + ${UX}²)`,[`U = ${plus(allU)}`,`U = √(${allU.map(u=>u+'²').join(' + ')})`,`U = ${UR} + ${UX}`,`U = ${UR}·${UX}`,`U = √(${UR}² − ${UX}²)`],`U = √(${UR}² + ${UX}²): naponi se zbrajaju vektorski.`));
+    S.push(K('Fazni kut φ',`tan φ = ${Xp}/${Rs}`,[`tan φ = ${Rs}/${Xp}`,`cos φ = ${Xp}/Z`,`tan φ = ${Xp}/Z`,`sin φ = ${Rs}/Z`]));
+    S.push(K(`Karakter spoja${relT?` (zadano ${relT})`:''}`,ind?'induktivan: napon prethodi struji':'kapacitivan: napon kasni za strujom',['induktivan: napon prethodi struji','kapacitivan: napon kasni za strujom','radni: napon i struja su u fazi',ind?'induktivan: napon kasni za strujom':'kapacitivan: napon prethodi struji'],ind?`Prevladava induktivni otpor${relT?' ('+relT+')':''}: spoj je induktivan, napon prethodi struji (U L I).`:`Prevladava kapacitivni otpor${relT?' ('+relT+')':''}: spoj je kapacitivan, struja prethodi naponu (I C U).`));
+    S.push(K('Radna snaga',`P = I²·${Rs}`,['P = U·I','P = I²·Z',`P = I²·${Xp}`,`P = U²/${Rs}`],`P = I²·${Rs} = U·I·cos φ: radnu snagu troše samo otpornici.`));
+    add('aser',{type:'s_kk',diff:2.4+0.2*v.els.length,tags:['ac_vekt','ac_kar','ac_zbroj'],svg:net(v.els,'ser'),text:`Serijski spoj: ${nameOf(v.els)}${relT?`, uz ${relT}`:''}. Složi postupak rješavanja korak po korak (bez brojeva).`,steps:S,opts:[['a',`Z = √(${Rs}² + ${Xp}²), I = U/Z, tan φ = ${Xp}/${Rs}`]],ans:'a',expl:S.map(s=>s.ex).join('<br>')})}
+  const PARV=[{els:['R','L']},{els:['R','C']},{els:['R','L','C'],rel:1},{els:['R','L','C'],rel:-1},{els:['R1','R2','C']},{els:['R','L','C1','C2'],rel:-1}];
+  for(const v of PARV){const m=mk(v.els),hasL=m.L.length>0,hasC=m.C.length>0,both=hasL&&hasC;
+    const Rl=m.R.map(e=>el(e,'R')),Gl=m.R.map(e=>el(e,'G')),XLl=m.L.map(e=>el(e,'X')),XCl=m.C.map(e=>el(e,'X')),BLl=m.L.map(e=>el(e,'B')),BCl=m.C.map(e=>el(e,'B'));
+    const Gs=par(Gl),BL=par(BLl),BC=par(BCl),B=both?`${plus(BLl)} − ${BC}`:hasL?plus(BLl):plus(BCl),Bp=both||BLl.length+BCl.length>1?`(${B})`:B,allY=[...Gl,...BLl,...BCl];
+    const ind=v.rel?v.rel>0:hasL,simple=BLl.length===1&&BCl.length===1,relT=both?(simple?(v.rel>0?`${XLl[0]} &lt; ${XCl[0]}`:`${XCl[0]} &lt; ${XLl[0]}`):(v.rel>0?`${plus(BLl)} &gt; ${plus(BCl)}`:`${plus(BCl)} &gt; ${plus(BLl)}`)):'';
+    const S=[K('Koja je veličina zajednička svim granama (referentni vektor)?','napon U',['struja I','struja I<sub>R</sub>','admitancija Y'],'Paralela: na svim je granama isti napon U, on je referentni vektor.')];
+    m.R.forEach((e,i)=>{const c=xs('I',e);S.push(K(`Struja kroz otpornik ${Rl[i]}`,`${c} = U/${Rl[i]} = U·${Gl[i]}, u fazi s naponom`,[`${c} = U·${Rl[i]}, u fazi s naponom`,`${c} = U/${Rl[i]}, kasni za naponom za 90°`,`${c} = U/${Rl[i]}, prethodi naponu za 90°`]))});
+    m.L.forEach((e,i)=>{const c=xs('I',e);S.push(K(`Struja kroz zavojnicu ${nm(e)}`,`${c} = U/${XLl[i]} = U·${BLl[i]}, kasni za naponom za 90°`,[`${c} = U/${XLl[i]}, prethodi naponu za 90°`,`${c} = U·${XLl[i]}, kasni za naponom za 90°`,`${c} = U/${XLl[i]}, u fazi s naponom`]))});
+    m.C.forEach((e,i)=>{const c=xs('I',e);S.push(K(`Struja kroz kondenzator ${nm(e)}`,`${c} = U/${XCl[i]} = U·${BCl[i]}, prethodi naponu za 90°`,[`${c} = U/${XCl[i]}, kasni za naponom za 90°`,`${c} = U·${XCl[i]}, prethodi naponu za 90°`,`${c} = U/${XCl[i]}, u fazi s naponom`]))});
+    const IR=par(m.R.map(e=>xs('I',e))),IX=both?`(${plus(m.L.map(e=>xs('I',e)))} − ${par(m.C.map(e=>xs('I',e)))})`:par([...m.L,...m.C].map(e=>xs('I',e))),allI=[...m.R,...m.L,...m.C].map(e=>xs('I',e));
+    S.push(K('Ukupna struja iz struja grana',`I = √(${IR}² + ${IX}²)`,[`I = ${plus(allI)}`,`I = √(${allI.map(u=>u+'²').join(' + ')})`,`I = ${IR} + ${IX}`,`I = ${IR}·${IX}`,`I = √(${IR}² − ${IX}²)`],`I = √(${IR}² + ${IX}²): struje se zbrajaju vektorski.`));
+    S.push(K('Admitancija spoja',`Y = √(${Gs}² + ${Bp}²)`,[`Y = ${plus(allY)}`,`Y = √(${allY.map(r=>r+'²').join(' + ')})`,`Y = ${Gs} + ${Bp}`,`Y = √(${par(Rl)}² + ${Bp.replace(/B/g,'X')}²)`,`Y = 1/(${Gs} + ${Bp})`],`Y = √(${Gs}² + ${Bp}²), gdje je G = 1/R, B<sub>L</sub> = 1/X<sub>L</sub>, B<sub>C</sub> = 1/X<sub>C</sub> (trokut admitancije).`));
+    S.push(K('Ukupna struja preko admitancije','I = U·Y',['I = U/Y','I = Y/U',`I = U/(${plus([...Rl,...XLl,...XCl])})`]));
+    S.push(K('Impedancija spoja','Z = 1/Y',[`Z = ${plus([...Rl,...XLl,...XCl])}`,`Z = √(${par(Rl)}² + ${Bp.replace(/B/g,'X')}²)`,'Z = Y']));
+    S.push(K(`Karakter spoja${relT?` (zadano ${relT})`:''}`,ind?'induktivan: struja kasni za naponom':'kapacitivan: struja prethodi naponu',['induktivan: struja kasni za naponom','kapacitivan: struja prethodi naponu','radni: struja i napon su u fazi',ind?'kapacitivan, jer je kapacitivni otpor veći':'induktivan, jer je induktivni otpor veći'],ind?`U paraleli prevladava grana s manjim otporom (većom strujom)${relT?': '+relT+', pa je I<sub>L</sub> &gt; I<sub>C</sub>':''}. Spoj je induktivan.`:`U paraleli prevladava grana s manjim otporom (većom strujom)${relT?': '+relT+', pa je I<sub>C</sub> &gt; I<sub>L</sub>':''}. Spoj je kapacitivan.`));
+    S.push(K('Radna snaga',`P = U·${IR}`,['P = U·I','P = I²·Z',`P = U·${IX}`,`P = I²·${par(Rl)}`],`P = U·${IR} = U·I·cos φ: radnu snagu troše samo otpornici.`));
+    add('apar',{type:'p_kk',diff:2.4+0.2*v.els.length,tags:['ac_vekt','ac_parkar'],svg:net(v.els,'par'),text:`Paralelni spoj: ${nameOf(v.els)}${relT?`, uz ${relT}`:''}. Složi postupak rješavanja korak po korak (bez brojeva).`,steps:S,opts:[['a',`Y = √(${Gs}² + ${Bp}²), I = U·Y, Z = 1/Y`]],ans:'a',expl:S.map(s=>s.ex).join('<br>')})}
+  for(const q of ACQ)if(q.steps)q.steps.forEach((s,i)=>{const o=acOpts(q.id+'k'+i,s.good,s.bad);s.opts=o.opts;s.ans=o.ans});
+})();
+
+/* --- Zadatak korak po korak (Vježba): jedan pokušaj po koraku, prikazan cijeli postupak --- */
+let acSt=null;
+function renderAcSteps(){const p=prof(),q=acq,m=p.module;if(!acSt||acSt.id!==q.id)acSt={id:q.id,i:0,pick:[],fin:false};const S=q.steps,cur=S[acSt.i],done=acSt.pick.length>acSt.i;
+  const ok=acSt.pick.filter((a,i)=>a===S[i].ans).length;
+  const log=S.slice(0,acSt.pick.length).map((s,i)=>{const good=acSt.pick[i]===s.ans;return `<li style="margin:4px 0"><span style="color:${good?'var(--ok)':'var(--bad)'};font-weight:700">${good?'✓':'✗'}</span> ${s.ex}</li>`}).join('');
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Zadatak ${q.id} · ${TYPENAME[q.type]}</span><span>korak ${Math.min(acSt.i+1,S.length)} od ${S.length}</span></div><div class="schem">${q.svg}</div><p style="margin:10px 0 4px">${q.text}</p><ol style="padding-left:20px;margin:6px 0 0">${log}</ol></div>
+  <div class="sheet side">${acSt.fin?`<div class="fb ${ok/S.length>=0.5?'ok':'bad'}"><h3>Gotovo: ${ok} od ${S.length} koraka točno</h3><p style="margin:0 0 6px">Cijeli postupak je lijevo.</p>${q._d!=null?`<span class="delta">Razina ${q._d>=0?'+':'−'}${fmt(Math.abs(q._d))} → ${fmt(p.ratings[m].r)}</span><br>`:''}<button class="primary" id="next">Sljedeće pitanje</button></div>`:
+  `<p class="q">${cur.t}</p><div class="opts">${cur.opts.map(([k,t],i)=>`<button class="opt ${done?(k===cur.ans?'right':(k===acSt.pick[acSt.i]?'wrong':'')):''}" data-a="${k}" ${done?'disabled':''}><kbd>${'abcd'[i]})</kbd>${t}</button>`).join('')}</div>${done?`<div class="fb ${acSt.pick[acSt.i]===cur.ans?'ok':'bad'}"><h3>${acSt.pick[acSt.i]===cur.ans?'Točno':'Nije točno'}</h3><p style="margin:0 0 6px">${cur.ex}</p><button class="primary" id="next">${acSt.i+1<S.length?'Sljedeći korak':'Završi zadatak'}</button></div>`:''}`}</div></div>`;
+  modbar();
+  if(acSt.fin){$('#next').onclick=()=>{acq=null;acSt=null;renderAc()};}
+  else if(done)$('#next').onclick=()=>{acSt.i++;if(acSt.i>=S.length){acSt.fin=true;acA='done';q._d=applyResult(q,ok/S.length,false);header()}renderAc()};
+  else main.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{acSt.pick[acSt.i]=b.dataset.a;renderAc()});
+  try{addSkip()}catch(e){}}
+{const _rac=renderAc;renderAc=function(){const m=prof().module;if(!acq||acq.topic!==m||(testType&&acA==null&&acq.type!==testType&&testType!=='-'))acPickQ();if(acq&&acq.steps){if(!acSt||acSt.id!==acq.id)acA=null;return renderAcSteps()}acSt=null;return _rac.apply(this,arguments)}}
+{const _cs=chShort;chShort=function(q){if(q&&q.steps)return false;return _cs.apply(this,arguments)}}
+
+/* --- Naučena pitanja (KZ2): dvaput zaredom točno → više se ne postavlja dok ima nenaučenih --- */
+const QM_N=2;
+{const _ar=applyResult;applyResult=function(q,correct){const r=_ar.apply(this,arguments);try{if(ACK.has(q.topic)){const p=prof(),sc=typeof correct==='number'?correct:(correct?1:0);p.qm=p.qm||{};if(sc>=(q.steps?0.8:1))p.qm[q.id]=(p.qm[q.id]||0)+1;else delete p.qm[q.id];save()}}catch(e){}return r}}
+function acMastered(p,id){return !!(p.qm&&p.qm[id]>=QM_N)}
+{const _pq=pickQuestion;pickQuestion=function(topic,exclude=new Set()){const p=prof();if(!ACK.has(topic)||(typeof testType!=='undefined'&&testType))return _pq.call(this,topic,exclude);
+  const ex=new Set(exclude);if(view==='exam')QS.forEach(q=>{if(q.topic===topic&&q.steps)ex.add(q.id)});
+  const open=QS.filter(q=>q.topic===topic&&!ex.has(q.id)&&!acMastered(p,q.id));
+  if(open.length){const ex2=new Set(ex);QS.forEach(q=>{if(q.topic===topic&&acMastered(p,q.id))ex2.add(q.id)});const q=_pq.call(this,topic,ex2);if(q&&!ex2.has(q.id))return q;return open[Math.floor(Math.random()*open.length)]}
+  return _pq.call(this,topic,ex)}}
+/* oznaka napretka u Vježbi KZ2 */
+new MutationObserver(()=>{try{if(view!=='practice'||!ACK.has(prof().module)||document.body.classList.contains('chal'))return;const meta=main.querySelector('.meta');if(!meta||meta.querySelector('.qmn'))return;const p=prof(),m=p.module,L=QS.filter(q=>q.topic===m),k=L.filter(q=>acMastered(p,q.id)).length;
+  meta.insertAdjacentHTML('beforeend',`<span class="qmn" title="Pitanje je naučeno kad se dvaput zaredom odgovori točno. Naučena se više ne postavljaju dok ima nenaučenih.">naučeno ${k} od ${L.length}</span>`)}catch(e){}}).observe(main,{childList:true,subtree:true});
+
+/* ===== Šalabahter: impedancija i admitancija u kompleksnom zapisu (Vježba → Kompleksni račun, na vrhu) ===== */
+const KSH={open:Store.get('ksho',true)!==false,sel:'Z'};
+const kx=(a,b)=>`${a}<sub>${b}</sub>`;
+const KSHD={
+  Z:{c:'var(--ink)',s:'Ż',n:'impedancija',u:'Ω',f:`Ż = R + jX = R + j(${kx('X','L')} − ${kx('X','C')})`,e:`Ukupni „otpor” izmjeničnoj struji: Ż = U̇/İ. Realni dio je djelatni otpor <b>R</b> (rezistancija), a imaginarni <b>reaktancija X</b> = ${kx('X','L')} − ${kx('X','C')}. U <b>seriji</b> se impedancije zbrajaju.`},
+  ZR:{c:ACC.R,s:kx('Ż','R'),n:'otpornik: rezistancija R',u:'Ω',f:`${kx('Ż','R')} = R`,e:'Realan broj, bez j: napon i struja na otporniku su <b>u fazi</b>. Vektor leži na realnoj osi.'},
+  ZL:{c:ACC.L,s:kx('Ż','L'),n:`zavojnica: induktivna reaktancija ${kx('X','L')} = ωL`,u:'Ω',f:`${kx('Ż','L')} = j${kx('X','L')} = jωL`,e:`<b>+j</b> znači zakret za +90°: napon na zavojnici <b>prethodi</b> struji za 90° (U L I). Pazi: reaktancija ${kx('X','L')} = ωL je realan broj, a j${kx('X','L')} je impedancija zavojnice.`},
+  ZC:{c:ACC.C,s:kx('Ż','C'),n:`kondenzator: kapacitivna reaktancija ${kx('X','C')} = 1/(ωC)`,u:'Ω',f:`${kx('Ż','C')} = −j${kx('X','C')} = ${kx('X','C')}/j = 1/(jωC) = −j/(ωC)`,e:`<b>−j</b> znači zakret za −90°: napon na kondenzatoru <b>kasni</b> za strujom za 90° (I C U). Minus dolazi iz 1/j = −j.`},
+  Y:{c:'var(--ink)',s:'Ẏ',n:'admitancija',u:'S',f:`Ẏ = 1/Ż = G + jB = G + j(${kx('B','C')} − ${kx('B','L')})`,e:`Ukupna vodljivost: Ẏ = İ/U̇ = 1/Ż (i obrnuto, Ż = 1/Ẏ). Realni dio je <b>konduktancija G</b>, a imaginarni <b>susceptancija B</b> = ${kx('B','C')} − ${kx('B','L')}. U <b>paraleli</b> se admitancije zbrajaju.`},
+  YR:{c:ACC.R,s:kx('Ẏ','R'),n:'otpornik: konduktancija G = 1/R',u:'S',f:`${kx('Ẏ','R')} = G = 1/R`,e:'Realan broj: struja kroz otpornik je <b>u fazi</b> s naponom.'},
+  YL:{c:ACC.L,s:kx('Ẏ','L'),n:`zavojnica: induktivna susceptancija ${kx('B','L')} = 1/${kx('X','L')} = 1/(ωL)`,u:'S',f:`${kx('Ẏ','L')} = 1/(j${kx('X','L')}) = −j${kx('B','L')} = −j/(ωL)`,e:`Recipročna vrijednost od j${kx('X','L')}. Zbog 1/j = −j predznak se <b>okrene</b>: u impedanciji je zavojnica +j, u admitanciji −j. Struja kroz zavojnicu <b>kasni</b> za naponom za 90°.`},
+  YC:{c:ACC.C,s:kx('Ẏ','C'),n:`kondenzator: kapacitivna susceptancija ${kx('B','C')} = 1/${kx('X','C')} = ωC`,u:'S',f:`${kx('Ẏ','C')} = 1/(−j${kx('X','C')}) = j${kx('B','C')} = jωC`,e:`Recipročna vrijednost od −j${kx('X','C')}. Predznak se <b>okrene</b>: u impedanciji je kondenzator −j, u admitanciji +j. Struja kroz kondenzator <b>prethodi</b> naponu za 90°.`},
+  J:{c:'var(--ink)',s:'1/j',n:'zašto je 1/j = −j',u:'',f:'1/j = −j',e:'Brojnik i nazivnik pomnože se s j: 1/j = j/(j·j) = j/(−1) = <b>−j</b>. Zato dijeljenje s j znači zakret za −90°, a množenje s j zakret za +90°.'},
+  N:{c:'var(--ink)',s:'!',n:'na što paziti',u:'',f:`G = 1/R i B = 1/X vrijede za <b>pojedini element</b>`,e:`Za jedan otpornik, zavojnicu ili kondenzator (grane paralele) vrijedi G = 1/R, ${kx('B','L')} = 1/${kx('X','L')}, ${kx('B','C')} = 1/${kx('X','C')}. Za <b>serijski</b> spoj Ż = R + jX ne vrijedi G = 1/R, nego se dijeli cijeli kompleksni broj: Ẏ = 1/(R + jX) = (R − jX)/(R² + X²).`}};
+const kshBox=k=>{const d=KSHD[k];return `<div id="kshx" style="border:1px solid var(--line);border-left:5px solid ${d.c};border-radius:8px;padding:10px 14px;margin:10px 0 0"><div style="font-size:13px;color:var(--muted)">${d.n}${d.u?` · jedinica ${d.u==='S'?'S (simens)':'Ω (om)'}`:''}</div><div style="font-size:19px;font-weight:700;margin:2px 0 4px;color:${d.c}">${d.f}</div><div>${d.e}</div></div>`};
+const kshChip=(k,l)=>`<button type="button" data-ksh="${k}" class="ghost" style="margin:0;padding:5px 10px;${KSH.sel===k?'outline:2px solid var(--ink)':''}">${l}</button>`;
+/* Usporedna tablica serija ↔ paralela */
+function ksh1(){const cell=k=>{const d=KSHD[k],on=KSH.sel===k;return `<td data-ksh="${k}" style="cursor:pointer;padding:8px 10px;border:1px solid var(--line);${on?`background:color-mix(in srgb,${d.c} 16%,transparent);font-weight:700`:''}"><span style="color:${d.c}">${k==='Z'?`Ż = R + j(${kx('X','L')} − ${kx('X','C')})`:k==='Y'?`Ẏ = G + j(${kx('B','C')} − ${kx('B','L')})`:d.f.split(' = ').slice(0,3).join(' = ')}</span></td>`};
+  const row=(l,c,a,b)=>`<tr><th style="text-align:left;padding:8px 10px;border:1px solid var(--line);color:${c};white-space:nowrap">${l}</th>${cell(a)}${cell(b)}</tr>`;
+  return `<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%;min-width:430px"><tr><th style="padding:6px 10px;border:1px solid var(--line)"></th><th style="padding:6px 10px;border:1px solid var(--line)">Impedancija Ż (Ω)<div class="note" style="font-weight:400;margin:0">zbraja se u <b>seriji</b></div></th><th style="padding:6px 10px;border:1px solid var(--line)">Admitancija Ẏ (S)<div class="note" style="font-weight:400;margin:0">zbraja se u <b>paraleli</b></div></th></tr>
+  ${row('Otpornik R',ACC.R,'ZR','YR')}${row('Zavojnica L',ACC.L,'ZL','YL')}${row('Kondenzator C',ACC.C,'ZC','YC')}${row('Ukupno','var(--ink)','Z','Y')}</table></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0">${kshChip('J','1/j = −j')}${kshChip('N','Na što paziti')}</div><p class="note" style="margin:6px 0 0">Dodirni polje za objašnjenje.</p>${kshBox(KSH.sel)}`}
+function kshHtml(){const body=ksh1();
+  return `<div id="ksh" class="sheet" style="margin:0 0 14px;padding:14px 16px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0;flex:1;min-width:200px">Šalabahter: impedancija i admitancija</h3><button type="button" class="ghost" data-ksho="1" style="margin:0;padding:4px 12px">${KSH.open?'Sakrij':'Prikaži'}</button></div>${KSH.open?`<div style="margin-top:10px">${body}</div>`:''}</div>`}
+function kshDraw(){const el=document.getElementById('ksh');if(el)el.outerHTML=kshHtml()}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-ksh],[data-ksho]');if(!t||!t.closest('#ksh'))return;e.preventDefault();
+  if(t.dataset.ksh)KSH.sel=t.dataset.ksh;
+  else if(t.dataset.ksho){KSH.open=!KSH.open;Store.set('ksho',KSH.open);try{ev('salabahter',KSH.open?'otvoren':'zatvoren','akom',true)}catch(e){}}
+  kshDraw()});
+new MutationObserver(()=>{try{if((view!=='practice'&&view!=='lesson')||!prof()||prof().module!=='akom'||document.body.classList.contains('chal')||(typeof exam!=='undefined'&&exam&&exam.running))return;if(document.getElementById('ksh'))return;const b=main.querySelector('.board,.lesson');if(b)b.insertAdjacentHTML('beforebegin',kshHtml())}catch(e){}}).observe(main,{childList:true,subtree:true});
+
 view='home';
 boot();
 
@@ -4169,6 +4391,10 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
     ['Serijski RLC spoj','lekcija i vježba (AV 6)',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='aser';lstep.aser=0;save();view='lesson';render();scrollTo(0,0)}],
     ['Paralelni RLC spoj','lekcija i vježba (AV 7)',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='apar';lstep.apar=0;save();view='lesson';render();scrollTo(0,0)}],
     ['Zadaci KZ2','s brojevima (AV 6, AV 7)',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';const Z=zProf();Z.type='aser';zad=null;save();view='zad';render();scrollTo(0,0)}],
+    ['KZ2 male pitalice','max/ef, ω, f, T, fazor, nazivi i formule',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='auvod';testType='t_wf';acq=null;save();view='practice';render();scrollTo(0,0)}],
+    ['Zadatak korak po korak','serijski RLC (paralelni u Paralelnom RLC)',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='aser';testType='s_kk';acq=null;save();view='practice';render();scrollTo(0,0)}],
+    ['Koji vektor prethodi kojem','serijski i paralelni spoj',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='aser';testType='s_od';acq=null;save();view='practice';render();scrollTo(0,0)}],
+    ['Šalabahter Ż i Ẏ','Lekcija i Vježba → Kompleksni račun',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='akom';testType='';acq=null;KSH.open=true;save();view='practice';render();scrollTo(0,0);}],
     ['Kompleksni račun','lekcija i vježba (AV 7)',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='akom';lstep.akom=0;save();view='lesson';render();scrollTo(0,0)}],
   ];
   const adm=()=>typeof isAdmin!=='undefined'&&isAdmin;
