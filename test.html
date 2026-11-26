@@ -4210,6 +4210,384 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-ksh],[data
   kshDraw()});
 new MutationObserver(()=>{try{if((view!=='practice'&&view!=='lesson')||!prof()||prof().module!=='akom'||document.body.classList.contains('chal')||(typeof exam!=='undefined'&&exam&&exam.running))return;if(document.getElementById('ksh'))return;const b=main.querySelector('.board,.lesson');if(b)b.insertAdjacentHTML('beforebegin',kshHtml())}catch(e){}}).observe(main,{childList:true,subtree:true});
 
+/* ===== KZ2 (2): vektorski dijagram – serijski i paralelni spoj (prema EtRpred10, AV 6 i AV 7) =====
+   Nova gradiva s oznakom (2). Za sada vidljiva samo na testu (AC2 = IS_TEST); na živoj verziji kod postoji, ali gradiva nisu registrirana. */
+const AC2=IS_TEST;
+const VD2=[['ser2','Serijski RLC spoj (2)'],['par2','Paralelni RLC spoj (2)']],VD2K=new Set(VD2.map(x=>x[0]));
+const VDA={ser:{R:0,L:90,C:-90},par:{R:0,L:-90,C:90}};
+const VDN={R:['otpornik','otpornika','otporniku','kroz otpornik'],L:['zavojnica','zavojnice','zavojnici','kroz zavojnicu'],C:['kondenzator','kondenzatora','kondenzatoru','kroz kondenzator']};
+const VDSUBD={'1':'₁','2':'₂','3':'₃'};
+const vdH=(a,s)=>s?`${a}<sub>${s}</sub>`:a; // HTML oznaka s indeksom
+const vdSym=e=>vdH(e.k,e.d);              // R, R₁ … u HTML-u
+const vdVH=(c,e)=>vdH(c.kind==='ser'?'U':'I',e.sub); // U_L, I_C1 …
+const vdVS=(c,e)=>sb(c.kind==='ser'?'U':'I',e.sub);  // isto u SVG-u
+/* sklop: kind 'ser'|'par', spec npr. 'RLC' ili 'R1LR2C', dom: 'L' | 'C' | '=' | null (koja reaktivna veličina prevladava), o.m: zadane duljine */
+function vdC(kind,spec,dom,o){o=o||{};const els=[];spec.replace(/([RLC])(\d?)/g,(_,k,d)=>{els.push({k,d,sub:k+d,lab:k+(d?VDSUBD[d]:'')})});
+  const cnt=k=>els.filter(e=>e.k===k),W2=[0.43,0.57],WC=[0.3,0.7];
+  const put=(k,tot,w)=>{const L=cnt(k);L.forEach((e,i)=>e.m=L.length===1?tot:tot*(w||W2)[i])};
+  const nL=cnt('L').length,nC=cnt('C').length,multi=nL>1||nC>1;
+  put('R',kind==='ser'?1.4:1.6);
+  if(nL&&nC){const hi=multi?2.4:2.0,lo=multi?1.5:1.0;if(dom==='='){put('L',1.5);put('C',1.5)}else{put('L',dom==='L'?hi:lo,WC);put('C',dom==='C'?hi:lo,WC)}}
+  else{put('L',1.8);put('C',1.8)}
+  if(o.m)els.forEach((e,i)=>e.m=o.m[i]);
+  const sr=els.filter(e=>e.k==='R').reduce((s,e)=>s+e.m,0);
+  const c={kind,els,dom:nL&&nC?dom:(nL?'L':nC?'C':null),ref:o.ref||1.25*Math.max(0.8,sr||Math.max(...els.map(e=>e.m))*0.6),rot:o.rot||0,form:o.form||'X'};
+  return c}
+const vdCopy=(c,f)=>{const n=Object.assign({},c,{els:c.els.map(e=>Object.assign({},e))});if(f)f(n);return n};
+function vdGeo(c,ang){const A=VDA[c.kind],rot=c.rot||0;let x=0,y=0;const P=[[0,0]];
+  const v=c.els.map((e,i)=>{const a=(ang&&ang[i]!=null?ang[i]:A[e.k])+rot,r=a*Math.PI/180,dx=e.m*Math.cos(r),dy=e.m*Math.sin(r),o={i,e,a,x0:x,y0:y,x1:x+dx,y1:y+dy};x+=dx;y+=dy;if(Math.abs(x)<1e-9)x=0;if(Math.abs(y)<1e-9)y=0;P.push([x,y]);return o});
+  return{v,P,end:[x,y]}}
+/* karakter spoja iz geometrije: 'i' induktivan, 'c' kapacitivan, 'r' radni */
+function vdKar(c){const e=vdGeo(c).end,y=c.kind==='ser'?e[1]:-e[1];return Math.abs(y)<1e-6?'r':y>0?'i':'c'}
+/* odnos zadan u tekstu (za pitanja bez brojeva) */
+function vdRel(c){const L=c.els.filter(e=>e.k==='L'),C=c.els.filter(e=>e.k==='C');if(!L.length||!C.length||!c.dom)return '';
+  const sum=(q,A)=>A.map(e=>vdH(q,e.sub)).join(' + '),ser=c.kind==='ser';
+  if(c.dom==='=')return ser||c.form==='X'?`${sum('X',L)} = ${sum('X',C)}`:`${sum('B',L)} = ${sum('B',C)}`;
+  if(ser)return c.dom==='L'?`${sum('X',L)} &gt; ${sum('X',C)}`:`${sum('X',L)} &lt; ${sum('X',C)}`;
+  if(c.form==='B')return c.dom==='L'?`${sum('B',L)} &gt; ${sum('B',C)}`:`${sum('B',L)} &lt; ${sum('B',C)}`;
+  if(L.length===1&&C.length===1)return c.dom==='L'?`${sum('X',L)} &lt; ${sum('X',C)}`:`${sum('X',L)} &gt; ${sum('X',C)}`;
+  return c.dom==='L'?`${sum('I',L)} &gt; ${sum('I',C)}`:`${sum('I',L)} &lt; ${sum('I',C)}`}
+function vdName(c){const L=c.els.map(e=>`${VDN[e.k][1]} ${vdSym(e)}`);return (c.kind==='ser'?'serijski':'paralelni')+' spoj '+(L.length>1?L.slice(0,-1).join(', ')+' i '+L[L.length-1]:L[0])}
+/* izraz za rezultantu (HTML) */
+function vdForm(c,q){const ser=c.kind==='ser',Q=q||(ser?'U':'I'),nm=e=>vdH(Q,e.sub),grp=k=>{const L=c.els.filter(e=>e.k===k).map(nm);return L.length>1?`(${L.join(' + ')})`:L[0]||''};
+  const R=grp('R'),Lx=grp('L'),Cx=grp('C'),X=Lx&&Cx?`(${Lx} − ${Cx})`:Lx||Cx,res=ser?(q?q:'U'):(q?q:'I');
+  if(R&&X)return `${res} = √(${R}² + ${X}²)`;if(R)return `${res} = ${R}`;return Lx&&Cx?`${res} = |${Lx} − ${Cx}|`:`${res} = ${X}`}
+
+/* --- shema (bez brojeva ili s oznakama), ističe element koji se crta --- */
+function vdNet(c,o){o=o||{};const els=c.els,ser=c.kind==='ser',top=50,bot=210,my=130,x0=70,T=AC_T,ink='var(--ink)',red='#D7263D',blue='#1D63C4';
+  const ct=o.pot?red:ink,cb=o.pot?blue:ink,L=(a,b,cc,d,col)=>`<line x1="${a}" y1="${b}" x2="${cc}" y2="${d}" stroke="${col||ink}" stroke-width="${col&&col!==ink?3:2.2}"/>`;
+  const ll=Math.max(0,...(o.labs||[]).map(t=>String(t).replace(/<[^>]+>/g,'').length)),ps=Math.max(108,36+ll*9.5),ss=Math.max(112,ll*9);
+  const xs=[];let xr;if(ser){let x=x0+Math.max(95,ss/2+40);els.forEach(()=>{xs.push(x);x+=ss});xr=x-ss/2+20}else{let x=x0+125;els.forEach(()=>{xs.push(x);x+=ps});xr=xs[xs.length-1]}
+  const W=Math.max(420,xr+(ser?40:Math.max(90,ll*9.5+20)));let s=`<svg viewBox="0 0 ${W} 262" xmlns="http://www.w3.org/2000/svg">`;
+  s+=L(x0,top,xr,top,ct)+L(x0,bot,xr,bot,cb)+L(x0,top,x0,my,ct)+L(x0,my,x0,bot,cb);
+  if(ser)s+=L(xr,top,xr,bot);
+  else els.forEach((e,i)=>{s+=L(xs[i],top,xs[i],my,ct)+L(xs[i],my,xs[i],bot,cb)+`<circle cx="${xs[i]}" cy="${top}" r="3.5" fill="${ct}"/><circle cx="${xs[i]}" cy="${bot}" r="3.5" fill="${cb}"/>`});
+  const hs=o.hl==='src';s+=`<circle cx="${x0}" cy="${my}" r="22" fill="var(--sheet)" stroke="${hs?(ser?ACC.U:ACC.I):ink}" stroke-width="${hs?3.4:2.2}"/><path d="M${x0-12} ${my}C${x0-6} ${my-12} ${x0} ${my-12} ${x0} ${my}S${x0+6} ${my+12} ${x0+12} ${my}" stroke="${ink}" stroke-width="2" fill="none"/>`;
+  s+=`<text x="${x0-30}" y="${my+6}" text-anchor="end" ${T} font-size="17" font-weight="${hs?700:400}" fill="${hs?(ser?ACC.U:ACC.I):ink}">${o.src||(ser?'U':'U')}</text>`;
+  els.forEach((e,i)=>{const on=o.hl===i,hc=on?ACC[e.k]:null,lab=(o.labs&&o.labs[i])||e.lab;
+    if(ser)s+=acEl(e.k,xs[i],top,false,hc)+`<text x="${xs[i]}" y="${top-18}" text-anchor="middle" ${T} font-size="17" font-weight="${on?700:400}" fill="${hc||ink}">${lab}</text>`;
+    else s+=acEl(e.k,xs[i],my,true,hc)+`<text x="${xs[i]+(e.k==='C'?24:18)}" y="${my+6}" ${T} font-size="17" font-weight="${on?700:400}" fill="${hc||ink}">${lab}</text>`});
+  if(o.cur){const ar=(x,y,dx,dy,col,lab,lx,ly,anc)=>`<path d="M${x-dx*7-dy*5} ${y-dy*7+dx*5}L${x+dx*7} ${y+dy*7}L${x-dx*7+dy*5} ${y-dy*7-dx*5}z" fill="${col}"/><text x="${lx}" y="${ly}" text-anchor="${anc||'middle'}" ${T} font-size="17" font-weight="700" fill="${col}">${lab}</text>`;
+    if(ser)s+=ar(x0+40,top,1,0,ACC.I,'I',x0+40,top-12);
+    else{s+=ar(x0+55,top,1,0,ACC.I,'I',x0+55,top-12);els.forEach((e,i)=>{s+=ar(xs[i],top+28,0,1,ACC[e.k],sb('I',e.sub),xs[i]-9,top+34,'end')})}}
+  return s+'</svg>'}
+
+/* --- vektorski dijagram ---
+   st: n (broj nacrtanih vektora elemenata), res, arc, ang (krivi kutovi za pitanja s greškom), resFrom/resTo/resRev,
+       ghost (indeks elementa za koji se nude 4 smjera), gstat (smjerovi bez klika), box:'ghost' (stalno mjerilo), anim, vals, thumb, W, H */
+function vdSvg(c,st){st=st||{};const ser=c.kind==='ser',VQ=ser?'U':'I',RQ=ser?'I':'U',g=vdGeo(c,st.ang),n=st.n==null?c.els.length:st.n,W=st.W||420,H=st.H||(st.thumb?170:300),T=AC_T,th=!!st.thumb,rot=c.rot||0,rr=rot*Math.PI/180;
+  const refP=[c.ref*Math.cos(rr),c.ref*Math.sin(rr)],pts=[[0,0],refP,...g.P];
+  let mnx=Math.min(...pts.map(p=>p[0])),mxx=Math.max(...pts.map(p=>p[0])),mny=Math.min(...pts.map(p=>p[1])),mxy=Math.max(...pts.map(p=>p[1]));
+  const span=Math.max(mxx-mnx,mxy-mny);if(mxx-mnx<span*0.35){const d=(span*0.35-(mxx-mnx))/2;mnx-=d;mxx+=d}if(mxy-mny<span*0.25){const d=(span*0.25-(mxy-mny))/2;mny-=d;mxy+=d}
+  const gm=st.box==='ghost'||st.gstat!=null,pad=th?22:gm?84:(st.vals?60:48),padR=pad+(rot||st.ref===false?0:th?8:st.vals?Math.max(40,String(st.vals.ref||'').replace(/<[^>]+>/g,'').length*8.5)-20:4),sc=Math.min((W-pad-padR)/(mxx-mnx),(H-2*pad)/(mxy-mny)),ox=pad+(W-pad-padR-(mxx-mnx)*sc)/2-mnx*sc,oy=H-pad-(H-2*pad-(mxy-mny)*sc)/2+mny*sc,X=x=>ox+x*sc,Y=y=>oy-y*sc,fs=th?16:17;
+  const col={I:ACC.I,U:ACC.U,R:ACC.R,L:ACC.L,C:ACC.C,G:'#8A94A0'};
+  let s=`<svg ${th?'class="vdth" ':''}viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><defs>${Object.entries(col).map(([k,cc])=>`<marker id="vdm${k}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="${th?10:13}" markerHeight="${th?10:13}" orient="auto"><path d="M0 0L10 5L0 10z" fill="${cc}"/></marker>`).join('')}</defs>`;
+  // osi
+  s+=`<line x1="${Math.max(4,X(mnx)-pad*0.6)}" y1="${Y(0)}" x2="${Math.min(W-4,X(mxx)+pad*0.6)}" y2="${Y(0)}" stroke="var(--line)" stroke-width="1.3" stroke-dasharray="5 4"/> <line x1="${X(0)}" y1="${Math.min(H-4,Y(mny)+pad*0.6)}" x2="${X(0)}" y2="${Math.max(4,Y(mxy)-pad*0.6)}" stroke="var(--line)" stroke-width="1.3" stroke-dasharray="5 4"/>`;
+  if(!th)s+=`<text x="${W-6}" y="${Y(0)+16}" text-anchor="end" ${T} font-size="13" fill="var(--muted)">Re</text><text x="${X(0)+5}" y="14" ${T} font-size="13" fill="var(--muted)">Im (j)</text>`;
+  const arrow=(x0,y0,x1,y1,k,w,extra)=>`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="${col[k]}" stroke-width="${w}" stroke-linecap="round" marker-end="url(#vdm${k})" ${extra||''}/>`;
+  const grow=(html,x,y,on)=>on?`<g class="vdnew" style="transform-origin:${x.toFixed(1)}px ${y.toFixed(1)}px">${html}</g>`:html;
+  // smještaj oznaka bez preklapanja: za svaku oznaku nekoliko mogućih mjesta, uzima se prvo slobodno
+  const boxes=[],tw=l=>String(l).replace(/<[^>]+>/g,'').length*fs*0.56+4;
+  const place=(lab,cands,colr)=>{const w=tw(lab),bx=c=>{const x0=c.a==='start'?c.x:c.a==='end'?c.x-w:c.x-w/2;return{x0,x1:x0+w,y0:c.y-fs+3,y1:c.y+3}};let pick=null;
+    for(const c of cands){const b=bx(c);if(b.x0>=1&&b.x1<=W-1&&b.y0>=1&&b.y1<=H-1&&!boxes.some(o=>b.x0<o.x1&&b.x1>o.x0&&b.y0<o.y1&&b.y1>o.y0)){pick={c,b};break}}
+    if(!pick)pick={c:cands[0],b:bx(cands[0])};boxes.push(pick.b);const c=pick.c;return `<text x="${c.x.toFixed(1)}" y="${c.y.toFixed(1)}" text-anchor="${c.a}" ${T} font-size="${fs}" font-weight="700" fill="${colr}">${lab}</text>`};
+  const gi=st.ghost!=null?st.ghost:st.gstat,GLEN=gi!=null?Math.max(36,Math.min(56,g.v[gi].e.m*sc)):0;
+  if(gi!=null){const v=g.v[gi];for(const a of [90,-90,0,180]){const r=a*Math.PI/180,bx=X(v.x0)+(GLEN+16)*Math.cos(r),by=Y(v.y0)-(GLEN+16)*Math.sin(r);boxes.push({x0:bx-14,x1:bx+14,y0:by-14,y1:by+14});const ex=X(v.x0)+GLEN*Math.cos(r),ey=Y(v.y0)-GLEN*Math.sin(r);boxes.push({x0:Math.min(X(v.x0),ex)-7,x1:Math.max(X(v.x0),ex)+7,y0:Math.min(Y(v.y0),ey)-7,y1:Math.max(Y(v.y0),ey)+7})}}
+  // fazni kut (oznaka φ zauzima mjesto prije ostalih)
+  let arcS='';
+  if(st.arc){const e=g.P[g.P.length-1],a=Math.atan2(e[1],e[0])*180/Math.PI-rot;if(Math.abs(a)>1&&Math.abs(Math.abs(a)-180)>1){const r=th?22:34,a0=rot*Math.PI/180,a1=(a+rot)*Math.PI/180,lx=X(0)+(r+12)*Math.cos((a0+a1)/2),ly=Y(0)-(r+12)*Math.sin((a0+a1)/2)+5;
+    arcS=`<path d="M${(X(0)+r*Math.cos(a0)).toFixed(1)} ${(Y(0)-r*Math.sin(a0)).toFixed(1)}A${r} ${r} 0 0 ${a>0?0:1} ${(X(0)+r*Math.cos(a1)).toFixed(1)} ${(Y(0)-r*Math.sin(a1)).toFixed(1)}" stroke="var(--ink)" fill="none" stroke-width="1.6"/><text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" ${T} font-size="${th?13:16}" font-weight="700" fill="var(--ink)">φ</text>`;boxes.push({x0:lx-7,x1:lx+7,y0:ly-14,y1:ly+3})}}
+  // referentni vektor
+  if(st.ref!==false){const lab=st.vals&&st.vals.ref?st.vals.ref:RQ,tx=X(refP[0]),ty=Y(refP[1]),X0=X(0);
+    s+=grow(arrow(X0,Y(0),tx,ty,RQ,th?3.4:5)+place(lab,rot?[{x:tx+10,y:ty+5,a:'start'},{x:tx-10,y:ty+5,a:'end'}]:[{x:tx+9,y:ty+6,a:'start'},{x:(X0+tx)/2,y:ty+21,a:'middle'},{x:X0+0.7*(tx-X0),y:ty+21,a:'middle'},{x:(X0+tx)/2,y:ty-9,a:'middle'}],col[RQ]),X0,Y(0),st.anim==='ref')}
+  // vektori elemenata (okomiti koji se preklapaju malo se razmaknu, kao u AV 7.1)
+  const vert=[],LW=th?7:12,lanes=g.v.map(v=>{if(Math.abs(Math.cos(v.a*Math.PI/180))>1e-6)return null;const lo=Math.min(v.y0,v.y1),hi=Math.max(v.y0,v.y1),k=Math.round(v.x0*1e4);let lane=0;vert.filter(q=>q.k===k&&Math.min(hi,q.hi)-Math.max(lo,q.lo)>1e-6).forEach(q=>lane=Math.max(lane,q.lane+1));const o={k,lo,hi,lane};vert.push(o);return o});
+  const maxL=k=>Math.max(0,...vert.filter((q,j)=>q.k===k&&j<n).map(q=>q.lane)),FR=[0.5,0.3,0.7,0.15,0.85];
+  g.v.slice(0,n).forEach(v=>{const ln=lanes[v.i],dx=ln?ln.lane*LW:0,x0=X(v.x0)+dx,y0=Y(v.y0),x1=X(v.x1)+dx,y1=Y(v.y1),lab=st.vals&&st.vals.els?st.vals.els[v.i]:vdVS(c,v.e);let cands;
+    if(ln){const L=FR.map(t=>({x:x1-9,y:y0+t*(y1-y0)+5,a:'end'})),R=FR.map(t=>({x:X(v.x0)+maxL(ln.k)*LW+9,y:y0+t*(y1-y0)+5,a:'start'}));cands=ln.lane>0?R.concat(L):L.concat(R)}
+    else cands=[0.4,0.7,0.2].map(t=>({x:x0+t*(x1-x0),y:Math.min(y0,y1)-9,a:'middle'})).concat([0.4,0.7,0.2].map(t=>({x:x0+t*(x1-x0),y:Math.max(y0,y1)+20,a:'middle'})));
+    s+=grow(arrow(x0,y0,x1,y1,v.e.k,th?2.6:3.4)+place(lab,cands,col[v.e.k]),x0,y0,st.anim===v.i)});
+  // rezultanta
+  if(st.res){const P=g.P,a=P[st.resFrom||0],b=P[st.resTo==null?P.length-1:st.resTo],f=st.resRev?b:a,t=st.resRev?a:b,lab=st.vals&&st.vals.res?st.vals.res:VQ;
+    const fx=X(f[0]),fy=Y(f[1]),tx=X(t[0]),ty=Y(t[1]),mx=(fx+tx)/2,my=(fy+ty)/2,cx=P.reduce((s,p)=>s+X(p[0]),0)/P.length,cy=P.reduce((s,p)=>s+Y(p[1]),0)/P.length;let nx=-(ty-fy),ny=tx-fx;const nl=Math.hypot(nx,ny)||1;nx/=nl;ny/=nl;if(nx*(mx-cx)+ny*(my-cy)<0){nx=-nx;ny=-ny}
+    const cand=sg=>[0.5,0.35,0.65,0.2,0.8].map(q=>({x:fx+q*(tx-fx)+sg*nx*16,y:fy+q*(ty-fy)+sg*ny*16+5,a:sg*nx>0.35?'start':sg*nx<-0.35?'end':'middle'}));
+    s+=grow(arrow(fx,fy,tx,ty,VQ,th?3:3.6)+place(lab,cand(1).concat(cand(-1)),col[VQ]),fx,fy,st.anim==='res')}
+  s+=arcS;
+  // ponuđeni smjerovi (klik na dijagramu)
+  if(gi!=null){const v=g.v[gi],x0=X(v.x0),y0=Y(v.y0),L=GLEN,GL={0:'→','90':'↑','-90':'↓','180':'←'};
+    for(const a of [90,-90,0,180]){const r=a*Math.PI/180,x1=x0+L*Math.cos(r),y1=y0-L*Math.sin(r),bx=x0+(L+16)*Math.cos(r),by=y0-(L+16)*Math.sin(r);
+      s+=`<g class="vdg" ${st.ghost!=null?`data-vdg="${a}" role="button" tabindex="0" aria-label="smjer ${GL[a]}"`:''}><line x1="${x0}" y1="${y0}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="transparent" stroke-width="32"/>${arrow(x0,y0,x1,y1,'G',2.6,'stroke-dasharray="7 5" class="vis"')}<circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="13" fill="var(--sheet)" stroke="#8A94A0" stroke-width="1.5"/><text x="${bx.toFixed(1)}" y="${(by+5).toFixed(1)}" text-anchor="middle" font-size="14" fill="var(--ink)">${GL[a]}</text></g>`}
+    s+=`<circle cx="${x0}" cy="${y0}" r="5" fill="${col[v.e.k]}"/>`}
+  return s+'</svg>'}
+
+/* --- tekstovi koraka (isti u Lekciji i Vježbi) --- */
+function vdWhyEl(c,e,first){const ser=c.kind==='ser',V=vdVH(c,e),from=first?'iz ishodišta':'iz vrha prethodnog vektora';
+  if(ser){if(e.k==='R')return `Na otporniku su napon i struja <b>u fazi</b>: ${V} crtamo u smjeru struje (→), ${from}.`;
+    if(e.k==='L')return `Na zavojnici napon <b>prethodi</b> struji za 90° (medo prelazi <b>ULI</b>CU: prvo U pa I): ${V} crtamo okomito <b>gore</b> (↑), ${from}.`;
+    return `Na kondenzatoru napon <b>kasni</b> za strujom za 90° (medo prelazi UL<b>ICU</b>: prvo I pa U): ${V} crtamo okomito <b>dolje</b> (↓), ${from}.`}
+  if(e.k==='R')return `Kroz otpornik struja je <b>u fazi</b> s naponom: ${V} crtamo u smjeru napona (→), ${from}.`;
+  if(e.k==='L')return `Na zavojnici struja <b>kasni</b> za naponom za 90° (medo prelazi <b>ULI</b>CU: prvo U pa I): ${V} crtamo okomito <b>dolje</b> (↓), ${from}.`;
+  return `Na kondenzatoru struja <b>prethodi</b> naponu za 90° (medo prelazi UL<b>ICU</b>: prvo I pa U): ${V} crtamo okomito <b>gore</b> (↑), ${from}.`}
+function vdWhyRef(c){return c.kind==='ser'?'U serijskom spoju kroz sve elemente teče <b>ista struja</b>. Struja je zajednička, pa je crtamo <b>prvu</b>, vodoravno udesno (na realnu os).':'U paralelnom spoju sve su grane spojene između iste dvije točke (iste dvije boje), pa je na svima <b>isti napon</b>. Napon je zajednički, pa ga crtamo <b>prvog</b>, vodoravno udesno.'}
+function vdWhyRes(c){const ser=c.kind==='ser';return `${ser?'Naponi':'Struje'} se zbrajaju <b>vektorski</b>: ${ser?'napon izvora U':'ukupna struja I (struja izvora)'} je rezultantni vektor, spojnica od <b>početka prvog do vrha zadnjeg</b> vektora. ${vdForm(c)}.${c.els.some(e=>e.k==='L')&&c.els.some(e=>e.k==='C')?` Vektori na istom pravcu prvo se oduzmu (${ser?'U<sub>L</sub> − U<sub>C</sub>':'I<sub>L</sub> − I<sub>C</sub>'}), pa 1 + 1 + 1 nije nužno 3.`:''}`}
+function vdWhyKar(c){const k=vdKar(c),ser=c.kind==='ser';
+  if(ser)return k==='i'?'Napon izvora U je iznad struje: napon <b>prethodi</b> struji za kut φ, pa je spoj <b>induktivan</b> (φ &gt; 0).':k==='c'?'Napon izvora U je ispod struje: napon <b>kasni</b> za strujom za kut φ, pa je spoj <b>kapacitivan</b> (φ &lt; 0).':'U<sub>L</sub> i U<sub>C</sub> se poništavaju: napon izvora je u fazi sa strujom (U = U<sub>R</sub>), spoj je <b>radni</b> (φ = 0).';
+  return k==='i'?'Ukupna struja I je ispod napona: struja <b>kasni</b> za naponom, pa je spoj <b>induktivan</b>. Na slici je struja ispod osi, ali električki je φ = β<sub>u</sub> − β<sub>i</sub> = 0 − (−|φ|) &gt; 0.':k==='c'?'Ukupna struja I je iznad napona: struja <b>prethodi</b> naponu, pa je spoj <b>kapacitivan</b>. Električki je φ = β<sub>u</sub> − β<sub>i</sub> &lt; 0, iako je struja na slici iznad osi.':'I<sub>L</sub> i I<sub>C</sub> se poništavaju: ukupna struja je u fazi s naponom (I = I<sub>R</sub>), spoj je <b>radni</b> (φ = 0).'}
+const VDGL={0:'→','90':'↑','-90':'↓','180':'←'};
+
+/* --- lekcije: crtanje korak po korak --- */
+let vdL={id:null,i:-1},vdLq=null;
+function vdPlay(id,c,t,intro){const n=c.els.length,N=n+3,ser=c.kind==='ser';
+  const txt=k=>k===0?`<b>${ser?'Struja I':'Napon U'}</b> crta se prva. ${vdWhyRef(c)}`:k<=n?vdWhyEl(c,c.els[k-1],k===1):k===n+1?vdWhyRes(c):vdWhyKar(c);
+  const lab=k=>k===0?(ser?'I':'U'):k<=n?vdVH(c,c.els[k-1]):k===n+1?(ser?'U':'I'):'φ';
+  return {id,t,get svg(){const k=vdL.id===id?vdL.i:-1,full=k<0;const hl=full?null:k===0?null:k<=n?k-1:'src';
+    return acPair(vdNet(c,{hl,cur:true}),vdSvg(c,full?{res:true,arc:true}:{n:Math.min(k,n),res:k>n,arc:k>n+1,anim:k===0?'ref':k<=n?k-1:k===n+1?'res':null}),'1fr 1fr')},
+    get h(){const k=vdL.id===id?vdL.i:-1;if(k<0)return `${intro}<p><button class="primary" data-vdl="${id}" data-vdi="0" style="margin:0">▶ Crtaj korak po korak</button></p>`;
+      return `<ol class="vdlog" style="margin:0 0 8px;padding-left:22px">${Array.from({length:k+1},(_,j)=>`<li style="margin:4px 0;${j===k?'':'opacity:.62;font-size:15px'}">${j===k?txt(j):`<b>${lab(j)}</b>`}</li>`).join('')}</ol><p class="note" style="margin:0 0 8px">Korak ${k+1} od ${N}.</p><p style="display:flex;gap:8px;flex-wrap:wrap">${k>0?`<button class="ghost" data-vdl="${id}" data-vdi="${k-1}" style="margin:0">← Prethodni korak</button>`:''}${k<N-1?`<button class="primary" data-vdl="${id}" data-vdi="${k+1}" style="margin:0">Sljedeći korak →</button>`:''}<button class="ghost" data-vdl="${id}" data-vdi="-1" style="margin:0">Zatvori</button></p>`}}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-vdl]');if(!b||view!=='lesson')return;e.preventDefault();vdL={id:b.dataset.vdl,i:+b.dataset.vdi};renderLesson()});
+{const _rl=renderLesson;renderLesson=function(){try{const p=prof(),mod=lessonX||p.module;if(VD2K.has(mod)){const L=LESSONS[mod],st=L[Math.min(lstep[mod]||0,L.length-1)];if(!st||st.id!==vdL.id)vdL={id:null,i:-1};if(!st||!st.vq)vdLq=null}}catch(e){}return _rl.apply(this,arguments)}}
+/* mali dijagrami za pravilo ULICU */
+const vdMini=(kind,k)=>{const c=vdC(kind,k);c.ref=1.3;c.els[0].m=1.2;return vdSvg(c,{W:200,H:190})};
+const vdTri=(kind)=>kind==='ser'?acPh([{a:0,m:2,lab:'R',c:'R',lp:'mid',side:-1},{a:90,m:1.5,x0:2,lab:sb('X','L')+' − '+sb('X','C'),c:'L'},{a:acAng(1.5,2),m:2.5,lab:'Z',c:'S',lp:'mid'}],{h:240,arc:acAng(1.5,2)}):acPh([{a:0,m:2,lab:'G',c:'R',lp:'mid'},{a:-90,m:1.5,x0:2,lab:sb('B','L')+' − '+sb('B','C'),c:'L'},{a:acAng(-1.5,2),m:2.5,lab:'Y',c:'S',lp:'mid',side:-1}],{h:240,arc:acAng(-1.5,2)});
+/* kviz na slajdu lekcije */
+function vdQuiz(id,svg,t,q,opts,ans,ex){return {vq:id,svg,t,get h(){const d=vdLq!=null;return `<p>${q}</p><div class="opts">${opts.map(([k,t],i)=>`<button class="opt ${d?(k===ans?'right':k===vdLq?'wrong':''):''}" data-vlq="${k}" ${d?'disabled':''}><kbd>${'abcd'[i]})</kbd>${t}</button>`).join('')}</div>${d?`<p class="msg ${vdLq===ans?'ok':'bad'}">${vdLq===ans?'Točno.':'Nije točno.'} ${ex}</p>`:''}`}}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-vlq]');if(!b||view!=='lesson')return;e.preventDefault();vdLq=b.dataset.vlq;renderLesson()});
+const VDRULE='<div class="rule">Medo prelazi <b>ULICU</b>.<br>Na induktivitetu (L) prvo je napon pa struja: <b>U L I</b>.<br>Na kapacitetu (C) prvo je struja pa napon: <b>I C U</b>.</div>';
+const VDSTEPS=s=>`<ol style="margin:6px 0;padding-left:22px"><li><b>${s?'Struja I':'Napon U'}</b> vodoravno udesno: zajednička je ${s?'svim elementima':'svim granama'}.</li><li><b>${s?'Naponi':'Struje'} na elementima</b> redom kako su spojeni, svaki iz vrha prethodnog: R → , L ${s?'↑':'↓'}, C ${s?'↓':'↑'} (ULICU).</li><li><b>Rezultanta</b> ${s?'U':'I'}: od početka prvog do vrha zadnjeg vektora.</li><li><b>Fazni kut φ</b> između U i I, i zaključak: induktivno ili kapacitivno.</li></ol>`;
+function vdLessons(){
+  const S=(sp,d)=>vdC('ser',sp,d),P=(sp,d,f)=>vdC('par',sp,d,{form:f});
+  LESSONS.ser2=[
+   {svg:acPair(acSin({i:-60}),vdSvg(Object.assign(vdC('ser','RL'),{}),{res:true,arc:true,W:300,H:260}),'3fr 2fr'),t:'Vektorski dijagram',h:`<p>Sinusni napon i struju prikazujemo <b>vektorima</b> (fazorima). Svi se vrte istom kružnom brzinom ω, <b>suprotno od kazaljke na satu</b>, a projekcija vrha daje sinus.</p><p>Vektorski dijagram je slika tih vektora u jednom trenutku. Duljina vektora je efektivna vrijednost, a kut između vektora je fazni pomak φ.</p>`},
+   ACROT,
+   {svg:`<div class="acpair" style="grid-template-columns:1fr 1fr 1fr">${vdMini('ser','R')}${vdMini('ser','L')}${vdMini('ser','C')}</div>`,t:'Serija: kamo crtamo napon?',h:`<p>U seriji je referenca <b>struja I</b> (vodoravno). Napon na elementu crtamo prema njoj:</p><ul><li><b>otpornik:</b> U<sub>R</sub> u fazi sa strujom →</li><li><b>zavojnica:</b> U<sub>L</sub> prethodi struji 90° ↑</li><li><b>kondenzator:</b> U<sub>C</sub> kasni za strujom 90° ↓</li></ul>${VDRULE}`},
+   {svg:vdNet(S('RLC','L'),{cur:true}),t:'Serijski spoj: prvo struja',h:`<div class="rule">U seriji kroz sve elemente teče <b>ista struja</b>.</div><p>Struja je zajednička veličina, pa je u vektorskom dijagramu crtamo <b>prvu</b>, vodoravno udesno. Zatim crtamo napone na elementima, jedan za drugim, a na kraju napon izvora kao rezultantu.</p>`},
+   vdPlay('vs1',S('RL'),'Serijski RL spoj','<p>Otpornik i zavojnica u seriji. Napon na zavojnici prethodi struji, pa je napon izvora <b>iznad</b> struje: spoj je <b>induktivan</b>.</p><div class="rule">U = √(U<sub>R</sub>² + U<sub>L</sub>²)</div>'),
+   vdPlay('vs2',S('RC'),'Serijski RC spoj','<p>Otpornik i kondenzator u seriji. Napon na kondenzatoru kasni za strujom, pa je napon izvora <b>ispod</b> struje: spoj je <b>kapacitivan</b>.</p><div class="rule">U = √(U<sub>R</sub>² + U<sub>C</sub>²)</div>'),
+   vdPlay('vs3',S('RLC','L'),'Serijski RLC spoj','<p>Sva tri elementa u seriji, uz X<sub>L</sub> &gt; X<sub>C</sub>. Kroz sve teče ista struja, pa je veći napon na zavojnici: U<sub>L</sub> &gt; U<sub>C</sub>.</p><p>U<sub>L</sub> i U<sub>C</sub> leže na istom pravcu, ali suprotno, pa se prvo <b>oduzmu</b>. Zato napon na zavojnici može biti veći od napona izvora: 1 + 1 + 1 nije nužno 3.</p><div class="rule">U = √(U<sub>R</sub>² + (U<sub>L</sub> − U<sub>C</sub>)²)</div>'),
+   {svg:acPair(vdSvg(S('RLC','C'),{res:true,arc:true,W:300,H:280}),vdSvg(S('RLC','='),{res:true,W:300,H:280})),t:'Kad je X<sub>C</sub> veći ili jednak',h:`<ul><li><b>X<sub>L</sub> &lt; X<sub>C</sub></b> (lijevo): U<sub>C</sub> &gt; U<sub>L</sub>, napon izvora je ispod struje, napon kasni: spoj je <b>kapacitivan</b>.</li><li><b>X<sub>L</sub> = X<sub>C</sub></b> (desno): U<sub>L</sub> i U<sub>C</sub> se poništavaju, U = U<sub>R</sub> i napon je u fazi sa strujom: spoj je <b>radni</b>. O tom posebnom slučaju bit će još riječi.</li></ul><p>Bez brojeva iz zadanog odnosa X<sub>L</sub> i X<sub>C</sub> znamo koji je napon dulji.</p>`},
+   vdPlay('vs4',S('R1LR2C','L'),'Više elemenata u seriji','<p>Ako u seriji ima više otpornika, zavojnica ili kondenzatora (zadatak 6.3), postupak je isti: naponi se <b>nadovezuju redom</b> kako su elementi spojeni, svaki iz vrha prethodnog.</p><div class="rule">U = √((U<sub>R1</sub> + U<sub>R2</sub>)² + (U<sub>L</sub> − U<sub>C</sub>)²)</div>'),
+   {svg:vdTri('ser'),t:'Trokut impedancije',h:`<p>Podijelimo li sve napone strujom I (U = I·Z), dobijemo sličan pravokutni trokut otpora: <b>trokut impedancije</b>.</p><div class="rule">Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²) &nbsp;&nbsp; φ = arctg((X<sub>L</sub> − X<sub>C</sub>)/R)</div><p>R je vodoravno, razlika reaktancija okomito (gore za induktivno, dolje za kapacitivno), a Z je hipotenuza.</p>`},
+   vdQuiz('vsq',vdSvg(S('LR'),{n:1,W:300,H:260}),'Provjeri se',`U serijskom spoju prvo je nacrtan napon na zavojnici U<sub>L</sub>. Kamo iz njegova vrha crtamo napon na otporniku U<sub>R</sub>?`,[['r','→ vodoravno udesno'],['u','↑ okomito gore'],['d','↓ okomito dolje'],['l','← vodoravno ulijevo']],'r','Napon na otporniku u fazi je sa strujom, a struja je vodoravno udesno. Redoslijed elemenata ne mijenja smjer vektora.'),
+   {svg:vdSvg(S('R1LR2C','L'),{res:true,arc:true}),t:'Postupak na kontrolnoj',h:`<p>Prvi zadatak na KZ2 je vektorski dijagram serijskog ili paralelnog spoja. Za serijski spoj:</p>${VDSTEPS(true)}<p>Nijedan korak ne preskoči: <b>sve označi i nacrtaj</b> (oznake vektora, φ, karakter spoja). Duljine ne moraju biti točno s ravnalom, ali trebaju odgovarati odnosima.</p><p>U <b>Vježbi</b> dijagram crtaš sam, korak po korak, a zadatke s brojevima nađeš u <b>Zadacima</b>.</p>`}];
+  LESSONS.par2=[
+   {svg:vdNet(P('RLC','L','B'),{pot:true,cur:true}),t:'Paralelni spoj: isti napon',h:`<div class="rule">U paraleli sve grane imaju <b>isti napon</b>.</div><p>Sjeti se bojica: sve grane spojene su između crvene i plave, pa je na svima ista razlika potencijala. Situacija je <b>dualna</b> seriji: što je bila struja, sada je napon.</p><p>Zato napon crtamo <b>prvi</b>. Struja izvora I dijeli se na grane (Kirchhoffov zakon za struje): I<sub>R</sub>, I<sub>L</sub> i I<sub>C</sub>.</p>`},
+   ACROTI,
+   {svg:`<div class="acpair" style="grid-template-columns:1fr 1fr 1fr">${vdMini('par','R')}${vdMini('par','L')}${vdMini('par','C')}</div>`,t:'Paralela: kamo crtamo struju?',h:`<p>U paraleli je referenca <b>napon U</b> (vodoravno). Struju kroz element crtamo prema njemu:</p><ul><li><b>otpornik:</b> I<sub>R</sub> u fazi s naponom →</li><li><b>zavojnica:</b> I<sub>L</sub> kasni za naponom 90° ↓</li><li><b>kondenzator:</b> I<sub>C</sub> prethodi naponu 90° ↑</li></ul>${VDRULE}<p>Pravilo je isto kao u seriji, samo je referenca sada napon. Zato je <b>I<sub>L</sub> dolje</b>, a <b>I<sub>C</sub> gore</b>.</p>`},
+   vdPlay('vp1',P('RL'),'Paralelni RL spoj','<p>Otpornik i zavojnica paralelno. Struja kroz zavojnicu kasni za naponom, pa je ukupna struja <b>ispod</b> napona: spoj je <b>induktivan</b>.</p><div class="rule">I = √(I<sub>R</sub>² + I<sub>L</sub>²)</div>'),
+   vdPlay('vp2',P('RC'),'Paralelni RC spoj','<p>Otpornik i kondenzator paralelno. Struja kroz kondenzator prethodi naponu, pa je ukupna struja <b>iznad</b> napona: spoj je <b>kapacitivan</b>.</p><div class="rule">I = √(I<sub>R</sub>² + I<sub>C</sub>²)</div>'),
+   {svg:vdSvg(P('RL'),{res:true,arc:true}),t:'Predznak faznog kuta u paraleli',h:`<p>Fazni kut definiran je kao <b>φ = β<sub>u</sub> − β<sub>i</sub></b>. Napon je referenca, β<sub>u</sub> = 0.</p><ul><li><b>RL:</b> struja je ispod napona, β<sub>i</sub> &lt; 0, pa je φ = 0 − (−|φ|) <b>&gt; 0</b>. Na slici „izgleda” negativan, ali električki je pozitivan.</li><li><b>RC:</b> struja je iznad, β<sub>i</sub> &gt; 0, pa je φ <b>&lt; 0</b>.</li></ul><div class="rule">Induktivno: φ &gt; 0 &nbsp;&nbsp; Kapacitivno: φ &lt; 0 &nbsp;(u seriji i u paraleli)</div>`},
+   vdPlay('vp3',P('RLC','L','B'),'Paralelni RLC spoj','<p>Sva tri elementa paralelno, uz B<sub>L</sub> &gt; B<sub>C</sub>: zavojnica bolje vodi, pa je I<sub>L</sub> &gt; I<sub>C</sub>.</p><p>I<sub>L</sub> i I<sub>C</sub> leže na istom pravcu, ali suprotno, pa se prvo <b>oduzmu</b>. Ukupna struja zato je manja od zbroja struja grana.</p><div class="rule">I = √(I<sub>R</sub>² + (I<sub>L</sub> − I<sub>C</sub>)²)</div>'),
+   {svg:acPair(vdNet(P('LC','L','X'),{labs:[sb('X','L')+' manji',sb('X','C')+' veći'],cur:true}),vdSvg(P('RLC','L','X'),{res:true,arc:true,W:300,H:280})),t:'Kroz koji element ide veća struja?',h:`<p>Na svim granama je isti napon, pa veća struja teče kroz granu s <b>manjim otporom</b>, odnosno većom vodljivošću:</p><div class="rule">I<sub>L</sub> = U/X<sub>L</sub> = U·B<sub>L</sub> &nbsp;&nbsp; I<sub>C</sub> = U/X<sub>C</sub> = U·B<sub>C</sub></div><p><b>Zamka:</b> ako je X<sub>L</sub> &lt; X<sub>C</sub>, onda je I<sub>L</sub> &gt; I<sub>C</sub> i paralelni spoj je <b>induktivan</b>. U seriji je obrnuto: tamo X<sub>L</sub> &gt; X<sub>C</sub> znači induktivno.</p>`},
+   vdPlay('vp4',P('RC1LC2','L','B'),'Više grana paralelno','<p>Ako ima više grana (zadatak 7.1), postupak je isti: struje se <b>nadovezuju redom</b>, svaka iz vrha prethodne. Struje kondenzatora idu gore, struja zavojnice dolje.</p><div class="rule">I = √(I<sub>R</sub>² + (I<sub>L</sub> − (I<sub>C1</sub> + I<sub>C2</sub>))²)</div>'),
+   {svg:vdTri('par'),t:'Trokut admitancije',h:`<p>Podijelimo li sve struje naponom U (I = U·Y), dobijemo <b>trokut admitancije</b> (vodljivosti, u simensima).</p><div class="rule">G = 1/R &nbsp; B<sub>L</sub> = 1/X<sub>L</sub> &nbsp; B<sub>C</sub> = 1/X<sub>C</sub><br>Y = √(G² + (B<sub>L</sub> − B<sub>C</sub>)²) &nbsp;&nbsp; φ = arctg((B<sub>L</sub> − B<sub>C</sub>)/G)</div><p>G je vodoravno, B<sub>L</sub> dolje, B<sub>C</sub> gore (kao struje), a Y je hipotenuza.</p>`},
+   vdQuiz('vpq',vdNet(P('RLC','C','X'),{labs:['R',sb('X','L')+' veći',sb('X','C')+' manji']}),'Provjeri se',`U paralelnom RLC spoju je X<sub>L</sub> &gt; X<sub>C</sub>. Kakav je spoj?`,[['c','kapacitivan: veća struja ide kroz kondenzator'],['i','induktivan: X<sub>L</sub> je veći'],['r','radni'],['n','ne može se odrediti bez brojeva']],'c','Isti napon, a manji otpor ima kondenzator, pa je I<sub>C</sub> &gt; I<sub>L</sub>: ukupna struja prethodi naponu, spoj je kapacitivan.'),
+   {svg:vdSvg(P('RC1LC2','L','B'),{res:true,arc:true}),t:'Postupak na kontrolnoj',h:`<p>Za paralelni spoj:</p>${VDSTEPS(false)}<p>Nijedan korak ne preskoči: <b>sve označi i nacrtaj</b>. Ukupna struja je struja izvora.</p><p>U <b>Vježbi</b> dijagram crtaš sam, korak po korak, a zadatke s brojevima nađeš u <b>Zadacima</b>.</p>`}];
+  lstep.ser2=lstep.ser2||0;lstep.par2=lstep.par2||0}
+vdLessons();
+
+/* --- Vježba: pitanja bez brojeva --- */
+Object.assign(TYPENAME,{vs_crt:'Nacrtaj vektorski dijagram',vs_smj:'Kamo crtamo napon (ULICU)',vs_prv:'Što se crta prvo',vs_dij:'Koji dijagram odgovara spoju',vs_gr:'Pronađi grešku u dijagramu',vs_kar:'Induktivno ili kapacitivno',vs_dul:'Odnosi napona',vs_tr:'Trokut impedancije',
+  vp_crt:'Nacrtaj vektorski dijagram',vp_smj:'Kamo crtamo struju (ULICU)',vp_prv:'Što se crta prvo',vp_dij:'Koji dijagram odgovara spoju',vp_gr:'Pronađi grešku u dijagramu',vp_kar:'Induktivno ili kapacitivno, predznak φ',vp_dul:'Odnosi struja',vp_tr:'Trokut admitancije'});
+Object.assign(TAGNAMES,{ac_fi:'Predznak faznog kuta',ac_tr:'Trokut impedancije i admitancije'});
+const VDQ=[];
+(function(){const cnt={};const add=(topic,q)=>{const P=topic==='ser2'?'VS':'VP';cnt[P]=(cnt[P]||0)+1;q.id=P+String(cnt[P]).padStart(2,'0');q.topic=topic;if(!q.draw){const o=acOpts(q.id,q.good,q.bad);q.opts=o.opts;q.ans=o.ans;delete q.good;delete q.bad}VDQ.push(q);QS.push(q)};
+  for(const kind of ['ser','par']){const T=kind==='ser'?'ser2':'par2',p=kind==='ser'?'vs_':'vp_',ser=kind==='ser',VQ=ser?'U':'I',RQ=ser?'I':'U';
+    const C=(sp,d,f,o)=>vdC(kind,sp,d,Object.assign({form:f},o||{}));
+    const pair=(c,st)=>acPair(vdNet(c),vdSvg(c,st),'1fr 1fr');
+    const txt=c=>{const r=vdRel(c);return vdName(c).replace(/^./,m=>m.toUpperCase())+(r?`, uz ${r}`:'')};
+    /* 1. Nacrtaj vektorski dijagram (korak po korak, klikom) */
+    const DR=ser?[['RL',null,1.8],['RC',null,1.8],['LR',null,2.1],['CR',null,2.1],['RLC','L',2.8],['RLC','C',2.8],['RCL','L',3.0],['LCR','C',3.1],['RLC','=',3.4],['R1LR2C','L',3.6],['LC','L',3.5],['RC1LC2','C',3.9]]
+      :[['RL',null,2.0],['RC',null,2.0],['LR',null,2.2],['CR',null,2.2],['RLC','L',3.0,'B'],['RLC','C',3.0,'B'],['RLC','L',3.6,'X'],['RCL','C',3.6,'X'],['RLC','=',3.4,'B'],['RC1LC2','L',3.8,'B'],['LC','C',3.9,'X'],['CLR','L',3.7,'X']];
+    for(const [sp,d,df,f] of DR){const c=C(sp,d,f),one=c.els.filter(e=>e.k==='L').length===1&&c.els.filter(e=>e.k==='C').length===1;
+      add(T,{type:p+'crt',draw:true,c,cmp:one,diff:df,tags:['ac_red','ac_faza','ac_vekt','ac_kar'].concat(!ser&&f==='X'?['ac_parkar']:[]),svg:'',text:`${txt(c)}. Nacrtaj vektorski dijagram ${ser?'napona i struje':'struja i napona'} korak po korak.`,expl:''})}
+    /* 2. Kamo crtamo vektor (ULICU) */
+    const DIR={'0':'→ vodoravno udesno','90':'↑ okomito gore','-90':'↓ okomito dolje','180':'← vodoravno ulijevo'};
+    for(const [k,rot,df] of [['L',0,1.8],['C',0,1.8],['R',0,1.2],['L',90,3.4],['C',90,3.4]]){const c=vdC(kind,k,null,{rot});c.ref=1.2;c.els[0].m=1.1;let a0=((VDA[kind][k]+rot)%360+360)%360;if(a0>180)a0-=360;const a=String(a0),e=c.els[0];
+      const why=vdWhyEl(c,e,true).replace(', iz ishodišta.','.');
+      add(T,{type:p+'smj',diff:df,tags:['ac_faza'],svg:vdSvg(c,{n:0,gstat:0,W:300,H:260}),text:`U ${ser?'serijskom':'paralelnom'} spoju ${ser?'struja I':'napon U'} nacrtan${ser?'a':''} je ${rot?'<b>okomito prema gore</b>':'vodoravno udesno'}. Kamo crtamo ${ser?'napon na':'struju kroz'} ${ser?VDN[k][2]:VDN[k][0]}?`,good:DIR[a],bad:Object.values(DIR),expl:rot?`${ser?(k==='L'?'Napon na zavojnici prethodi struji za 90°':'Napon na kondenzatoru kasni za strujom za 90°'):(k==='L'?'Struja kroz zavojnicu kasni za naponom za 90°':'Struja kroz kondenzator prethodi naponu za 90°')}. Prethoditi znači biti zakrenut za +90° (suprotno od kazaljke na satu), kasniti za −90°. Od smjera ${ser?'struje':'napona'} prema gore to je ${DIR[a].slice(2)}. Referenca ne mora biti vodoravna, pravilo ULICU ostaje isto.`:why})}
+    /* 3. Što se crta prvo */
+    add(T,{type:p+'prv',diff:1.4,tags:['ac_red'],svg:vdNet(C('RLC','L','B'),ser?{cur:true}:{pot:true}),text:`Crtamo vektorski dijagram <b>${ser?'serijskog':'paralelnog'}</b> spoja. Koji vektor crtamo prvi, vodoravno udesno?`,good:ser?'struju I':'napon U',bad:ser?['napon izvora U','napon na otporniku U<sub>R</sub>','napon na zavojnici U<sub>L</sub>']:['ukupnu struju I','struju kroz otpornik I<sub>R</sub>','struju kroz zavojnicu I<sub>L</sub>'],expl:vdWhyRef(C('RL'))});
+    add(T,{type:p+'prv',diff:1.7,tags:['ac_red'],svg:vdNet(C('RLC','L','B'),ser?{cur:true}:{pot:true}),text:`Zašto se u ${ser?'serijskom spoju prvo crta struja':'paralelnom spoju prvo crta napon'}?`,good:ser?'kroz sve elemente teče ista struja':'na svim granama je isti napon',bad:ser?['struja je uvijek veća od napona','napon izvora nije poznat','tako je dogovoreno, bez razloga']:['napon je uvijek veći od struje','ukupna struja nije poznata','tako je dogovoreno, bez razloga'],expl:vdWhyRef(C('RL'))});
+    /* 4. Koji dijagram odgovara spoju */
+    const flip=c=>{const a={};c.els.forEach((e,i)=>{if(e.k==='L')a[i]=VDA[kind].C;if(e.k==='C')a[i]=VDA[kind].L});return a};
+    const DJ=ser?[['RL',null,2.2],['RC',null,2.2],['RLC','L',2.9],['RLC','C',2.9],['R1LR2C','L',3.4]]:[['RL',null,2.4],['RC',null,2.4],['RLC','L',3.0,'B'],['RLC','C',3.4,'X'],['RC1LC2','L',3.6,'B']];
+    for(const [sp,d,df,f] of DJ){const c=C(sp,d,f),n=c.els.length,TH={thumb:true,W:210,H:160,res:true};
+      const good=vdSvg(c,TH),b1=vdSvg(c,Object.assign({},TH,{ang:flip(c)}));let b2,b3,ex2,ex3;
+      if(n>=3){b2=vdSvg(c,Object.assign({},TH,{resTo:n-1}));ex2='rezultanta nije spojena do vrha zadnjeg vektora'}
+      else{const a={};c.els.forEach((e,i)=>{a[i]=e.k==='R'?VDA[kind][c.els.find(x=>x.k!=='R').k]:0});b2=vdSvg(c,Object.assign({},TH,{ang:a}));ex2=`zamijenjeni su smjerovi otpornika i ${c.els.find(x=>x.k!=='R').k==='L'?'zavojnice':'kondenzatora'}`}
+      if(c.dom==='L'||c.dom==='C'){if(c.els.filter(e=>e.k==='L').length&&c.els.filter(e=>e.k==='C').length){b3=vdSvg(vdCopy(c,z=>{const L=z.els.filter(e=>e.k==='L'),Cc=z.els.filter(e=>e.k==='C'),sl=L.reduce((s,e)=>s+e.m,0),scc=Cc.reduce((s,e)=>s+e.m,0);L.forEach(e=>e.m=e.m*scc/sl);Cc.forEach(e=>e.m=e.m*sl/scc)}),TH);ex3=`zamijenjene su duljine: ${ser?'veći napon':'veća struja'} mora biti na ${ser?(c.dom==='L'?'zavojnici':'kondenzatoru'):(c.dom==='L'?'zavojnici':'kondenzatoru')}`}
+        else{b3=vdSvg(c,Object.assign({},TH,{resRev:true}));ex3='rezultanta je okrenuta: strelica mora biti na vrhu zadnjeg vektora'}}
+      add(T,{type:p+'dij',diff:df,tags:['ac_faza','ac_vekt'].concat(!ser&&f==='X'?['ac_parkar']:[]),svg:vdNet(c),text:`${txt(c)}. Koji vektorski dijagram odgovara spoju?`,good,bad:[b1,b2,b3].filter(Boolean),expl:`Točan je dijagram u kojem je ${ser?'struja':'napon'} vodoravno, ${c.els.filter(e=>e.k!=='R').map(e=>`${vdVH(c,e)} ${VDGL[VDA[kind][e.k]]}`).join(', ')}, a ${ser?'U':'I'} spaja početak prvog i vrh zadnjeg vektora. Kod ostalih: ULICU je zamijenjen; ${ex2}${ex3?'; '+ex3:''}.`})}
+    /* 5. Pronađi grešku */
+    const GR=ser?[['RLC','L',0,2.6],['RLC','L',2,2.6],['RLC','C',1,2.8],['RL',null,'res',2.8],['RC',null,1,2.2],['R1LR2C','L',2,3.0]]:[['RLC','L',1,2.8],['RLC','L',2,2.8],['RL',null,1,2.4],['RC',null,'res',2.8],['RC1LC2','L',3,3.2],['RLC','C',0,3.0,'B']];
+    for(const [sp,d,wi,df,f] of GR){const c=C(sp,d,f||'B'),st={res:true};let ex;
+      if(wi==='res'){st.resRev=true;ex=`Rezultanta ${VQ} ide od početka prvog <b>prema vrhu zadnjeg</b> vektora: strelica mora biti na vrhu, a ne u ishodištu.`}
+      else{const e=c.els[wi];st.ang={};st.ang[wi]=e.k==='R'?90:VDA[kind][e.k==='L'?'C':'L'];ex=`${vdVH(c,e)} je krivo nacrtan. ${vdWhyEl(c,e,wi===0)}`;
+        if(e.k==='R')ex=`${vdVH(c,e)} je krivo nacrtan: ${ser?'na otporniku su napon i struja u fazi':'struja kroz otpornik u fazi je s naponom'}, pa vektor mora biti vodoravan (→).`}
+      const names=c.els.map(e=>vdVH(c,e)).concat([VQ]),good=wi==='res'?VQ:vdVH(c,c.els[wi]);
+      add(T,{type:p+'gr',diff:df,tags:wi==='res'?['ac_vekt']:['ac_faza'],svg:pair(c,st),text:`${txt(c)}. U vektorskom dijagramu jedan je vektor nacrtan krivo. Koji?`,good,bad:names.filter(x=>x!==good),expl:ex})}
+    /* 6. Induktivno ili kapacitivno */
+    const KK=ser?[['RL',null,1.8],['RC',null,1.8],['RLC','L',2.2],['RLC','C',2.2],['RLC','=',2.6]]:[['RL',null,2.6],['RC',null,2.6],['RLC','L',3.0,'B'],['RLC','C',3.0,'B'],['RLC','=',2.8,'B']];
+    for(const [sp,d,df,f] of KK){const c=C(sp,d,f),k=vdKar(c);
+      const O=ser?{i:'induktivan: napon prethodi struji (φ &gt; 0)',c:'kapacitivan: napon kasni za strujom (φ &lt; 0)',r:'radni: napon i struja su u fazi (φ = 0)',x:'kapacitivan: napon prethodi struji (φ &gt; 0)',y:'induktivan: napon kasni za strujom (φ &lt; 0)'}
+        :{i:'induktivan: struja kasni za naponom (φ &gt; 0)',c:'kapacitivan: struja prethodi naponu (φ &lt; 0)',r:'radni: struja i napon su u fazi (φ = 0)',x:'induktivan: struja kasni za naponom (φ &lt; 0)',y:'kapacitivan: struja prethodi naponu (φ &gt; 0)'};
+      add(T,{type:p+'kar',diff:df,tags:['ac_kar'].concat(ser?[]:['ac_fi']),svg:vdSvg(c,{res:true,arc:true}),text:`Na slici je vektorski dijagram ${ser?'serijskog':'paralelnog'} spoja. Kakav je spoj?`,good:O[k],bad:[O.i,O.c,O.r,k==='i'?O.x:k==='c'?O.y:O.x,O.x,O.y].filter(x=>x!==O[k]),expl:vdWhyKar(c)})}
+    /* 7. Odnosi (bez brojeva) */
+    const DU=ser?[
+      [2.0,'U serijskom spoju je X<sub>L</sub> &gt; X<sub>C</sub>. Na kojem je elementu veći napon?','na zavojnici: U<sub>L</sub> &gt; U<sub>C</sub>',['na kondenzatoru: U<sub>C</sub> &gt; U<sub>L</sub>','naponi su jednaki','ne može se odrediti bez brojeva'],'Kroz oba elementa teče ista struja, pa je napon veći na elementu s većim otporom: U<sub>L</sub> = I·X<sub>L</sub> &gt; U<sub>C</sub> = I·X<sub>C</sub>.',['ac_kar']],
+      [2.8,'Može li napon na zavojnici u serijskom RLC spoju biti <b>veći</b> od napona izvora?','da, jer se U<sub>L</sub> i U<sub>C</sub> djelomično poništavaju',['ne, nijedan napon ne može biti veći od napona izvora','da, ali samo ako nema otpornika','ne, jer je U = U<sub>R</sub> + U<sub>L</sub> + U<sub>C</sub>'],'U<sub>L</sub> i U<sub>C</sub> su na istom pravcu, ali suprotno. Napon izvora je √(U<sub>R</sub>² + (U<sub>L</sub> − U<sub>C</sub>)²), pa može biti manji od U<sub>L</sub> (zadatak 6.3: U<sub>L</sub> = 42,3 V, a U = 20 V).',['ac_vekt']],
+      [2.4,'Kakav je napon na otporniku U<sub>R</sub> u odnosu na napon izvora U u serijskom spoju?','U<sub>R</sub> ≤ U: kateta nije dulja od hipotenuze',['U<sub>R</sub> ≥ U','U<sub>R</sub> = U uvijek','ovisi samo o R'],'U<sub>R</sub> je kateta pravokutnog trokuta napona, a U hipotenuza. Jednaki su samo kad je X<sub>L</sub> = X<sub>C</sub>.',['ac_vekt']],
+      [3.0,'U serijskom RLC spoju je X<sub>L</sub> = X<sub>C</sub>. Koliki je napon izvora?','jednak naponu na otporniku: U = U<sub>R</sub>',['jednak nuli','jednak U<sub>L</sub> + U<sub>C</sub>','jednak U<sub>L</sub>'],'U<sub>L</sub> = U<sub>C</sub>, pa se poništavaju. Ostaje samo U<sub>R</sub>, u fazi sa strujom.',['ac_kar']],
+      [1.8,'Zašto se naponi U<sub>R</sub>, U<sub>L</sub> i U<sub>C</sub> ne mogu samo zbrojiti kao brojevi?','nisu u fazi, pa se zbrajaju vektorski',['zato što su efektivni','zato što teče izmjenična struja kroz izvor','mogu se zbrojiti, U = U<sub>R</sub> + U<sub>L</sub> + U<sub>C</sub>'],'Svaki napon ima svoj fazni kut prema struji (0°, +90°, −90°). Vektore zbrajamo nadovezivanjem, a iznos rezultante računamo Pitagorinim poučkom.',['ac_vekt']]]
+     :[
+      [2.8,'U paralelnom spoju je X<sub>L</sub> &lt; X<sub>C</sub>. Kroz koji element teče veća struja?','kroz zavojnicu: I<sub>L</sub> &gt; I<sub>C</sub>',['kroz kondenzator: I<sub>C</sub> &gt; I<sub>L</sub>','struje su jednake','ne može se odrediti bez brojeva'],'Na oba elementa je isti napon, a struja je I = U/X. Manji otpor znači veću struju: I<sub>L</sub> &gt; I<sub>C</sub>.',['ac_parkar']],
+      [2.6,'U paralelnom spoju je B<sub>C</sub> &gt; B<sub>L</sub>. Kakav je spoj?','kapacitivan: veća struja teče kroz kondenzator',['induktivan','radni','ne može se odrediti bez brojeva'],'I<sub>C</sub> = U·B<sub>C</sub> &gt; I<sub>L</sub> = U·B<sub>L</sub>. Ukupna struja prethodi naponu, spoj je kapacitivan.',['ac_parkar','ac_kar']],
+      [2.8,'Može li ukupna struja paralelnog RLC spoja biti <b>manja</b> od struje kroz zavojnicu?','da, jer su I<sub>L</sub> i I<sub>C</sub> suprotnog smjera',['ne, ukupna struja je zbroj struja grana','ne, ukupna struja je uvijek najveća','da, ali samo bez otpornika'],'I<sub>L</sub> i I<sub>C</sub> leže na istom pravcu, ali suprotno, pa se oduzmu. I = √(I<sub>R</sub>² + (I<sub>L</sub> − I<sub>C</sub>)²) može biti manja od I<sub>L</sub> (zadatak 7.1: I<sub>L</sub> = 180 mA, a I = 66,6 mA).',['ac_vekt']],
+      [2.4,'Kakva je struja kroz otpornik I<sub>R</sub> u odnosu na ukupnu struju I u paralelnom spoju?','I<sub>R</sub> ≤ I: kateta nije dulja od hipotenuze',['I<sub>R</sub> ≥ I','I<sub>R</sub> = I uvijek','ovisi samo o R'],'I<sub>R</sub> je kateta pravokutnog trokuta struja, a I hipotenuza. Jednake su samo kad je B<sub>L</sub> = B<sub>C</sub>.',['ac_vekt']],
+      [3.4,'U seriji X<sub>L</sub> &gt; X<sub>C</sub> znači induktivan spoj. Kakav je <b>paralelni</b> spoj uz X<sub>L</sub> &gt; X<sub>C</sub>?','kapacitivan: veća struja ide kroz kondenzator',['induktivan, isto kao u seriji','radni','ne može se odrediti'],'U paraleli je isti napon, pa veća struja teče kroz manji otpor, X<sub>C</sub>. Prevladava I<sub>C</sub>, struja prethodi naponu: kapacitivno. Paralela je dualna seriji.',['ac_parkar']]];
+    for(const [df,q,g,b,ex,tg] of DU)add(T,{type:p+'dul',diff:df,tags:tg,svg:ser?vdNet(C('RLC','L'),{cur:true}):vdNet(C('RLC','L','X'),{cur:true}),text:q,good:g,bad:b,expl:ex});
+    /* 8. Trokut impedancije / admitancije */
+    const TR=ser?[
+      [2.0,'Trokut impedancije serijskog spoja: što je hipotenuza?','impedancija Z',['otpor R','reaktancija X<sub>L</sub> − X<sub>C</sub>','struja I'],'Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²): R i X<sub>L</sub> − X<sub>C</sub> su katete, Z hipotenuza.'],
+      [2.4,'Kako se iz trokuta napona dobiva trokut impedancije?','svi naponi podijele se strujom I',['svi naponi pomnože se strujom I','naponi se kvadriraju','zamijene se katete'],'U<sub>R</sub> = I·R, U<sub>L</sub> = I·X<sub>L</sub>, U = I·Z. Dijeljenjem s I trokut ostaje sličan.'],
+      [2.6,'Kako se računa fazni kut serijskog spoja iz trokuta impedancije?','φ = arctg((X<sub>L</sub> − X<sub>C</sub>)/R)',['φ = arctg(R/(X<sub>L</sub> − X<sub>C</sub>))','φ = arctg(Z/R)','φ = (X<sub>L</sub> − X<sub>C</sub>)/Z'],'Tangens je nasuprotna kateta kroz priležeću: (X<sub>L</sub> − X<sub>C</sub>)/R. Pozitivan φ znači induktivno.']]
+     :[
+      [2.2,'U trokutu admitancije kamo crtamo B<sub>L</sub>?','okomito dolje, kao struju I<sub>L</sub>',['okomito gore','vodoravno','na hipotenuzu'],'Trokut admitancije sličan je trokutu struja (I = U·Y), pa je B<sub>L</sub> dolje, a B<sub>C</sub> gore.'],
+      [2.4,'Kako se iz trokuta struja dobiva trokut admitancije?','sve struje podijele se naponom U',['sve struje pomnože se naponom U','struje se kvadriraju','zamijene se katete'],'I<sub>R</sub> = U·G, I<sub>L</sub> = U·B<sub>L</sub>, I = U·Y. Dijeljenjem s U trokut ostaje sličan.'],
+      [2.6,'Što je hipotenuza trokuta admitancije?','Y = √(G² + (B<sub>L</sub> − B<sub>C</sub>)²)',['Y = G + B<sub>L</sub> + B<sub>C</sub>','Y = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²)','Y = 1/G + 1/B'],'Vodljivosti paralelnih grana zbrajaju se vektorski: G vodoravno, B<sub>L</sub> − B<sub>C</sub> okomito.']];
+    for(const [df,q,g,b,ex] of TR)add(T,{type:p+'tr',diff:df,tags:['ac_tr'],svg:vdTri(kind),text:q,good:g,bad:b,expl:ex})}
+})();
+
+/* --- Vježba: crtanje dijagrama korak po korak (kao jednadžbe kod Metoda) --- */
+let vdS=null;
+function vdSteps(q){const S=[{t:'ref'}];if(q.cmp)S.push({t:'cmp'});q.c.els.forEach((e,i)=>S.push({t:'el',i}));S.push({t:'res'},{t:'kar'});return S}
+function vdStep(q,s){const c=q.c,ser=c.kind==='ser',sh=(a,k)=>shuffle(a.slice(),q.id+k);
+  if(s.t==='ref'){const X=c.els.find(e=>e.k!=='R')||c.els[0];return {p:`Koji vektor crtamo <b>prvi</b>, vodoravno udesno (na realnu os)?`,opts:sh(ser?[['I','struju I'],['U','napon izvora U'],['UR','napon na otporniku U<sub>R</sub>'],['UX',`napon na ${VDN[X.k][2]} ${vdVH(c,X)}`]]:[['U','napon U'],['I','ukupnu struju I'],['IR','struju kroz otpornik I<sub>R</sub>'],['IX',`struju ${VDN[X.k][3]} ${vdVH(c,X)}`]],'r'),ans:ser?'I':'U',why:vdWhyRef(c),log:ser?'<b>I</b> → zajednička struja, prva':'<b>U</b> → zajednički napon, prvi',hint:ser?'Što je isto za sve elemente u seriji?':'Što je isto za sve grane u paraleli?'}}
+  if(s.t==='cmp'){const r=vdRel(c),a=c.dom==='='?'e':c.dom;return {p:`Zadano je ${r}. ${ser?'Koji je napon veći, U<sub>L</sub> ili U<sub>C</sub>':'Koja je struja veća, I<sub>L</sub> ili I<sub>C</sub>'}? (Prema tome se crtaju duljine.)`,opts:ser?[['L','U<sub>L</sub> je veći'],['C','U<sub>C</sub> je veći'],['e','jednaki su'],['n','ne može se odrediti bez brojeva']]:[['L','I<sub>L</sub> je veća'],['C','I<sub>C</sub> je veća'],['e','jednake su'],['n','ne može se odrediti bez brojeva']],ans:a,
+    why:ser?'Kroz oba elementa teče ista struja, pa je veći napon na elementu s većim otporom: U<sub>L</sub> = I·X<sub>L</sub>, U<sub>C</sub> = I·X<sub>C</sub>.':`Na oba elementa je isti napon, pa veća struja teče kroz element s <b>manjim otporom</b> (većom vodljivošću): I<sub>L</sub> = U/X<sub>L</sub> = U·B<sub>L</sub>, I<sub>C</sub> = U/X<sub>C</sub> = U·B<sub>C</sub>.`,
+    log:a==='e'?(ser?'U<sub>L</sub> = U<sub>C</sub>':'I<sub>L</sub> = I<sub>C</sub>'):(ser?(a==='L'?'U<sub>L</sub> &gt; U<sub>C</sub>':'U<sub>C</sub> &gt; U<sub>L</sub>'):(a==='L'?'I<sub>L</sub> &gt; I<sub>C</sub>':'I<sub>C</sub> &gt; I<sub>L</sub>')),hint:ser?'U seriji je ista struja: U = I·X.':'U paraleli je isti napon: I = U/X. Pazi, manji X znači veću struju.'}}
+  if(s.t==='el'){const e=c.els[s.i],a=VDA[c.kind][e.k];return {p:`Nacrtaj ${vdVH(c,e)} (${ser?'napon na':'struja'} ${ser?VDN[e.k][2]:VDN[e.k][3]} ${vdSym(e)})${s.i?', iz vrha prethodnog vektora':''}. Klikni smjer na dijagramu ili ovdje:`,opts:[['90','↑ gore'],['-90','↓ dolje'],['0','→ desno'],['180','← lijevo']],ans:String(a),dir:true,why:vdWhyEl(c,e,s.i===0),
+    log:`<b>${vdVH(c,e)}</b> ${VDGL[a]} ${e.k==='R'?'u fazi':(ser?(e.k==='L'?'prethodi struji 90° (U L I)':'kasni za strujom 90° (I C U)'):(e.k==='L'?'kasni za naponom 90° (U L I)':'prethodi naponu 90° (I C U)'))}`,hint:e.k==='R'?'Na otporniku nema faznog pomaka.':'Medo prelazi ULICU: na L prvo napon pa struja, na C prvo struja pa napon. Vektori se vrte suprotno od kazaljke na satu.'}}
+  if(s.t==='res'){return {p:`Svi ${ser?'naponi':'struje grana'} su nacrtan${ser?'i':'e'}. Kako dobivamo ${ser?'napon izvora U':'ukupnu struju I'}?`,opts:sh([['a','spojnicom od početka prvog do vrha zadnjeg vektora'],['b','zbrojem duljina svih vektora, na vodoravnoj osi'],['c','to je najdulji od nacrtanih vektora'],['d','spojnicom od vrha prvog do vrha zadnjeg vektora']],'s'),ans:'a',why:vdWhyRes(c),log:`<b>${ser?'U':'I'}</b>: ${vdForm(c)}`,hint:`${ser?'Naponi':'Struje'} se zbrajaju vektorski, nadovezivanjem.`}}
+  const k=vdKar(c),O=ser?{i:'induktivan: napon prethodi struji (φ &gt; 0)',c:'kapacitivan: napon kasni za strujom (φ &lt; 0)',r:'radni: napon i struja su u fazi (φ = 0)',x:k==='c'?'induktivan: napon kasni za strujom (φ &lt; 0)':'kapacitivan: napon prethodi struji (φ &gt; 0)'}
+    :{i:'induktivan: struja kasni za naponom (φ &gt; 0)',c:'kapacitivan: struja prethodi naponu (φ &lt; 0)',r:'radni: struja i napon su u fazi (φ = 0)',x:k==='c'?'kapacitivan: struja prethodi naponu (φ &gt; 0)':'induktivan: struja kasni za naponom (φ &lt; 0)'};
+  return {p:'Označi fazni kut φ. Kakav je spoj?',opts:sh(Object.entries(O),'k'),ans:k,why:vdWhyKar(c),log:`<b>φ</b>: ${O[k]}`,hint:ser?'Gdje je napon izvora U u odnosu na struju I?':'Gdje je ukupna struja I u odnosu na napon U? Fazni kut je φ = β<sub>u</sub> − β<sub>i</sub>.'}}
+function vdRender(){const p=prof(),q=acq,c=q.c,ser=c.kind==='ser';if(!vdS||vdS.id!==q.id)vdS={id:q.id,S:vdSteps(q),i:0,mist:0,tries:0,wait:null,msg:'',anim:'ref',fin:false,picks:[]};
+  const S=vdS.S,s=S[vdS.i],pr=s?vdStep(q,s):null,elDone=S.slice(0,vdS.i).filter(x=>x.t==='el').length+(s&&s.t==='el'&&vdS.wait?1:0),resDone=S.slice(0,vdS.i).some(x=>x.t==='res')||(s&&s.t==='res'&&vdS.wait),karDone=!s||(s.t==='kar'&&vdS.wait);
+  const hl=!s?'src':s.t==='el'?s.i:s.t==='res'||s.t==='kar'?'src':null;
+  const dg=vdSvg(c,{W:460,H:380,n:elDone,res:resDone,arc:karDone,ghost:s&&s.t==='el'&&!vdS.wait?s.i:null,box:'ghost',anim:vdS.anim});vdS.anim=null;
+  const log=S.slice(0,vdS.i).map((x,j)=>{const bad=vdS.picks[j];return `<li style="margin:3px 0"><span style="color:${bad?'var(--bad)':'var(--ok)'};font-weight:700">${bad?'✗':'✓'}</span> ${vdStep(q,x).log}</li>`}).join('');
+  let ctrl='';
+  if(!s){const d=q._d;ctrl=`<div class="fb ${vdS.mist?'bad':'ok'}"><h3>${vdS.mist?'Gotovo':'Bez greške'}</h3><p style="margin:0 0 6px">Pogrešnih koraka: ${vdS.mist}. ${vdWhyKar(c)}</p>${d!=null?`<span class="delta">Razina ${d>=0?'+':'−'}${fmt(Math.abs(d))} → ${fmt(p.ratings[q.topic].r)}</span><br>`:''}<button class="primary" id="vdnext">Sljedeći zadatak</button></div>`}
+  else{ctrl=`<p class="q" style="font-size:17px;margin-top:12px">${pr.p}</p><div class="${pr.dir?'vddir':'opts'}">${pr.opts.map(([k,t],i)=>`<button class="opt ${vdS.wait?(k===pr.ans?'right':(k===vdS.wait.pick?'wrong':'')):''}" data-vdo="${k}" ${vdS.wait?'disabled':''}>${pr.dir?'':`<kbd>${'abcd'[i]})</kbd>`}${t}</button>`).join('')}</div>`;
+    if(vdS.wait)ctrl+=`<div class="mbtns" style="margin-top:10px"><button class="primary" id="vdwait" style="margin:0">Dalje</button></div>`}
+  main.innerHTML=`<div class="board"><div class="sheet"><div class="meta"><span>Zadatak ${q.id} · ${TYPENAME[q.type]}</span><span>težina zadatka ${fmt(qRating(q))}</span></div><div class="vdpair"><div class="schem vdsch">${vdNet(c,{hl,cur:false})}</div><div class="schem vddg" id="vddg">${dg}</div></div><div class="vdmob">${!s?'Gotovo, rezultat je ispod ↓':`<b>Korak ${vdS.i+1} od ${S.length}:</b> `+(s.t==='el'&&!vdS.wait?`nacrtaj ${vdVH(c,c.els[s.i])}, dodirni strelicu na dijagramu.`:'odgovori ispod ↓')}${vdS.msg&&!vdS.ok?`<div class="msg bad" style="margin:4px 0 0">${vdS.wait?'Nije točno. Objašnjenje je ispod ↓':vdS.msg}</div>`:''}</div></div>
+  <div class="sheet side"><p class="q" style="margin-bottom:6px">${q.text}</p>${log?`<ol class="vdlog" style="padding-left:22px;margin:6px 0">${log}</ol>`:''}${ctrl}<div class="msg ${vdS.ok?'ok':'bad'}" id="vdmsg">${vdS.msg}</div></div></div>`;
+  modbar();
+  const pick=k=>{if(vdS.wait||!s)return;if(String(k)===String(pr.ans)){vdS.ok=true;vdS.msg='';if(vdS.tries)vdS.picks[vdS.i]=1;setTimeout(()=>{try{fxPlay(true)}catch(e){}},30);vdAdv(s);return}
+    vdS.mist++;vdS.ok=false;if(vdS.tries<1){vdS.tries++;vdS.msg=`Nije točno. ${pr.hint} Pokušaj ponovno.`;vdS.picks[vdS.i]=1;return vdRender()}
+    vdS.msg=`Nije točno. ${pr.why}`;vdS.wait={pick:String(k)};vdS.picks[vdS.i]=1;vdRender()};
+  main.querySelectorAll('[data-vdo]').forEach(b=>b.onclick=()=>pick(b.dataset.vdo));
+  main.querySelectorAll('[data-vdg]').forEach(g=>{g.onclick=()=>pick(g.dataset.vdg);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(g.dataset.vdg)}}});
+  if($('#vdwait'))$('#vdwait').onclick=()=>{vdS.wait=null;vdS.msg='';vdS.ok=true;vdAdv(s)};
+  if($('#vdnext'))$('#vdnext').onclick=()=>{acq=null;vdS=null;renderAc()};
+  try{addSkip()}catch(e){}}
+function vdAdv(s){vdS.anim=s.t==='el'?s.i:s.t==='res'?'res':null;vdS.i++;vdS.tries=0;if(vdS.i>=vdS.S.length&&!vdS.fin){vdS.fin=true;acA='done';acq._d=applyResult(acq,Math.max(0,1-0.15*vdS.mist),false);header()}vdRender()}
+document.head.insertAdjacentHTML('beforeend',`<style>
+.vdnew{animation:vdgrow .5s ease-out both;transform-box:view-box}
+@keyframes vdgrow{from{transform:scale(.04);opacity:.15}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.vdnew{animation:none}}
+.vdg{cursor:pointer}.vdg:hover line.vis,.vdg:focus line.vis{stroke:var(--ink);stroke-dasharray:none}.vdg:focus{outline:none}.vdg:focus circle{stroke:var(--ink);stroke-width:2.5}
+.vddir{display:grid;grid-template-columns:1fr 1fr;gap:8px}.vddir .opt{text-align:center;font-size:18px;padding:10px}
+.vdpair{display:grid;grid-template-columns:2fr 3fr;gap:4px;align-items:center}.vdsch svg{max-height:230px}.vddg svg{max-height:60vh}
+.opts:has(svg.vdth){grid-template-columns:1fr 1fr}.opts .opt svg.vdth{display:block;width:100%;height:auto;margin-top:2px}.opts .opt:has(svg.vdth){padding:6px}
+.vdlog li{font-size:15px}.vdmob{display:none;padding:4px 14px 12px;font-size:15px}@media (max-width:860px){.vdmob{display:block}}
+@media (max-width:640px){.vdpair{grid-template-columns:1fr}.vdsch svg{max-height:150px}.vddg svg{max-height:46vh}}
+</style>`);
+
+/* --- uključivanje u postojeće KZ2 dijelove (Vježba, Ispit, Baza) --- */
+{const _r=renderAc;renderAc=function(){const m=prof().module;if(VD2K.has(m)){if(!acq||acq.topic!==m||(testType&&acA==null&&acq.type!==testType&&testType!=='-')){acPickQ();vdS=null}if(acq&&acq.draw)return vdRender()}return _r.apply(this,arguments)}}
+{const _pq=pickQuestion;pickQuestion=function(topic,exclude=new Set()){if(VD2K.has(topic)&&view==='exam'){const ex=new Set(exclude);VDQ.forEach(q=>{if(q.draw)ex.add(q.id)});return _pq.call(this,topic,ex)}return _pq.apply(this,arguments)}}
+{const _er=errReset;errReset=function(){const r=_er.apply(this,arguments);try{acq=null;acA=null;vdS=null}catch(e){}return r}}
+{const _rb=renderBank;renderBank=function(){const mod=prof().module;if(!VD2K.has(mod))return _rb.apply(this,arguments);const L=VDQ.filter(q=>q.topic===mod);
+  main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Baza zadataka: ${MODNAME[mod]}</h2><p class="note">${L.length} pitanja iz Vježbe, bez brojeva. Uz svako je točan odgovor. Kod zadataka „Nacrtaj vektorski dijagram” prikazan je gotov dijagram. Zadatke s brojevima nađeš u kartici Zadaci.</p><table><tr><th>Pitanje</th><th>Vrsta</th><th>Tekst</th><th>Točno</th><th>Težina</th></tr>${L.map(q=>`<tr><td>${q.id}</td><td>${TYPENAME[q.type]}</td><td>${q.text}</td><td style="min-width:150px">${q.draw?`<div style="width:220px">${vdSvg(q.c,{res:true,arc:true,thumb:true,W:240,H:170})}</div>`:`<div style="max-width:240px">${(q.opts.find(o=>o[0]===q.ans)||['',''])[1]}</div>`}</td><td>${fmt(q.diff)}</td></tr>`).join('')}</table></div>`;modbar()}}
+
+/* --- Zadaci s brojevima (2): kao na KZ2, uz vektorski dijagram u rješenju --- */
+Object.assign(ZKINDS,{ser2:[['zi','Impedancija, struja i φ (6.3)'],['nap','Naponi na elementima (6.3)'],['av','R₁, L, R₂, C u seriji (6.3)'],['lc','Zadani u(t), L i C (6.1)'],['sn','Snage (6.2, 6.3)']],
+  par2:[['yi','Admitancija, struja i φ (7.1)'],['str','Struje grana (7.1)'],['av','R, C₁, L, C₂ paralelno (7.1)'],['ut','Zadani u(t), L i C (predavanje)'],['sn','Snage (7.2)']]});
+Object.assign(ZLES,{ser2:'ser2',par2:'par2'});Object.assign(RINGZ,{ser2:['ser2'],par2:['par2']});
+function vdZGen(type,d){const pk=acZpk,lv=Math.max(1,Math.min(6,Math.round(d))),n=(x,dd)=>acN(x,dd==null?2:dd),F=acZF,Fd=acZd,ser=type==='ser2';
+  const LV={ser2:{1:['zi'],2:['zi','nap'],3:['nap'],4:['nap','av'],5:['av','lc','sn'],6:['lc','sn','av']},par2:{1:['yi'],2:['yi','str'],3:['str'],4:['str','av'],5:['av','ut','sn'],6:['ut','sn','av']}}[type][lv];
+  const kind=(zTestKind&&ZKINDS[type].some(k=>k[0]===zTestKind))?zTestKind:pk(LV);
+  let dz='';vdZdiag='';const diag=(c,vals)=>{dz=vdSvg(c,{res:true,arc:true,vals,W:520,H:360});vdZdiag=dz;return ' Nacrtan je lijevo, ispod sheme.'};
+  const lv2=x=>sb(x[0],x.slice(1));
+  if(ser){const TR=[[3,4],[6,8],[8,6],[12,16],[16,12],[10,10],[30,40],[40,30],[20,15],[15,20]];let [R,X]=pk(TR);const XC0=pk([10,20,30,40,50]),ind=Math.random()<0.6;let XL=ind?XC0+X:XC0-X,XC=XC0;if(XL<=0){XL=XC0+X}
+    const Uv=pk([10,20,24,50,100,120]);
+    if(kind==='av'){const [Rs,Xs]=pk([[10,10],[6,8],[8,6],[30,40],[40,30],[20,15]]),R1=pk([0.3,0.4,0.5,0.6].map(f=>Math.round(Rs*f))),R2=Rs-R1,XC2=pk([10,20,30]),XL2=Math.random()<0.6?XC2+Xs:Math.max(XC2-Xs,0)||XC2+Xs;
+      const Z=Math.hypot(Rs,XL2-XC2),I=Uv/Z,phi=acAng(XL2-XC2,Rs),UL=I*XL2,P=I*I*Rs,c=vdC('ser','R1LR2C',XL2>XC2?'L':'C',{m:[I*R1,I*XL2,I*R2,I*XC2]});c.ref=Math.max(I*Rs,0.4*Math.hypot(I*Rs,I*(XL2-XC2)))*1.15;
+      return acZz(type,kind,lv,{svg:vdNet(c,{src:`U = ${Uv} V`,labs:[`R₁ = ${R1} Ω`,sb('X','L')+` = ${XL2} Ω`,`R₂ = ${R2} Ω`,sb('X','C')+` = ${XC2} Ω`]}),text:`Serijski spoj dva otpornika, zavojnice i kondenzatora priključen je na izmjenični napon efektivne vrijednosti U = ${Uv} V. Zadano je R₁ = ${R1} Ω, R₂ = ${R2} Ω, X<sub>L</sub> = ${XL2} Ω, X<sub>C</sub> = ${XC2} Ω. Odredite struju, fazni pomak, napon na zavojnici i radnu snagu izvora te nacrtajte vektorski dijagram.`,
+        fields:[F('I',I,'A'),Fd('φ',phi,1,'s predznakom'),F('U<sub>L</sub>',UL,'V'),F('P',P,'W')],
+        sol:[`Z = √((R₁ + R₂)² + (X<sub>L</sub> − X<sub>C</sub>)²) = √(${Rs}² + (${XL2} − ${XC2})²) = ${n(Z)} Ω, pa je I = U/Z = <b>${n(I,3)} A</b>`,`φ = arctg((X<sub>L</sub> − X<sub>C</sub>)/(R₁ + R₂)) = arctg(${XL2-XC2}/${Rs}) = <b>${n(phi)}°</b> (${phi>0?'induktivno':'kapacitivno'})`,`U<sub>R1</sub> = I·R₁ = ${n(I*R1)} V, U<sub>L</sub> = I·X<sub>L</sub> = <b>${n(UL)} V</b>, U<sub>R2</sub> = I·R₂ = ${n(I*R2)} V, U<sub>C</sub> = I·X<sub>C</sub> = ${n(I*XC2)} V`,`P = I²·(R₁ + R₂) = <b>${n(P)} W</b>`,
+          `Vektorski dijagram: prvo struja I, zatim naponi redom kako su elementi spojeni (U<sub>R1</sub> →, U<sub>L</sub> ↑, U<sub>R2</sub> →, U<sub>C</sub> ↓), a U spaja početak i vrh.${diag(c,{ref:`I = ${n(I,2)} A`,els:[lv2('UR1')+` = ${n(I*R1,1)} V`,lv2('UL')+` = ${n(UL,1)} V`,lv2('UR2')+` = ${n(I*R2,1)} V`,lv2('UC')+` = ${n(I*XC2,1)} V`],res:`U = ${Uv} V`})}`]})}
+    let net=null,txt0=`Serijski spoj otpornika R = ${R} Ω, zavojnice X<sub>L</sub> = ${XL} Ω i kondenzatora X<sub>C</sub> = ${XC} Ω priključen je na izmjenični napon efektivne vrijednosti U = ${Uv} V.`,src=`U = ${Uv} V`;
+    let w=null,Lh=null,Ch=null;
+    if(kind==='lc'){const W=pk([500,1000,1e4]),Cs={500:[20,40,50,100],1000:[10,20,40,50,100],1e4:[10,20,50,100]}[W];XC=pk(Cs);XL=pk([10,20,30,40,50,100,200].filter(x=>x!==XC));R=pk([10,20,30,40,50]);w=W;Lh=XL/W*1e3;Ch=1e6/(W*XC);
+      txt0=`Na napon u(t) = ${Uv}√2·sin(${W===1e4?'10⁴':W}·t) V priključen je serijski spoj otpornika R = ${R} Ω, zavojnice L = ${n(Lh,2)} mH i kondenzatora C = ${n(Ch,2)} μF.`;src='u(t)'}
+    const Z=Math.hypot(R,XL-XC),I=Uv/Z,phi=acAng(XL-XC,R),UR=I*R,UL=I*XL,UC=I*XC,c=vdC('ser','RLC',XL>XC?'L':XL<XC?'C':'=',{m:[UR,UL,UC]});c.ref=Math.max(UR,0.4*Uv)*1.15;
+    net=vdNet(c,{src,labs:kind==='lc'?[`R = ${R} Ω`,`L = ${n(Lh,2)} mH`,`C = ${n(Ch,2)} μF`]:[`R = ${R} Ω`,sb('X','L')+` = ${XL} Ω`,sb('X','C')+` = ${XC} Ω`]});
+    const sZ=`Z = √(R² + (X<sub>L</sub> − X<sub>C</sub>)²) = √(${R}² + (${XL} − ${XC})²) = <b>${n(Z)} Ω</b>`,sI=`I = U/Z = ${Uv}/${n(Z)} = <b>${n(I,3)} A</b>`,sF=`φ = arctg((X<sub>L</sub> − X<sub>C</sub>)/R) = arctg(${XL-XC}/${R}) = <b>${n(phi)}°</b>: ${phi>0?'napon prethodi struji, induktivno':'napon kasni za strujom, kapacitivno'}`;
+    const D=`Vektorski dijagram: struja I vodoravno, U<sub>R</sub> → u fazi, U<sub>L</sub> ↑ prethodi, U<sub>C</sub> ↓ kasni, a U je spojnica početka i vrha.${diag(c,{ref:`I = ${n(I,2)} A`,els:[lv2('UR')+` = ${n(UR,1)} V`,lv2('UL')+` = ${n(UL,1)} V`,lv2('UC')+` = ${n(UC,1)} V`],res:`U = ${Uv} V`})}`;
+    if(kind==='zi')return acZz(type,kind,lv,{svg:net,text:txt0+' Odredite impedanciju, struju i fazni pomak napona prema struji.',fields:[F('Z',Z,'Ω'),F('I',I,'A'),Fd('φ',phi,1,'s predznakom')],sol:[sZ,sI,sF,D]});
+    if(kind==='nap')return acZz(type,kind,lv,{svg:net,text:txt0+' Odredite struju i napone na pojedinim elementima te nacrtajte vektorski dijagram.',fields:[F('I',I,'A'),F('U<sub>R</sub>',UR,'V'),F('U<sub>L</sub>',UL,'V'),F('U<sub>C</sub>',UC,'V')],
+      sol:[sZ,sI,`U<sub>R</sub> = I·R = <b>${n(UR)} V</b>, U<sub>L</sub> = I·X<sub>L</sub> = <b>${n(UL)} V</b>, U<sub>C</sub> = I·X<sub>C</sub> = <b>${n(UC)} V</b>`,`Provjera: √(U<sub>R</sub>² + (U<sub>L</sub> − U<sub>C</sub>)²) = ${n(Math.hypot(UR,UL-UC))} V = U.${UL>Uv||UC>Uv?' Napon na jednom elementu veći je od napona izvora: naponi se zbrajaju vektorski.':''}`,D]});
+    if(kind==='lc')return acZz(type,kind,lv,{svg:net,text:txt0+' Odredite reaktancije, efektivnu vrijednost struje i fazni pomak.',fields:[F('X<sub>L</sub>',XL,'Ω'),F('X<sub>C</sub>',XC,'Ω'),F('I',I,'A'),Fd('φ',phi,1,'s predznakom')],
+      sol:[`Iz u(t): U<sub>max</sub> = ${Uv}√2 V, pa je U = U<sub>max</sub>/√2 = ${Uv} V, ω = ${w} rad/s`,`X<sub>L</sub> = ωL = ${w}·${n(Lh/1e3,5)} = <b>${n(XL)} Ω</b>, X<sub>C</sub> = 1/(ωC) = 1/(${w}·${n(Ch,2)}·10<sup>−6</sup>) = <b>${n(XC)} Ω</b>`,sZ,sI,sF,D]});
+    const S=Uv*I,P=I*I*R,Q=I*I*(XL-XC);
+    return acZz(type,'sn',lv,{svg:net,text:txt0+' Odredite prividnu, radnu i jalovu snagu izvora.',fields:[F('S',S,'VA'),F('P',P,'W'),F('Q',Q,'VAr',1,'s predznakom')],
+      sol:[sZ,sI,sF,`S = U·I = <b>${n(S)} VA</b>`,`P = U·I·cos φ = I²·R = <b>${n(P)} W</b>`,`Q = U·I·sin φ = I²·(X<sub>L</sub> − X<sub>C</sub>) = <b>${n(Q)} VAr</b> (${Q>0?'induktivno':'kapacitivno'})`,`Trokut snage: P vodoravno, Q ${Q>0?'gore':'dolje'}, S hipotenuza.`]})}
+  /* paralelni spoj */
+  const Uv=pk([10,12,18,20,24,30,50]);
+  if(kind==='av'){const f=1000,R=pk([200,300,500]),L=pk([10,15.9,20])*1e-3,C1=pk([0.22,0.33,0.47])*1e-6,C2=pk([0.68,1,1.5])*1e-6,w=2*Math.PI*f,G=1/R,BL=1/(w*L),BC1=w*C1,BC2=w*C2,B=BL-BC1-BC2,Y=Math.hypot(G,B),I=Uv*Y,phi=acAng(B,G);if(Math.abs(B)<G*0.15)return vdZGen(type,d);
+    const c=vdC('par','RC1LC2',B>0?'L':'C',{m:[Uv*G,Uv*BC1,Uv*BL,Uv*BC2]});c.ref=Math.max(Uv*G,0.4*I)*1.25;
+    return acZz(type,kind,lv,{svg:vdNet(c,{src:`U = ${Uv} V`,labs:[`R = ${R} Ω`,`C₁ = ${n(C1*1e6,2)} μF`,`L = ${n(L*1e3,1)} mH`,`C₂ = ${n(C2*1e6,2)} μF`]}),text:`Paralelni spoj priključen je na napon U = ${Uv} V frekvencije f = ${f} Hz. Zadano je R = ${R} Ω, C₁ = ${n(C1*1e6,2)} μF, L = ${n(L*1e3,1)} mH, C₂ = ${n(C2*1e6,2)} μF. Odredite admitanciju, ukupnu struju i fazni pomak φ = β<sub>u</sub> − β<sub>i</sub> te nacrtajte vektorski dijagram.`,
+      fields:[F('Y',Y,'S'),F('I',I,'A'),Fd('φ',phi,1,'s predznakom')],
+      sol:[`ω = 2πf = ${n(w,1)} rad/s; G = 1/R = ${n(G*1e3)} mS, B<sub>L</sub> = 1/(ωL) = ${n(BL*1e3)} mS, B<sub>C1</sub> = ωC₁ = ${n(BC1*1e3)} mS, B<sub>C2</sub> = ωC₂ = ${n(BC2*1e3)} mS`,`Y = √(G² + (B<sub>L</sub> − (B<sub>C1</sub> + B<sub>C2</sub>))²) = <b>${n(Y*1e3)} mS</b>`,`I = U·Y = <b>${n(I*1e3,1)} mA</b>`,`φ = arctg((B<sub>L</sub> − B<sub>C1</sub> − B<sub>C2</sub>)/G) = <b>${n(phi)}°</b>: ${phi>0?'struja kasni za naponom, induktivno':'struja prethodi naponu, kapacitivno'}. (U zadatku 7.1 računa se kut admitancije, on ima suprotan predznak.)`,
+        `Struje grana: I<sub>R</sub> = ${n(Uv*G*1e3,1)} mA, I<sub>C1</sub> = ${n(Uv*BC1*1e3,1)} mA, I<sub>L</sub> = ${n(Uv*BL*1e3,1)} mA, I<sub>C2</sub> = ${n(Uv*BC2*1e3,1)} mA. Vektorski dijagram: napon U vodoravno, struje redom (I<sub>R</sub> →, I<sub>C1</sub> ↑, I<sub>L</sub> ↓, I<sub>C2</sub> ↑), a I spaja početak i vrh.${diag(c,{ref:`U = ${Uv} V`,els:[lv2('IR')+` = ${n(Uv*G*1e3,0)} mA`,lv2('IC1')+` = ${n(Uv*BC1*1e3,0)} mA`,lv2('IL')+` = ${n(Uv*BL*1e3,0)} mA`,lv2('IC2')+` = ${n(Uv*BC2*1e3,0)} mA`],res:`I = ${n(I*1e3,1)} mA`})}`]})}
+  let R=pk([10,20,25,40,50,100]),XL=pk([10,20,25,40,50,100]),XC=pk([10,20,25,40,50,100].filter(x=>x!==XL)),txt0=null,src=`U = ${Uv} V`,labs=null,Uu=Uv,w=null,Lh=null,Cu=null;
+  if(kind==='ut'){const Ue=pk([10,20,50,100,230]);Uu=Ue;w=100*Math.PI;R=pk([50,100,200]);Lh=pk([0.1,0.2,0.5,1]);Cu=pk([5,10,20,50]);XL=w*Lh;XC=1/(w*Cu*1e-6);src='u(t)';labs=[`R = ${R} Ω`,`L = ${n(Lh,2)} H`,`C = ${n(Cu,1)} μF`];
+    txt0=`Na napon u(t) = ${Ue}√2·sin(100πt) V priključen je paralelni spoj otpornika R = ${R} Ω, zavojnice L = ${n(Lh,2)} H i kondenzatora C = ${n(Cu,1)} μF.`}
+  const G=1/R,BL=1/XL,BC=1/XC,Y=Math.hypot(G,BL-BC),I=Uu*Y,IR=Uu*G,IL=Uu*BL,IC=Uu*BC,phi=acAng(BL-BC,G);
+  const c=vdC('par','RLC',BL>BC?'L':BL<BC?'C':'=',{m:[IR,IL,IC]});c.ref=Math.max(IR,0.4*I)*1.25;
+  const net=vdNet(c,{src,labs:labs||[`R = ${R} Ω`,sb('X','L')+` = ${XL} Ω`,sb('X','C')+` = ${XC} Ω`]});
+  txt0=txt0||`Paralelni spoj otpornika R = ${R} Ω, zavojnice X<sub>L</sub> = ${XL} Ω i kondenzatora X<sub>C</sub> = ${XC} Ω priključen je na izmjenični napon efektivne vrijednosti U = ${Uv} V.`;
+  const sG=`G = 1/R = ${n(G*1e3)} mS, B<sub>L</sub> = 1/X<sub>L</sub> = ${n(BL*1e3)} mS, B<sub>C</sub> = 1/X<sub>C</sub> = ${n(BC*1e3)} mS`,sY=`Y = √(G² + (B<sub>L</sub> − B<sub>C</sub>)²) = <b>${n(Y*1e3)} mS</b>`,sI=`I = U·Y = <b>${n(I,3)} A</b>`,sF=`φ = arctg((B<sub>L</sub> − B<sub>C</sub>)/G) = <b>${n(phi)}°</b>: ${phi>0?'struja kasni za naponom, induktivno':'struja prethodi naponu, kapacitivno'} (φ = β<sub>u</sub> − β<sub>i</sub>)`;
+  const D=`Vektorski dijagram: napon U vodoravno, I<sub>R</sub> → u fazi, I<sub>L</sub> ↓ kasni, I<sub>C</sub> ↑ prethodi, a I je spojnica početka i vrha.${diag(c,{ref:`U = ${Uu} V`,els:[lv2('IR')+` = ${n(IR,2)} A`,lv2('IL')+` = ${n(IL,2)} A`,lv2('IC')+` = ${n(IC,2)} A`],res:`I = ${n(I,2)} A`})}`;
+  if(kind==='yi')return acZz(type,kind,lv,{svg:net,text:txt0+' Odredite admitanciju, ukupnu struju i fazni pomak φ = β<sub>u</sub> − β<sub>i</sub>.',fields:[F('Y',Y,'S'),F('I',I,'A'),Fd('φ',phi,1,'s predznakom')],sol:[sG,sY,sI,sF,D]});
+  if(kind==='str')return acZz(type,kind,lv,{svg:net,text:txt0+' Odredite struje kroz elemente i ukupnu struju te nacrtajte vektorski dijagram.',fields:[F('I<sub>R</sub>',IR,'A'),F('I<sub>L</sub>',IL,'A'),F('I<sub>C</sub>',IC,'A'),F('I',I,'A',2)],
+    sol:[`Na svim granama je isti napon U = ${Uv} V.`,`I<sub>R</sub> = U/R = <b>${n(IR,3)} A</b>, I<sub>L</sub> = U/X<sub>L</sub> = <b>${n(IL,3)} A</b>, I<sub>C</sub> = U/X<sub>C</sub> = <b>${n(IC,3)} A</b>`,`I = √(I<sub>R</sub>² + (I<sub>L</sub> − I<sub>C</sub>)²) = <b>${n(I,3)} A</b>${I<Math.max(IL,IC)?' (manja od struje kroz '+(IL>IC?'zavojnicu':'kondenzator')+': I<sub>L</sub> i I<sub>C</sub> se oduzimaju)':''}`,`Isto preko admitancije: ${sG}; ${sY}; I = U·Y.`,D]});
+  if(kind==='ut')return acZz(type,kind,lv,{svg:net,text:txt0+' Odredite susceptancije, ukupnu struju i fazni pomak φ = β<sub>u</sub> − β<sub>i</sub>.',fields:[F('B<sub>L</sub>',BL,'S'),F('B<sub>C</sub>',BC,'S'),F('I',I,'A'),Fd('φ',phi,1,'s predznakom')],
+    sol:[`Iz u(t): U = ${Uu}√2/√2 = ${Uu} V, ω = 100π = ${n(w,1)} rad/s`,`B<sub>L</sub> = 1/(ωL) = 1/(${n(w,1)}·${n(Lh,2)}) = <b>${n(BL*1e3)} mS</b>, B<sub>C</sub> = ωC = ${n(w,1)}·${n(Cu,1)}·10<sup>−6</sup> = <b>${n(BC*1e3)} mS</b>, G = 1/R = ${n(G*1e3)} mS`,sY,sI,sF,D]});
+  const P=Uv*Uv*G,Q=Uv*Uv*(BL-BC),S=Uv*I;
+  return acZz(type,'sn',lv,{svg:net,text:txt0+' Odredite radnu, jalovu i prividnu snagu izvora.',fields:[F('P',P,'W'),F('Q',Q,'VAr',1,'s predznakom'),F('S',S,'VA')],
+    sol:[`P = U²/R = ${Uv}²/${R} = <b>${n(P)} W</b>`,`Q<sub>L</sub> = U²/X<sub>L</sub> = ${n(Uv*Uv*BL)} VAr, Q<sub>C</sub> = U²/X<sub>C</sub> = ${n(Uv*Uv*BC)} VAr, Q = Q<sub>L</sub> − Q<sub>C</sub> = <b>${n(Q)} VAr</b> (${Q>0?'induktivno':'kapacitivno'})`,`S = √(P² + Q²) = U·I = <b>${n(S)} VA</b>`,`Trokut snage: P vodoravno, Q ${Q>0?'gore':'dolje'}, S hipotenuza.`]})}
+let vdZdiag='';
+{const _zg=zGen;zGen=function(type,d){if(VD2K.has(type)){const z=vdZGen(type,d);z.diag=vdZdiag;return z}return _zg.apply(this,arguments)}}
+{const _rz=renderZad;renderZad=function(){const r=_rz.apply(this,arguments);try{if(zShow&&zad&&zad.diag&&VD2K.has(zad.type)&&!document.getElementById('zdiag')){const sh=$('#zsch');if(sh)sh.insertAdjacentHTML('afterend',`<div id="zdiag" style="border-top:1px solid var(--line);margin-top:6px"><div class="meta"><span>Vektorski dijagram</span><span>${zad.type==='ser2'?'naponi i struja':'struje i napon'}</span></div><div class="schem">${zad.diag}</div></div>`)}}catch(e){}return r}}
+
+/* --- registracija gradiva (samo test) --- */
+if(AC2){
+  for(const [k,l] of VD2){TOPICS[k]=l;MODNAME[k]=l;STNAME[k]=l}
+  {const i=MODS.findIndex(m=>m[0]==='auvod');MODS.splice(i<0?MODS.length:i,0,...VD2.map(x=>[x[0],x[1]]))}
+  ACM.unshift(...VD2.map(x=>[x[0],x[1]]));VD2.forEach(([k])=>{ACK.add(k);ACZ.push(k)});KZMODS.kz2.unshift(...VD2.map(x=>x[0]));
+  for(const k in state.profiles){const p=state.profiles[k];for(const [t] of VD2)if(!p.ratings[t])p.ratings[t]={r:2.0,n:0,c:0}}
+  {const _np=newProfile;newProfile=function(n){const p=_np(n);for(const [t] of VD2)p.ratings[t]={r:2.0,n:0,c:0};return p}}
+  {const _rd=render;render=function(){try{const p=prof();if(p)for(const [t] of VD2)if(!p.ratings[t])p.ratings[t]={r:2.0,n:0,c:0}}catch(e){}return _rd.apply(this,arguments)}}
+  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const ps=[...main.querySelectorAll('.help p')],a=ps.find(x=>x.textContent.startsWith('Gradiva KZ2'));if(a&&!document.getElementById('vdhelp'))a.insertAdjacentHTML('afterend',`<p id="vdhelp"><b>Serijski i Paralelni RLC spoj (2)</b> (samo na testu). Nova gradiva za vektorski dijagram prema predavanju i AV 6 i AV 7. U <b>Lekciji</b> dijagram se crta korak po korak (gumb „Crtaj korak po korak”): u seriji prvo struja, u paraleli prvo napon, zatim vektori elemenata prema pravilu „medo prelazi ULICU”, rezultanta i fazni kut. U <b>Vježbi</b> nema brojeva: u zadatku „Nacrtaj vektorski dijagram” sam biraš što se crta prvo i kamo ide svaki vektor (klikom na strelicu na dijagramu ili gumbom), zatim rezultantu i karakter spoja; uz to su kratka pitanja (kamo crtamo vektor, koji dijagram odgovara spoju, pronađi grešku, induktivno ili kapacitivno, odnosi napona i struja, trokut impedancije i admitancije). U <b>Zadacima</b> su zadaci s brojevima kao na KZ2, a u rješenju je i vektorski dijagram u mjerilu. U paraleli je fazni pomak φ = β<sub>u</sub> − β<sub>i</sub>: pozitivan za induktivno, negativan za kapacitivno.</p>`)}catch(e){}return r}}
+}else{
+  /* na živoj verziji: ako je profil zadnji put bio na testnom gradivu (2), vrati ga na postojeće */
+  {const _rd=render;render=function(){try{const p=prof();if(p){if(VD2K.has(p.module))p.module=p.module==='par2'?'apar':'aser';const Z=p.zad;if(Z&&VD2K.has(Z.type)){Z.type=Z.type==='par2'?'apar':'aser';zad=null}}}catch(e){}return _rd.apply(this,arguments)}}
+}
 view='home';
 boot();
 
@@ -4386,6 +4764,10 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
   const toast=t=>{document.getElementById('novotoast')?.remove();const d=document.createElement('div');d.id='novotoast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),7000)};
   const go=(v,m)=>{if(!prof())return toast('Prvo se prijavi.');const b=document.querySelector(`#nav [data-v="${v}"]`);if(b)b.click();if(m){const x=main.querySelector(`.modbar[role=tablist] [data-m="${m}"]`);if(x&&x.getAttribute('aria-current')!=='true')x.click()}scrollTo(0,0)};
   const T=[
+    ['Vektorski dijagram (2)','serijski i paralelni spoj: lekcija korak po korak',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='ser2';lstep.ser2=0;save();view='lesson';render();scrollTo(0,0)}],
+    ['Nacrtaj vektorski dijagram (2)','Vježba: klikom biraš smjer svakog vektora',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='ser2';testType='vs_crt';acq=null;save();view='practice';render();scrollTo(0,0)}],
+    ['Paralelni RLC spoj (2)','lekcija, vježba bez brojeva, zadaci',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='par2';lstep.par2=0;save();view='lesson';render();scrollTo(0,0)}],
+    ['Zadaci (2)','s brojevima i vektorskim dijagramom u rješenju',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';const Z=zProf();Z.type='ser2';zad=null;save();view='zad';render();scrollTo(0,0)}],
     ['Izbor kolokvija','KZ1 · KZ2 · KZ3 · Sve',()=>{go('home');toast('Iznad gradiva odaberi kolokvij: prikazuju se samo njegova gradiva.')}],
     ['Uvod u izmjenične krugove','lekcija i vježba',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='auvod';lstep.auvod=0;save();view='lesson';render();scrollTo(0,0)}],
     ['Serijski RLC spoj','lekcija i vježba (AV 6)',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='aser';lstep.aser=0;save();view='lesson';render();scrollTo(0,0)}],
