@@ -4208,7 +4208,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-ksh],[data
   if(t.dataset.ksh)KSH.sel=t.dataset.ksh;
   else if(t.dataset.ksho){KSH.open=!KSH.open;Store.set('ksho',KSH.open);try{ev('salabahter',KSH.open?'otvoren':'zatvoren','akom',true)}catch(e){}}
   kshDraw()});
-new MutationObserver(()=>{try{if((view!=='practice'&&view!=='lesson')||!prof()||(prof().module!=='akom'&&!(typeof AM2K!=='undefined'&&AM2K.has(prof().module)))||document.body.classList.contains('chal')||(typeof exam!=='undefined'&&exam&&exam.running))return;if(document.getElementById('ksh'))return;const b=main.querySelector('.board,.lesson');if(b)b.insertAdjacentHTML('beforebegin',kshHtml())}catch(e){}}).observe(main,{childList:true,subtree:true});
+new MutationObserver(()=>{try{const zk=view==='zad'&&typeof zad!=='undefined'&&zad&&(zad.type==='akom'||(typeof AM2K!=='undefined'&&AM2K.has(zad.type)));if(!zk&&((view!=='practice'&&view!=='lesson')||!prof()||(prof().module!=='akom'&&!(typeof AM2K!=='undefined'&&AM2K.has(prof().module)))))return;if(false||document.body.classList.contains('chal')||(typeof exam!=='undefined'&&exam&&exam.running))return;if(document.getElementById('ksh'))return;const b=main.querySelector('.board,.lesson');if(b)b.insertAdjacentHTML('afterend',kshHtml().replace('margin:0 0 14px','margin:14px 0 0'))}catch(e){}}).observe(main,{childList:true,subtree:true});
 
 /* ===== KZ2 (2): vektorski dijagram – serijski i paralelni spoj (prema EtRpred10, AV 6 i AV 7) =====
    Nova gradiva s oznakom (2). Za sada vidljiva samo na testu (AC2 = IS_TEST); na živoj verziji kod postoji, ali gradiva nisu registrirana. */
