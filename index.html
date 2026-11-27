@@ -334,7 +334,7 @@ const TABHELP={home:'Pregled tvojih gradiva i razina te preporuka što dalje vje
 function header(){
   const p=prof();
   $('#hdrNum').textContent=p?fmt(overall(p)):'–';$('#hdrRating').classList.toggle('hidden',!p);$('#hdrNick').textContent=p?p.nick:'';
-  const tabs=[['home','Početna'],...(typeof kzActive==='function'&&(kzActive()||(typeof kzTab==='function'&&kzTab()))?[['kz',isEtr()?'KZ1':'Priprema KZ']]:[]),['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);try{if(typeof askUnseen==='function'&&askUnseen()){const t=tabs.find(x=>x[0]==='progress');if(t)t[1]='Napredak ●'}}catch(e){}if(typeof isAdmin!=='undefined'&&isAdmin)tabs.push(['fb',fbNew?`Nastavnik (${fbNew})`:'Nastavnik']);
+  const tabs=[['home','Početna'],...(typeof kzActive==='function'&&(kzActive()||(typeof kzTab==='function'&&kzTab()))?[['kz',isEtr()?'KZ':'Priprema KZ']]:[]),['lesson','Lekcija'],['practice','Vježba'],['zad','Zadaci'],['progress','Napredak'],['board','Ljestvica']];tabs.push(['bank','Baza zadataka']);tabs.push(['help','O aplikaciji']);try{if(typeof askUnseen==='function'&&askUnseen()){const t=tabs.find(x=>x[0]==='progress');if(t)t[1]='Napredak ●'}}catch(e){}if(typeof isAdmin!=='undefined'&&isAdmin)tabs.push(['fb',fbNew?`Nastavnik (${fbNew})`:'Nastavnik']);
   $('#nav').innerHTML=p?tabs.map(([k,l])=>`<button data-v="${k}" aria-current="${view===k||(k==='zad'&&view==='exam')}" title="${TABHELP[k]||''}">${l}</button>`).join(''):'';
   $('#nav').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{try{testType=''}catch(e){}if(b.dataset.v==='board'&&view!=='board')try{boardAll=true}catch(e){}},true));
   $('#nav').querySelectorAll('button').forEach(b=>b.onclick=(ev)=>{if(exam&&exam.running&&b.dataset.v!=='exam'&&!exOK){const t=ev.currentTarget;exAsk(()=>{exOK=true;t.click();exOK=false});return}if(b.dataset.v!=='exam'){exam=null;if(rk&&rk.exam)rk=null}view=b.dataset.v;render()});
@@ -529,7 +529,7 @@ function renderHelp(){
   <h3>Testiraj se</h3>
   <p>U kartici Zadaci odaberi <b>Testiraj se</b>: niz zadataka iz odabranog gradiva bez pomoći i bez objašnjenja do kraja, s mjerenjem vremena.</p>
   <h3>Priprema za KZ1</h3>
-  <p>Kartica <b>KZ1</b> vodi te kroz tri stadija: Vježba u svim gradivima, Zadaci s brojevima i <b>Probna KZ1</b> (probna kontrolna zadaća: 4 zadatka, 6 + 6 + 6 + 2 boda, 60 + 5 minuta). Stadiji se otključavaju redom, a računa se i sve što je već riješeno. Nakon predaje probne KZ1 možeš pregledati svaki zadatak s rješenjem. Bodovanje probne KZ1 može biti drukčije od stvarnog. Datum i pravila vrijede za kolegij Elektrotehnika R, a službeni listovi formula (EtR_f1, EtR_f2) mogu se preuzeti u kartici KZ1.</p>
+  <p>Kartica <b>KZ</b> (uz odabran KZ1) vodi te kroz tri stadija: Vježba u svim gradivima, Zadaci s brojevima i <b>Probna KZ1</b> (probna kontrolna zadaća: 4 zadatka, 6 + 6 + 6 + 2 boda, 60 + 5 minuta). Stadiji se otključavaju redom, a računa se i sve što je već riješeno. Nakon predaje probne KZ1 možeš pregledati svaki zadatak s rješenjem. Bodovanje probne KZ1 može biti drukčije od stvarnog. Datum i pravila vrijede za kolegij Elektrotehnika R, a službeni listovi formula (EtR_f1, EtR_f2) mogu se preuzeti u kartici KZ1.</p>
   <h3>Kolegij</h3>
   <p>Aplikaciju koriste studenti više kolegija. Svoj kolegij odabereš pri prvoj prijavi, a možeš ga promijeniti na Napretku ili klikom na napomenu na Početnoj.</p>
   <h3>Pitaj nastavnika i povratne informacije</h3>
@@ -1401,7 +1401,7 @@ function homeMods(p){return MODS.map(([k,l])=>{const ts=k==='kont'?['kont','cvor
 function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0);
   const fresh=ms.find(m=>m.n<5),weak=ms.slice().sort((a,b)=>a.r-b.r)[0],rec=tot===0?ms.find(m=>m.k===p.module)||ms[0]:fresh||weak;
   const why=tot===0?'Kreni od lekcije, a zatim vježbaj.':rec.n<5?'Ovo gradivo još nije dovoljno isprobano.':'Ovdje ti je razina trenutno najniža.';
-  const ZR={estat:['nab',['nab','capu']],ruk:['ruk',['ruk','cap','ui']],kont:['kont',['kont','cvor']],thev:['thev',['thev','nort','pril']],mag:['mag',['mag']]}[rec.k],zg=ZR?ZR[1].reduce((s,t)=>s+((((p.zad||{}).t||{})[t]||{}).g||0),0):0,zrec=tot>0&&ZR&&rec.r>=5&&zg<3?ZR[0]:null;
+  const ZR={estat:['nab',['nab','capu']],ruk:['ruk',['ruk','cap','ui']],kont:['kont',['kont','cvor']],thev:['thev',['thev','nort','pril']],mag:['mag',['mag']]}[rec.k]||(typeof zr2==='function'?zr2(rec.k):null),zg=ZR?ZR[1].reduce((s,t)=>s+((((p.zad||{}).t||{})[t]||{}).g||0),0):0,zrec=tot>0&&ZR&&rec.r>=5&&zg<3?ZR[0]:null;
   const bar=r=>`<div style="height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 10px"><div style="height:100%;width:${Math.max(4,Math.min(100,(r-1)/9*100))}%;background:var(--ok)"></div></div>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:980px">
   <h2 style="margin-bottom:4px">Bok, ${p.nick}!</h2>${kzBanner()}
@@ -1638,6 +1638,7 @@ async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`
 
 /* ---------- Verzije ---------- */
 const VERS=[
+ ['0.20','27. 11. 2026.',['Novo gradivo za KZ2: Serijski i Paralelni RLC spoj (vektorski dijagram), Kompleksni zapis, Konturne struje, Naponi čvorova, Rezonancija, Snaga i trokut snage, Thevenin i Norton','Vježba: Nacrtaj vektorski dijagram i Postavi jednadžbe korak po korak','Priprema za KZ2 i Probna KZ2 u kartici KZ, ljestvica Probne KZ2','Obavijest na Početnoj: gdje učiti i kako se otključava probna KZ2','Uz odabran KZ2 Preporuka, Zadaci dana i Dnevni izazov idu iz gradiva za KZ2','Šalabahter sa svim zapisima impedancija i admitancija','Stara gradiva za KZ2 u prethodnoj verziji aplikacije','Isprobaj u Bazi zadataka']],
  ['0.19','2. 11. 2026.',['Gradivo za KZ2: Uvod u izmjenične krugove, Serijski i Paralelni RLC spoj, Kompleksni račun (lekcije, vježba, zadaci s brojevima)','Izbor kolokvija KZ1 / KZ2 / KZ3 / Sve','Animacija „Što znači prethodi?” (medo prelazi ULICU)','Vektorski dijagram serijskog spoja korak po korak','Zadaci AV 7.4 i 7.5: konturne struje i napon čvora','Animacije, odgovaranje tipkovnicom, postupno objašnjenje i sažetak vježbanja']],
  ['0.18','21. 10. 2026.',['Dnevni izazov: 5 težih pitanja dnevno, isti za sve, s ljestvicom','Prsteni napretka po gradivu na Početnoj','Ukupni otpor: zadaci s trikom (kratki spoj, slijepa grana, stezaljke na mjestu otpornika)','Elektrostatika: 157 pitanja i ispravno biranje težine','Vježbam bez bodovanja i Ponovi moje greške','Povećanje slika','Što je novo na Početnoj']],
  ['0.17','18. 10. 2026.',['Zadaci dana na Početnoj','Tjedna ljestvica: prijašnji tjedni i značka Tjedni vrh','Poruka kad je gradivo svladano i poveznica na zadatke s brojevima iz Vježbe','Pitanja su sada malo zahtjevnija','Formule otvaraju se u pregledniku, poveznica na lekciju u Vježbi i Zadacima','Serija i paralela: nova vrsta pitanja Mreža s izvorima','Preporuka za danas predlaže i zadatke s brojevima','Preskakanje koraka ili cijelog zadatka u zadacima s više koraka']],
@@ -2289,7 +2290,7 @@ function kzStart(){kzSim={t0:Date.now(),zs:[0,1,2,3].map(i=>kzPickTask(i,2)),max
 function kzFinish(){const S=kzSim;S.done=true;S.t1=Date.now();S.parts=S.zs.map((z,i)=>{const F=z.fields;let got=0,all=0;F.forEach((f,j)=>{all+=f.w;const ok=zMatch(zParse(z.ans.v[j]),f.val);z.ans.ok[j]=ok;if(ok)got+=f.w});return Math.round(S.max[i]*got/all*2)/2});S.pts=S.parts.reduce((a,b)=>a+b,0);
   const p=prof();p.kz=p.kz||{sims:[]};p.kz.sims.push({d:Date.now(),pts:S.pts,parts:S.parts,min:Math.round((S.t1-S.t0)/60000)});p.kz.best=Math.max(p.kz.best||0,S.pts);if(!p.kz.seenRules){p.kz.seenRules=true;kzShowRules=true}save();
   try{gcSend&&gcSend('kz/simulacija/'+(S.pts>=6?'prolaz':'pad'))}catch(e){}}
-function kzTick(){const el=$('#kztm');if(!el||!kzSim||kzSim.done)return;const left=Math.max(0,65*60-Math.floor((Date.now()-kzSim.t0)/1000));el.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;el.style.color=left<300?'var(--bad)':'';if(left<=0){kzSave();kzFinish();renderKZ();return}clearTimeout(kzSim.tt);kzSim.tt=setTimeout(kzTick,500)}
+function kzTick(){const el=$('#kztm');if(!el||!kzSim||kzSim.done)return;const left=Math.max(0,(kzSim.k==='kz2'?95:65)*60-Math.floor((Date.now()-kzSim.t0)/1000));el.textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;el.style.color=left<300?'var(--bad)':'';if(left<=0){kzSave();kzFinish();renderKZ();return}clearTimeout(kzSim.tt);kzSim.tt=setTimeout(kzTick,500)}
 function kzSave(){if(!kzSim)return;const z=kzSim.zs[kzSim.i];main.querySelectorAll('[data-kf]').forEach(i=>z.ans.v[+i.dataset.kf]=i.value)}
 function kzTxt(zz){return zz.kzFree?zText(zz).replace(/^Metodom konturnih struja odredite struje kroz sve otpornike\. Smjerovi konturnih struja zadani su na slici\.|^Metodom napona čvorova odredite napone čvorova i struje kroz sve otpornike\. Donji čvor je referentni \(uzemljen\)\./,'Bilo kojom metodom odredite iznose traženih struja i napona na otpornicima.'):zText(zz)}
 function renderKZSim(){const S=kzSim,z=S.zs[S.i],done=S.done;
@@ -2776,6 +2777,7 @@ renderBoardWeek=async function(){const me=prof().nick,cur=weekId(zgDate()),wk=bw
 /* ---------- Zadaci dana (Početna) ---------- */
 const QB=5;
 function qGroups(){return KZS1.map(([k,l,ts])=>({k,l,ts}))}
+function qZG(k){return KZS2.find(g=>g[0]===k)||(typeof K2S2!=='undefined'?K2S2.find(g=>g[0]===k):null)||null}
 function qGroupOf(){const p=prof();if(view==='practice'){const m=p.module;return qGroups().find(g=>g.ts.includes(m))||null}return null}
 function qMake(p){const t=zgDate();if(p.quest&&p.quest.day===t)return p.quest;const G=qGroups().map(g=>{let n=0,w=0,s=0;g.ts.forEach(x=>{const r=p.ratings[x];if(r){n+=r.n;const ww=Math.max(1,r.n);w+=ww;s+=r.r*ww}});return{...g,n,r:w?s/w:2}});
   const weak=G.filter(g=>g.n>=3).sort((a,b)=>a.r-b.r)[0]||G[0],rest=G.filter(g=>g.k!==weak.k),few=rest.find(g=>g.n<15||g.r<4)||rest.slice().sort((a,b)=>a.n-b.n)[0];
@@ -2796,7 +2798,7 @@ function qHtml(p){const Q=qMake(p),all=Q.q.every(x=>x.done);
   ${all?'<p class="note" style="margin:10px 0 0">Svi zadaci dana su ispunjeni. Sutra stižu novi!</p>':''}</div>`}
 /* Početna: zadaci dana i tjedni vrh */
 {const _rh2=renderHome;renderHome=function(){const r=_rh2.apply(this,arguments);try{const p=prof(),h3=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Gradiva');if(h3&&!main.querySelector('[data-qgo],#qbox')){h3.insertAdjacentHTML('beforebegin',`<div id="qbox">${qHtml(p)}</div>`);
-    {const w=document.getElementById('qwk');if(w)w.onclick=e=>{e.preventDefault();view='board';boardAll='week';bwSel=null;render();window.scrollTo(0,0)}}main.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>{if(b.dataset.qgo.startsWith('Z:')){const G=KZS2.find(x=>x[0]===b.dataset.qgo.slice(2)),Z=zProf();if(G){zTestKind='';Z.type=G[2][0];save();zad=null}view='zad';render();window.scrollTo(0,0);return}const g=qGroups().find(x=>x.k===b.dataset.qgo);if(!g)return;p.module=g.ts[0];save();view='practice';render();window.scrollTo(0,0)})}
+    {const w=document.getElementById('qwk');if(w)w.onclick=e=>{e.preventDefault();view='board';boardAll='week';bwSel=null;render();window.scrollTo(0,0)}}main.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>{if(b.dataset.qgo.startsWith('Z:')){const G=qZG(b.dataset.qgo.slice(2)),Z=zProf();if(G){zTestKind='';Z.type=G[2][0];save();zad=null}view='zad';render();window.scrollTo(0,0);return}const g=qGroups().find(x=>x.k===b.dataset.qgo);if(!g)return;p.module=g.ts[0];save();view='practice';render();window.scrollTo(0,0)})}
     wmLoad().then(()=>{if(view!=='home'||!WM)return;const last=wkPrev(),win=WM.filter(x=>x.week===last),mine=win.find(x=>x.nick===p.nick);if(!mine||main.querySelector('#wmhome'))return;const qb=main.querySelector('#qbox');if(!qb)return;
       qb.insertAdjacentHTML('beforebegin',`<div id="wmhome" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:10px 14px;margin:0 0 16px"><b>Čestitamo! Prošli tjedan: tjedni vrh, ${mine.rnk}. mjesto ${wkIcon(mine.rnk)}</b></div>`)})}catch(e){}return r}}
 /* Podsjetnik nakon 20 pitanja u istom gradivu */
@@ -2819,7 +2821,7 @@ async function anExport(){try{const {data,error}=await Remote.rpc('admin_export'
     feedback:(D.feedback||[]).map(f=>({sid:sid(f.pid),kind:f.kind,qid:f.qid,page:f.page,msg:f.msg,rating:f.rating,extra:f.extra,replied:!!f.reply,t:f.t}))};
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:'application/json'}));a.download='radionica-izvoz-'+zgDate()+'.json';a.click()}catch(e){alert('Izvoz nije uspio. Je li pokrenut supabase-dodatak-tjedni.sql?')}}
 
-{const _zf=zFinish;zFinish=function(z,shown){const was=z&&z.ans&&z.ans.done;const r=_zf.apply(this,arguments);try{if(!was&&!shown){const p=prof(),F=zFields(z),max=F.reduce((s,f)=>s+f.w,0);if(max&&z.ans.pts/max>=0.5){const Q=qMake(p);if(!Q.q.some(x=>x.id==='zad'))Q.q.push(qZad(p));const x=Q.q.find(x=>x.id==='zad');const G=KZS2.find(g=>g[0]===x.g);if(!x.done&&G&&G[2].includes(z.type)){x.prog++;if(x.prog>=x.need){x.done=true;gWeek(p).pts+=x.b||QB;toast(`⭐ Zadatak dana ispunjen! +${x.b||QB} bodova za tjednu ljestvicu`)}save()}}}}catch(e){}return r}}
+{const _zf=zFinish;zFinish=function(z,shown){const was=z&&z.ans&&z.ans.done;const r=_zf.apply(this,arguments);try{if(!was&&!shown){const p=prof(),F=zFields(z),max=F.reduce((s,f)=>s+f.w,0);if(max&&z.ans.pts/max>=0.5){const Q=qMake(p);if(!Q.q.some(x=>x.id==='zad'))Q.q.push(qZad(p));const x=Q.q.find(x=>x.id==='zad');const G=qZG(x.g);if(!x.done&&G&&G[2].includes(z.type)){x.prog++;if(x.prog>=x.need){x.done=true;gWeek(p).pts+=x.b||QB;toast(`⭐ Zadatak dana ispunjen! +${x.b||QB} bodova za tjednu ljestvicu`)}save()}}}}catch(e){}return r}}
 
 /* ---------- Tjedni bodovi u svladanom gradivu, svladano, zadaci iz Vježbe ---------- */
 const ZFROM={estat:'nab',ruk:'ruk',rukC:'cap',kont:'kont',cvor:'cvor',thev:'thev',nort:'nort',mag:'mag'};
@@ -3003,12 +3005,12 @@ function magSredina(){const pk=a=>a[Math.floor(Math.random()*a.length)],mA=Math.
 /* ---------- Ljestvica: moja mjesta ---------- */
 let MP=null,MPt=0,MPload=false;
 async function mpLoad(){if(!Remote||MPload||(MP&&Date.now()-MPt<120000))return;MPload=true;const me=prof().nick,rk=rows=>{const i=(rows||[]).findIndex(r=>r.nick===me);return{i:i<0?null:i+1,n:(rows||[]).length}};
-  const jobs=[['week','Ovaj tjedan',Remote.rpc('leaderboard_week',{p_week:weekId(zgDate())})],['tot','Ukupno',Remote.rpc('leaderboard_total')],['zad','Zadaci',Remote.rpc('leaderboard_zad')],['kz','Probna KZ1',Remote.rpc('leaderboard_kz')],...MODS.map(([k,l])=>['m:'+k,l,Remote.rpc('leaderboard',{p_topic:k})])];
+  const jobs=[['week','Ovaj tjedan',Remote.rpc('leaderboard_week',{p_week:weekId(zgDate())})],['tot','Ukupno',Remote.rpc('leaderboard_total')],['zad','Zadaci',Remote.rpc('leaderboard_zad')],['kz','Probna KZ1',Remote.rpc('leaderboard_kz')],...(typeof AC3!=='undefined'&&AC3?[['kz2','Probna KZ2',Remote.rpc('leaderboard_kz2')]]:[]),...MODS.map(([k,l])=>['m:'+k,l,Remote.rpc('leaderboard',{p_topic:k})])];
   const res=await Promise.all(jobs.map(j=>j[2].then(r=>r,()=>({error:1}))));MP=jobs.map((j,i)=>({k:j[0],l:j[1],...(res[i].error?{i:null,n:0}:rk(res[i].data))}));MPt=Date.now();MPload=false;if(view==='board'){document.getElementById('mypos')?.remove();mpShow()}}
 function mpShow(){if(view!=='board'||!MP||document.getElementById('mypos'))return;const got=MP.filter(x=>x.i);
   const MC={1:'#D4A017',2:'#A8B2BD',3:'#C07A3A'},chip=x=>`<button data-mp="${x.k}" class="ghost" style="margin:0;padding:5px 10px;font-size:13px;border-radius:8px;${MC[x.i]?`box-shadow:inset 0 0 0 2px ${MC[x.i]}`:''}">${x.l}: <b style="${MC[x.i]?`color:${MC[x.i]};font-size:15px`:''}">${x.i?x.i+'.':'–'}</b>${x.i?`<span style="color:var(--muted)"> od ${x.n}</span>`:''}</button>`;
   main.insertAdjacentHTML('afterbegin',`<div id="mypos" style="margin:0 0 12px"><div style="font-size:13px;color:var(--muted);margin:0 0 6px">${got.length?'Tvoja mjesta na ljestvicama':'Još nisi na ljestvicama. Riješi koji zadatak pa se pojavljuješ ovdje.'}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${MP.map(chip).join('')}</div></div>`);
-  main.querySelectorAll('[data-mp]').forEach(b=>b.onclick=()=>{const k=b.dataset.mp;if(k==='week')boardAll='week';else if(k==='tot')boardAll=true;else if(k==='streak')boardAll='streak';else if(k==='zad')boardAll='zad';else if(k==='kz')boardAll='kz';else{boardAll=false;prof().module=k.slice(2)}render();window.scrollTo(0,0)})}
+  main.querySelectorAll('[data-mp]').forEach(b=>b.onclick=()=>{const k=b.dataset.mp;if(k==='week')boardAll='week';else if(k==='tot')boardAll=true;else if(k==='streak')boardAll='streak';else if(k==='zad')boardAll='zad';else if(k==='kz')boardAll='kz';else if(k==='kz2')boardAll='kz2';else{boardAll=false;prof().module=k.slice(2)}render();window.scrollTo(0,0)})}
 new MutationObserver(()=>{try{if(view!=='board')return;if(!document.getElementById('mypos')){if(MP)mpShow();mpLoad()}}catch(e){}}).observe(main,{childList:true});
 
 /* ---------- Ljestvica: Redovitost ---------- */
@@ -3308,8 +3310,8 @@ function chWhy(R,i){const x=(R.info||[])[i],s=R.res[i];if(!x)return '';if(x.skip
   if(x.raw<=0)return 'netočno';const t=Math.round(x.sec),k=Math.floor(x.sec/5);return k===0?`točno za ${t} s`:`točno za ${t} s: 2 − ${k} × 0,2 (${k} × 5 s)${10-k<1?', najmanje 0,2':''}`}
 new MutationObserver(()=>{try{if(typeof CH!=='undefined'&&CH&&view==='practice'&&!document.getElementById('chbar')&&main.querySelector('.board,.sheet'))chBar()}catch(e){}}).observe(main,{childList:true});
 /* ===== Što je novo (Početna) ===== */
-const NEWSV={'0.19':1,'0.18':1};document.addEventListener('click',e=>{const b=e.target.closest('[data-nwv]');if(!b)return;e.preventDefault();newsOpen(b.dataset.nwv)});
-const NEWS_ID='n2026-11-02';
+const NEWSV={'0.20':1,'0.19':1,'0.18':1};document.addEventListener('click',e=>{const b=e.target.closest('[data-nwv]');if(!b)return;e.preventDefault();newsOpen(b.dataset.nwv)});
+const NEWS_ID='n2026-11-27';
 const NEWS=[];
 const NEWS_018=[
  {t:'Dnevni izazov',h:`<p>Svaki dan <b>5 težih pitanja</b> iz gradiva koja se trenutačno najviše vježbaju, isti set za sve. Najviše je <b>10 bodova</b>: brži točan odgovor nosi više (svakih 5 sekundi 0,2 boda manje), a kod zadataka s koracima oduzimaju se pogreške. Na kraju vidiš za svako pitanje odakle bodovi i kako stojiš prema prosjeku svih. Na ljestvicu izazova i u tjedne bodove ulazi prvi pokušaj u danu. Otključava se nakon 100 riješenih pitanja.</p>`,a:[['nwch','Idi na izazov'],['nwlb','Ljestvica izazova']]},
@@ -3320,7 +3322,7 @@ const NEWS_018=[
  {t:'Veće slike',h:`<p><b>Na prijedlog iz studentske ankete</b>: svaku sliku (naboji, mreže, polja) možeš povećati gumbom <b>⤢</b> u njezinu gornjem desnom kutu. Povećanu sliku možeš dodatno povećati gumbima + i − ili prstima, a zatvara se klikom pored nje. Na mobitelu su crteži naboja sada i sami veći.</p><p>Hvala na prijedlogu!</p>`,a:[]},
  {t:'Sitnice',h:`<ul style="margin:0;padding-left:18px"><li>U zadacima s koracima postoji gumb <b>Novi zadatak</b> i usred rješavanja (i <b>Preskoči korak</b> gdje ima smisla).</li><li>U Bazi zadataka rezultati su odmah prikazani, a kod Ukupnog otpora može se birati vrsta zadatka.</li><li>U Zadacima je Magnetsko polje na kraju, kao na nastavi.</li><li>Povremeno se pojavi kratka anketa o gradivu koje se puno vježba. Hvala na odgovorima!</li></ul>`,a:[]}];
 function newsSeen(p){return (p.newsSeen||'')===NEWS_ID}
-function newsOpen(ver){const p=prof(),old=ver&&ver!=='0.19'&&NEWSOLD[ver],LIST=old||NEWS,VV=VERS.find(x=>x[0]===(ver||'0.19'))||VERS[0];if(!old){p.newsSeen=NEWS_ID;save()}
+function newsOpen(ver){const p=prof(),old=ver&&ver!=='0.20'&&NEWSOLD[ver],LIST=old||NEWS,VV=VERS.find(x=>x[0]===(ver||'0.20'))||VERS[0];if(!old){p.newsSeen=NEWS_ID;save()}
   const m=fbModal(`<h3 style="margin:0 0 4px">${old?`Novosti u verziji ${VV[0]}`:'Što je novo'}</h3><p class="note" style="margin:0 0 10px">${old?`Verzija ${VV[0]} · ${VV[1]}`:'Nova verzija Digitalne radionice.'}</p>${LIST.map(n=>`<div style="border-top:1px solid var(--line);padding:10px 0 4px"><h4 style="margin:0 0 6px;font-size:17px">${n.t}</h4>${n.h}${n.a.length?`<div class="row" style="gap:8px;flex-wrap:wrap;margin:6px 0 4px">${n.a.map(([id,l])=>`<button class="ghost" data-nw="${id}" style="margin:0">${l}</button>`).join('')}</div>`:''}</div>`).join('')}<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">${IS_TEST&&!old?'<a href="#" id="nwreset" class="note" style="color:var(--muted)">(test) vrati kao nepročitano</a>':'<span></span>'}<span style="display:inline-flex;gap:8px;align-items:center"><button class="ghost" id="nwfb2" style="margin:0;padding:6px 10px;font-size:13px;color:var(--muted)">Pošalji povratnu informaciju</button><button class="primary" id="nwx" style="margin:0">Zatvori</button></span></div>`);
   m.querySelector('#nwfb2').onclick=()=>{m.remove();try{fbOpen({})}catch(e){}};
   const close=()=>{m.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape'){close();if(view==='home')render()}};document.addEventListener('keydown',esc);m.querySelector('#nwx').onclick=()=>{close();if(view==='home')render()};
@@ -3339,7 +3341,7 @@ function newsOpen(ver){const p=prof(),old=ver&&ver!=='0.19'&&NEWSOLD[ver],LIST=o
 {const _rhN=renderHome;renderHome=function(){const r=_rhN.apply(this,arguments);try{const p=prof(),h=main.querySelector('.sheet.panel h2');if(!p||!h||document.getElementById('nwbox'))return r;
   if(!p.newsSeen&&!fbTotal(p)){p.newsSeen=NEWS_ID;save()}
   const fresh=!newsSeen(p);
-  h.insertAdjacentHTML('afterend',fresh?`<div id="nwbox" style="display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:10px 14px;margin:8px 0 12px;background:color-mix(in srgb,var(--ok) 8%,transparent)"><div style="flex:1;min-width:200px"><b>Nova verzija aplikacije</b><div class="note" style="margin:2px 0 0">Gradivo za KZ2 (izmjenične struje), izbor kolokvija, animacija „Što znači prethodi?” i vektorski dijagram korak po korak.</div></div><button class="primary" id="nwbtn" style="margin:0">Što je novo?</button></div>`
+  h.insertAdjacentHTML('afterend',fresh?`<div id="nwbox" style="display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:10px 14px;margin:8px 0 12px;background:color-mix(in srgb,var(--ok) 8%,transparent)"><div style="flex:1;min-width:200px"><b>Nova verzija aplikacije</b><div class="note" style="margin:2px 0 0">Novo gradivo za KZ2 (vektorski dijagram, kompleksni zapis, metode, rezonancija, snaga, Thevenin i Norton) i priprema za KZ2 s probnom KZ2.</div></div><button class="primary" id="nwbtn" style="margin:0">Što je novo?</button></div>`
     :`<div id="nwbox" style="margin:2px 0 8px"><button class="ghost" id="nwbtn" style="margin:0;padding:3px 10px;font-size:13px;color:var(--muted)">Što je novo</button></div>`);
   document.getElementById('nwbtn').onclick=newsOpen}catch(e){}return r}}
 function dirNear(x,y){const a=Math.atan2(-y,x)*180/Math.PI,ks=['E','NE','N','NW','W','SW','S','SE'],i=((Math.round(a/45)%8)+8)%8;return 'koso, približno '+DIRS[ks[i]][3]}
@@ -3485,7 +3487,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-qgo]');if(
 document.addEventListener('click',e=>{const t=e.target;if(t.id==='chsk')ev('izazov','preskok',CH?CH.i+1:null);if(t.id==='chlb')ev('izazov','ljestvica')},true);
 {const _cfE=window.confirm;window.confirm=function(m){const r=_cfE.apply(this,arguments);try{if(r&&String(m).startsWith('Prekinuti izazov'))ev('izazov','prekid',CH?CH.i+1:null)}catch(e){}return r}}
 /* novosti */
-{const _noE=newsOpen;newsOpen=function(v){ev('novosti','otvoreno',v||'0.19');return _noE.apply(this,arguments)}}
+{const _noE=newsOpen;newsOpen=function(v){ev('novosti','otvoreno',v||'0.20');return _noE.apply(this,arguments)}}
 document.addEventListener('click',e=>{const b=e.target.closest('#fbm [data-nw]');if(b)ev('novosti','akcija',b.dataset.nw)},true);
 /* vježba bez bodovanja, ponavljanje grešaka, povećanje slika */
 document.addEventListener('change',e=>{if(e.target.id==='freechk')ev('bez_bodova',e.target.checked?'ukljuceno':'iskljuceno',prof().module)},true);
@@ -4208,7 +4210,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-ksh],[data
   if(t.dataset.ksh)KSH.sel=t.dataset.ksh;
   else if(t.dataset.ksho){KSH.open=!KSH.open;Store.set('ksho',KSH.open);try{ev('salabahter',KSH.open?'otvoren':'zatvoren','akom',true)}catch(e){}}
   kshDraw()});
-new MutationObserver(()=>{try{const zk=view==='zad'&&typeof zad!=='undefined'&&zad&&(zad.type==='akom'||(typeof AM2K!=='undefined'&&AM2K.has(zad.type)));if(!zk&&((view!=='practice'&&view!=='lesson')||!prof()||(prof().module!=='akom'&&!(typeof AM2K!=='undefined'&&AM2K.has(prof().module)))))return;if(false||document.body.classList.contains('chal')||(typeof exam!=='undefined'&&exam&&exam.running))return;if(document.getElementById('ksh'))return;const b=main.querySelector('.board,.lesson');if(b)b.insertAdjacentHTML('afterend',kshHtml().replace('margin:0 0 14px','margin:14px 0 0'))}catch(e){}}).observe(main,{childList:true,subtree:true});
+new MutationObserver(()=>{try{const zk=view==='zad'&&typeof zad!=='undefined'&&zad&&(zad.type==='akom'||(typeof AM2K!=='undefined'&&AM2K.has(zad.type))||(typeof AM3K!=='undefined'&&AM3K.has(zad.type)));if(!zk&&((view!=='practice'&&view!=='lesson')||!prof()||(prof().module!=='akom'&&!(typeof AM2K!=='undefined'&&AM2K.has(prof().module))&&!(typeof AM3K!=='undefined'&&AM3K.has(prof().module)))))return;if(false||document.body.classList.contains('chal')||(typeof exam!=='undefined'&&exam&&exam.running))return;if(document.getElementById('ksh'))return;const b=main.querySelector('.board,.lesson');if(b)b.insertAdjacentHTML('afterend',kshHtml().replace('margin:0 0 14px','margin:14px 0 0'))}catch(e){}}).observe(main,{childList:true,subtree:true});
 
 /* ===== KZ2 (2): vektorski dijagram – serijski i paralelni spoj (prema EtRpred10, AV 6 i AV 7) =====
    Nova gradiva s oznakom (2). Za sada vidljiva samo na testu (AC2 = IS_TEST); na živoj verziji kod postoji, ali gradiva nisu registrirana. */
@@ -4729,16 +4731,16 @@ function amSvg(c,o){o=o||{};const S=o.vals&&o.meshes?250:200,px=80,top=70,bot=29
   const drawItem=(it,b,x,y,vert)=>{if(it.src){const r=17,col=hl.has(b.id+'s')?(it.src==='U'?ACC.U:ACC.I):ink,sw=hl.has(b.id+'s')?3.4:2.2;let g=`<circle cx="${x}" cy="${y}" r="${r}" fill="var(--sheet)" stroke="${col}" stroke-width="${sw}"/>`;
       if(it.src==='U'){g+=`<path d="M${x-9} ${y}C${x-5} ${y-9} ${x} ${y-9} ${x} ${y}S${x+5} ${y+9} ${x+9} ${y}" stroke="${col}" stroke-width="2" fill="none"/>`;
         const pp=vert?[x+14,y+(b.pol>0?-r-6:r+16)]:[x+(b.pol>0?r+6:-r-12),y-14];g+=`<text x="${pp[0]}" y="${pp[1]}" ${T} font-size="18" font-weight="700" fill="${col}">+</text>`;
-        const lab=`${sb('u','0')}`+(vals.U0?` = ${vals.U0}`:'');g+=vert?`<text x="${x-r-8}" y="${y+6}" text-anchor="end" ${T} font-size="17" fill="${col}">${lab}</text>`:`<text x="${x}" y="${y+r+22}" text-anchor="middle" ${T} font-size="17" fill="${col}">${lab}</text>`}
+        const lab=(o.srcLab||sb('u','0'))+(vals.U0?` = ${vals.U0}`:'');g+=vert?`<text x="${x-r-8}" y="${y+6}" text-anchor="end" ${T} font-size="17" fill="${col}">${lab}</text>`:`<text x="${x}" y="${y+r+22}" text-anchor="middle" ${T} font-size="17" fill="${col}">${lab}</text>`}
       else{const up=vert?(b.dir>0):false,rt=vert?false:(b.dir>0);const a=vert?(up?-1:1):(rt?1:-1);
         g+=vert?`<path d="M${x} ${y+9*a*-1}V${y+9*a}M${x-5} ${y+9*a-5*a}L${x} ${y+9*a}L${x+5} ${y+9*a-5*a}" stroke="${col}" stroke-width="2.4" fill="none"/>`:`<path d="M${x-9*a} ${y}H${x+9*a}M${x+9*a-5*a} ${y-5}L${x+9*a} ${y}L${x+9*a-5*a} ${y+5}" stroke="${col}" stroke-width="2.4" fill="none"/>`;
-        const lab=`${sb('i','0')}`+(vals.I0?` = ${vals.I0}`:'');g+=vert?`<text x="${x-r-8}" y="${y+6}" text-anchor="end" ${T} font-size="17" fill="${col}">${lab}</text>`:`<text x="${x}" y="${y+r+22}" text-anchor="middle" ${T} font-size="17" fill="${col}">${lab}</text>`}
+        const lab=(o.srcLab||sb('i','0'))+(vals.I0?` = ${vals.I0}`:'');g+=vert?`<text x="${x-r-8}" y="${y+6}" text-anchor="end" ${T} font-size="17" fill="${col}">${lab}</text>`:`<text x="${x}" y="${y+r+22}" text-anchor="middle" ${T} font-size="17" fill="${col}">${lab}</text>`}
       return g}
     const e=it.e,on=sel.has(e.n)||hl.has(e.n),col=on?ACC[e.k]:null,lab=(o.labs&&o.labs[e.n])||amSvgN(e.n)+(vals[e.n]?` = ${vals[e.n]}`:'');
     const hit=vert?`<rect x="${x-16}" y="${y-30}" width="32" height="60" fill="transparent"/>`:`<rect x="${x-30}" y="${y-16}" width="60" height="32" fill="transparent"/>`;
     return `<g data-ae="${e.n}" style="cursor:${o.click?'pointer':'default'}">${hit}${acEl(e.k,x,y,vert,col)}<text x="${vert?x+(e.k==='C'?22:16):x}" y="${vert?y+6:y-20}" text-anchor="${vert?'start':'middle'}" ${T} font-size="17" font-weight="${on?700:400}" fill="${col||ink}">${lab}</text></g>`};
   // okomite grane
-  c.V.forEach(b=>{const x=X(b.x),it=itemsOf(b),n=it.length,nc=nodeCol(c.g[b.x]);
+  c.V.forEach(b=>{if(o.term&&b.x===W)return;if(o.termL&&b.x===0)return;const x=X(b.x),it=itemsOf(b),n=it.length,nc=nodeCol(c.g[b.x]);
     if(!n){s+=L(x,top,x,bot);return}const ys=it.map((_,i)=>top+(bot-top)*(i+1)/(n+1));
     let yPrev=top;ys.forEach((y,i)=>{s+=L(x,yPrev,x,y-(it[i].src?17:30),i===0?nc:null);yPrev=y+(it[i].src?17:30)});s+=L(x,yPrev,x,bot);
     it.forEach((t,i)=>s+=drawItem(t,b,x,ys[i],true))});
@@ -4748,7 +4750,7 @@ function amSvg(c,o){o=o||{};const S=o.vals&&o.meshes?250:200,px=80,top=70,bot=29
     let xPrev=x1;xs.forEach((xx,i)=>{s+=L(xPrev,top,xx-(it[i].src?17:30),top,i===0?nc1:null,i===0&&nc1?3:null);xPrev=xx+(it[i].src?17:30)});s+=L(xPrev,top,x2,top,nc2,nc2?3:null);
     it.forEach((t,i)=>s+=drawItem(t,b,xs[i],top,false))});
   // čvorovi i oznake
-  for(let x=0;x<=W;x++){s+=`<circle cx="${X(x)}" cy="${top}" r="4" fill="${nodeCol(c.g[x])||ink}"/><circle cx="${X(x)}" cy="${bot}" r="3.5" fill="${ink}"/>`}
+  for(let x=0;x<=W;x++){if(o.termL&&x===0){s+=`<circle cx="${X(x)}" cy="${top}" r="6" fill="var(--sheet)" stroke="${ink}" stroke-width="2.2"/><circle cx="${X(x)}" cy="${bot}" r="6" fill="var(--sheet)" stroke="${ink}" stroke-width="2.2"/><text x="${X(x)-14}" y="${top+6}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ink}">A</text><text x="${X(x)-14}" y="${bot+6}" text-anchor="end" ${T} font-size="20" font-weight="700" fill="${ink}">B</text>`;continue}if(o.term&&x===W){s+=`<circle cx="${X(x)}" cy="${top}" r="6" fill="var(--sheet)" stroke="${ink}" stroke-width="2.2"/><circle cx="${X(x)}" cy="${bot}" r="6" fill="var(--sheet)" stroke="${ink}" stroke-width="2.2"/><text x="${X(x)+14}" y="${top+6}" ${T} font-size="20" font-weight="700" fill="${ink}">A</text><text x="${X(x)+14}" y="${bot+6}" ${T} font-size="20" font-weight="700" fill="${ink}">B</text>`;continue}s+=`<circle cx="${X(x)}" cy="${top}" r="4" fill="${nodeCol(c.g[x])||ink}"/><circle cx="${X(x)}" cy="${bot}" r="3.5" fill="${ink}"/>`}
   if(o.nodes){const done=new Set();for(let x=0;x<=W;x++){const n=c.g[x];if(done.has(n))continue;done.add(n);const col=nodeCol(n)||'var(--muted)';s+=`<circle cx="${X(x)+16}" cy="${top-22}" r="11" fill="var(--sheet)" stroke="${col}" stroke-width="1.6"/><text x="${X(x)+16}" y="${top-17}" text-anchor="middle" ${T} font-size="14" font-weight="700" fill="${col}">${n+1}</text>`}
     const gx=(X(0)+X(W))/2;s+=`<path d="M${gx} ${bot}V${bot+14}M${gx-14} ${bot+14}H${gx+14}M${gx-9} ${bot+20}H${gx+9}M${gx-4} ${bot+26}H${gx+4}" stroke="${ink}" stroke-width="2"/><text x="${gx+20}" y="${bot+24}" ${T} font-size="13" fill="var(--muted)">0</text>`}
   // konturne struje
@@ -4879,7 +4881,7 @@ function amGen(rnd,o){o=o||{};const pk=a=>a[Math.floor(rnd()*a.length)];
   return null}
 const AMQ=[];
 (function(){const cnt={};const add=(topic,q)=>{const P={kzp2:'CX',kon2:'MK',cvr2:'MV',rez2:'RZ'}[topic];cnt[P]=(cnt[P]||0)+1;q.id=P+String(cnt[P]).padStart(2,'0');q.topic=topic;
-    if(!q.amSteps){const o=acOpts(q.id,q.good,q.bad);q.opts=o.opts;q.ans=o.ans;delete q.good;delete q.bad}AMQ.push(q);QS.push(q)};
+    if(!q.amSteps&&!q.steps){const o=acOpts(q.id,q.good,q.bad);q.opts=o.opts;q.ans=o.ans;delete q.good;delete q.bad}AMQ.push(q);QS.push(q)};
   /* 1. postavi jednadžbe (korak po korak) */
   const rnd=seeded('am2-mreze-v1'),keys=new Set(),nets=[];let g=0;
   while(nets.length<40&&g++<4000){const c=amGen(rnd,{});if(!c)continue;const k=JSON.stringify(c.sp);if(keys.has(k))continue;keys.add(k);c.ns=['X','X','w','w2'][nets.length%4];nets.push(c)}
@@ -5006,6 +5008,20 @@ const AMQ=[];
     [2.0,'Ispod rezonantne frekvencije (ω < ω<sub>0</sub>) serijski RLC krug je','kapacitivan (X<sub>C</sub> > X<sub>L</sub>)',['induktivan','radni','prazan hod'],'Na nižoj frekvenciji X<sub>L</sub> = ωL je manji, a X<sub>C</sub> = 1/(ωC) veći.'],
     [2.0,'Iznad rezonantne frekvencije (ω > ω<sub>0</sub>) serijski RLC krug je','induktivan (X<sub>L</sub> > X<sub>C</sub>)',['kapacitivan','radni','kratki spoj'],'Na višoj frekvenciji X<sub>L</sub> raste, a X<sub>C</sub> pada.'],
     [2.1,'Faktor dobrote serijskog RLC kruga je:','Q = ω<sub>0</sub>L/R = 1/(ω<sub>0</sub>CR)',['Q = R/(ω<sub>0</sub>L)','Q = ω<sub>0</sub>CR','Q = R·ω<sub>0</sub>L'],'Za paralelni RLC spoj izrazi su obrnuti: Q = R/(ω<sub>0</sub>L) = ω<sub>0</sub>CR.']],['rz_def']);
+  /* impedancija mreže korak po korak (dodano na kraj, stari id-jevi ostaju) */
+  const ze_=els=>amZsum(els,'X'),za_=(A,B)=>B.startsWith('−')?`${A} − ${B.slice(1)}`:`${A} + ${B}`,zp_=(A,B)=>`${amPar(A)}·${amPar(B)}/(${za_(A,B)})`;
+  const IMPN=[['T1','R','L','C'],['T1','C','R','L'],['T1','R','C','L'],['T1','L','R','R'],['T2','R','L','C'],['T2','C','R','L'],['T2','L','C','R'],['T3','C','RL','R'],['T3','R','RC','L'],['T1','C','R','R'],['T2','R','R','L'],['T3','L','RC','R']];
+  IMPN.forEach(([T,a,b,c3],ix)=>{const sp=T==='T2'?{W:2,V:[{e:''},{e:b},{e:c3}],T:[{w:true},{e:a}],d:[1,1]}:{W:2,V:[{e:''},{e:b},{e:c3}],T:[{e:a},{w:true}],d:[1,1]};const c=amC(sp),id='imp'+ix;
+    const A=ze_(T==='T2'?c.T[1].els:c.T[0].els),B=ze_(c.V[1].els),C=ze_(c.V[2].els),sh=(arr,k)=>shuffle(arr.slice(),k);
+    const PB=T==='T2'?za_(A,C):C,par=T==='T2'?`${B} i grana ${amPar(PB)}`:`${amPar(B)} i ${amPar(C)}`;
+    const S=[];
+    S.push({t:'Koji su dijelovi mreže spojeni paralelno (između istih čvorova)?',opts:sh([['a',par],['b',T==='T2'?`${amPar(A)} i ${amPar(B)}`:`${amPar(A)} i ${amPar(B)}`],['c',T==='T2'?`${amPar(A)} i ${amPar(C)}`:`${amPar(A)} i ${amPar(C)}`],['d','svi elementi su u seriji']],id+'1'),ans:'a',ex:T==='T2'?`${A} i ${C} su u istoj grani (serija), a ta grana spojena je između istih čvorova kao ${B}.`:`${B} i ${C} spojeni su između istih dvaju čvorova, a ${A} je u seriji s tom paralelom.`});
+    const zp=zp_(B,PB);
+    S.push({t:'Impedancija paralelnog dijela je:',opts:sh([['a',`Ż<sub>p</sub> = ${zp}`],['b',`Ż<sub>p</sub> = ${za_(B,PB)}`],['c',`Ż<sub>p</sub> = 1/${amPar(B)} + 1/${amPar(PB)}`],['d',`Ż<sub>p</sub> = ${amPar(B)}·${amPar(PB)}`]],id+'2'),ans:'a',ex:`Dvije paralelne impedancije: umnožak kroz zbroj, Ż<sub>p</sub> = ${zp}. Zbroj recipročnih vrijednosti daje admitanciju, a ne impedanciju.`});
+    if(T!=='T2')S.push({t:'Ukupna impedancija gledano s priključnica A i B je:',opts:sh([['a',`Ż = ${za_(A,'Ż<sub>p</sub>')}`],['b','Ż = Ż<sub>p</sub>'],['c',`Ż = ${amPar(A)}·Ż<sub>p</sub>/(${za_(A,'Ż<sub>p</sub>')})`],['d',`Ż = ${za_(za_(A,B),C)}`]],id+'3'),ans:'a',ex:`${A} je u seriji s paralelnim dijelom, pa se impedancije zbrajaju: Ż = ${za_(A,'Ż<sub>p</sub>')}.`});
+    S.push({t:'Kad se dobije Ż = a + jb, modul i fazni kut impedancije su:',opts:sh([['a','|Ż| = √(a² + b²), φ = arctg(b/a)'],['b','|Ż| = a + b, φ = arctg(b/a)'],['c','|Ż| = √(a² + b²), φ = arctg(a/b)'],['d','|Ż| = √(a² − b²), φ = arctg(b/a)']],id+'4'),ans:'a',ex:'Modul je duljina vektora, √(a² + b²); kut je arctg(b/a). Ako je a &lt; 0, kutu se doda ili oduzme 180°.'});
+    S.push({t:'Imaginarni dio ukupne impedancije je negativan. Mreža je:',opts:sh([['a','kapacitivna, φ &lt; 0'],['b','induktivna, φ &gt; 0'],['c','radna, φ = 0'],['d','u rezonanciji']],id+'5'),ans:'a',ex:'Ż = R − jX: napon kasni za strujom, fazni kut impedancije je negativan (kapacitivno). Pozitivan imaginarni dio znači induktivno.'});
+    add('kzp2',{type:'x_imp',diff:Math.round((1.8+(T==='T2'?0.6:0)+(T==='T3'?0.5:0))*10)/10,tags:['cx_el'],steps:S,svg:amSvg(c,{termL:true}),text:'Odredi korak po korak impedanciju mreže gledano s priključnica A i B (R, jX<sub>L</sub>, −jX<sub>C</sub>).'})});
 })();
 /* --- lekcije (2): kompleksni zapis, konturne struje, naponi čvorova, rezonancija --- */
 let amL={id:null,i:-1},amLq={};
@@ -5155,7 +5171,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-akst],[dat
   aksDraw()});
 /* --- Zadaci s brojevima (2) --- */
 Object.assign(ZKINDS,{
-  kzp2:[['pol','Algebarski u polarni zapis'],['alg','Polarni u algebarski zapis'],['mul','Množenje i dijeljenje na ruke'],['el','Impedancija i admitancija grane iz ω, L, C'],['faz','u(t) u fazor i fazor u i(t)'],['sus','Sustav dviju jednadžbi na ruke']],
+  kzp2:[['pol','Algebarski u polarni zapis'],['alg','Polarni u algebarski zapis'],['mul','Množenje i dijeljenje na ruke'],['el','Impedancija i admitancija grane iz ω, L, C'],['faz','u(t) u fazor i fazor u i(t)'],['sus','Sustav dviju jednadžbi na ruke'],['imp','Impedancija mreže: modul i kut']],
   kon2:[['jed','Konturne struje (zadane impedancije)'],['ut','Zadan u(t), L i C: struja elementa'],['izv','Strujni izvor u vanjskoj grani'],['rez','Mreža s L i C u rezonanciji']],
   cvr2:[['jed','Naponi čvorova (zadane impedancije)'],['ut','Zadan u(t), L i C: struja elementa'],['pre','Naponski izvor u seriji s impedancijom'],['izv','Strujni izvor'],['rez','Mreža s L i C u rezonanciji']],
   rez2:[['w0','Rezonantna frekvencija'],['lc','L ili C za zadanu rezonanciju'],['ser','Serijski RLC u rezonanciji'],['par','Paralelni RLC u rezonanciji'],['mr','Mreža: prepoznaj rezonanciju']]});
@@ -5188,7 +5204,7 @@ function amVals(c,o){const pk=acZpk,v={},lab={},txt=[],sc=o.sc,RV=sc===10?[10,20
 function amZnet(type,kind,lv){const pk=acZpk,K=type==='kon2',rnd=Math.random;
   for(let g=0;g<400;g++){let c,red=null,pair=null,rzTxt='';
     const sc=pk([10,100,100]),w=pk([1000,1e4]),lc=kind!=='jed',conv=kind==='jed'?'m':rnd()<0.3?'e':'m',fn=kind==='jed'?'sin':rnd()<0.2?'cos':'sin';
-    if(kind==='rez'){const par=!K||rnd()<0.55;
+    if(kind==='rez'){const par=rnd()<0.55;
       if(par){const x=pk(['R','RL','R','RC']),y=pk(['R','L','C','R']),z=pk(['R','RL','RC','R']),lf=rnd()<0.5;
         const sp={W:3,V:[{s:'U',e:''},{e:lf?'L':'C'},{e:lf?'C':'L'},{e:z}],T:[{e:x},{w:true},{e:y}],d:[1,1,1]};c=amC(sp);
         const nm=b=>b.els.map(e=>e.n);red={W:1,V:[{s:'U',e:''},{e:z,n:nm(c.V[3])}],T:[{e:x+y,n:nm(c.T[0]).concat(nm(c.T[2]))}],d:[1]};pair=[c.V[1].els[0].n,c.V[2].els[0].n];
@@ -5255,13 +5271,14 @@ function amZnet(type,kind,lv){const pk=acZpk,K=type==='kon2',rnd=Math.random;
     return acZz(type,kind,lv,{svg,text,fields:F,sol})}
   return null}
 function amZGen(type,d){const pk=acZpk,lv=Math.max(1,Math.min(6,Math.round(d))),n=(x,dd)=>acN(x,dd==null?2:dd);
-  const LV={kzp2:{1:['pol','alg'],2:['pol','alg','mul'],3:['mul','el','faz'],4:['el','faz','sus'],5:['sus','faz','el'],6:['sus','el']},
+  const LV={kzp2:{1:['pol','alg'],2:['pol','alg','mul'],3:['mul','el','faz','imp'],4:['el','faz','sus','imp'],5:['sus','faz','el','imp'],6:['sus','el','imp']},
     kon2:{1:['jed'],2:['jed'],3:['jed','ut'],4:['ut','izv'],5:['ut','izv','rez'],6:['rez','izv','ut']},
     cvr2:{1:['jed'],2:['jed'],3:['jed','ut'],4:['ut','pre','izv'],5:['pre','izv','rez'],6:['rez','izv','ut']},
     rez2:{1:['w0'],2:['w0','lc'],3:['lc','ser'],4:['ser','par'],5:['par','mr'],6:['mr','ser','par']}}[type][lv];
   const kind=(zTestKind&&ZKINDS[type].some(k=>k[0]===zTestKind))?zTestKind:pk(LV);
   if(type==='kon2'||type==='cvr2'){const z=amZnet(type,kind,lv);if(z)return z;return amZnet(type,'jed',lv)}
   const F=acZF,Fd=acZd;
+  if(type==='kzp2'&&kind==='imp'){const z=amImpZ(lv);if(z)return z}
   if(type==='kzp2'){const box=h=>`<div class="ambox" style="font-size:22px;text-align:center;padding:26px 10px">${h}</div>`;
     if(kind==='pol'){let a,b;do{a=pk([1,2,3,4,5,6,8,10,12])*pk([1,-1]);b=pk([1,2,3,4,5,6,8,10,12])*pk([1,-1])}while(Math.abs(a)===Math.abs(b)&&Math.random()<0.6);const z=Cx(a,b),m=cMod(z),f=cAng(z)*180/Math.PI;
       return acZz(type,kind,lv,{svg:box(`z = ${cTxt(z)}`),text:`Kompleksni broj z = ${cTxt(z)} zapišite u polarnom obliku z = |z|∠φ.`,fields:[{lab:'|z|',val:m,unit:'',w:1},Fd('φ',f,1,'s predznakom')],
@@ -5322,7 +5339,7 @@ function amZGen(type,d){const pk=acZpk,lv=Math.max(1,Math.min(6,Math.round(d))),
 /* pitanja za koja treba kalkulator nisu u Vježbi */
 {const RM=new Set(["CX06", "CX07", "CX14", "CX15", "CX16", "CX33", "MK49", "MK52", "MV46", "MV47", "MV48", "MV50", "RZ05", "RZ06", "RZ07", "RZ08", "RZ09", "RZ10", "RZ11", "RZ12", "RZ13", "RZ14"]);for(let i=AMQ.length-1;i>=0;i--)if(RM.has(AMQ[i].id))AMQ.splice(i,1);for(let i=QS.length-1;i>=0;i--)if(RM.has(QS[i].id)&&AM2K.has(QS[i].topic))QS.splice(i,1)}
 /* --- nazivi vrsta i zamki --- */
-Object.assign(TYPENAME,{k2_crt:'Postavi jednadžbe petlji',c2_crt:'Postavi jednadžbe čvorova',x_el:'Element u jednadžbi petlje',x_adm:'Element u jednadžbi čvora',x_j:'Broj j',x_zap:'Zapisi i pretvorbe',x_mul:'Računanje s kompleksnim brojevima',x_faz:'Fazor i vremenski oblik',x_sus:'Sustav jednadžbi na ruke',
+Object.assign(TYPENAME,{x_imp:'Impedancija mreže korak po korak',k2_crt:'Postavi jednadžbe petlji',c2_crt:'Postavi jednadžbe čvorova',x_el:'Element u jednadžbi petlje',x_adm:'Element u jednadžbi čvora',x_j:'Broj j',x_zap:'Zapisi i pretvorbe',x_mul:'Računanje s kompleksnim brojevima',x_faz:'Fazor i vremenski oblik',x_sus:'Sustav jednadžbi na ruke',
   k2_poj:'Konturne struje: pravila',c2_poj:'Naponi čvorova: pravila',r_def:'Uvjet rezonancije',r_je:'Je li u rezonanciji',r_zam:'Čime se zamijeni',r_mr:'Rezonancija u mreži',r_pon:'Ponašanje u rezonanciji'});
 Object.assign(TAGNAMES,{cx_el:'Zapis elementa (impedancija)',cx_adm:'Zapis elementa (admitancija)',cx_j:'Računanje s j',cx_zap:'Pretvorbe zapisa',cx_faz:'Fazor i vremenski oblik',cx_sus:'Sustav na ruke',rz_def:'Uvjet rezonancije',rz_pre:'Prepoznavanje rezonancije',rz_zam:'Zamjena u rezonanciji'});
 {const ph={kzp2:'z = a + jb = |z|∠φ',kon2:`${amI('k')}·ΣŻ ∓ ${amI('j')}·Ż = ΣU̇`,cvr2:`${amU('n')}·ΣẎ − ${amU('m')}·Ẏ = Σİ`,rez2:'ω<sub>0</sub> = 1/√(LC)'};
@@ -5336,7 +5353,7 @@ document.head.insertAdjacentHTML('beforeend',`<style id="am2css">.amtab{padding:
 /* zadatak s koracima je naučen već uz najviše jednu pogrešku (udio ≥ 0,8), kao kod drugih zadataka s koracima */
 {const _ar=applyResult;applyResult=function(q,correct){const p=prof(),prev=p&&p.qm?p.qm[q.id]||0:0;const r=_ar.apply(this,arguments);try{if(q&&q.amSteps&&typeof correct==='number'&&correct>=0.8&&correct<1){p.qm=p.qm||{};p.qm[q.id]=prev+1;save()}}catch(e){}return r}}
 {const _rb=renderBank;renderBank=function(){const mod=prof().module;if(!AM2K.has(mod))return _rb.apply(this,arguments);const L=AMQ.filter(q=>q.topic===mod);
-  const ans=q=>{if(!q.amSteps)return `<div style="max-width:240px">${(q.opts.find(o=>o[0]===q.ans)||['',''])[1]}</div>`;const S=amSteps(q);return `<div style="width:230px">${amSvg(q.c,{meshes:q.topic==='kon2',nodes:q.topic==='cvr2'})}</div>${amLines(q,S,S.length).map(l=>`<div class="meq" style="font-size:14px">${l.h}</div>`).join('')}`};
+  const ans=q=>{if(q.steps)return `<ol style="margin:0;padding-left:18px;max-width:300px">${q.steps.map(s=>`<li>${(s.opts.find(o=>o[0]===s.ans)||['',''])[1]}</li>`).join('')}</ol><div style="width:200px">${q.svg}</div>`;if(!q.amSteps)return `<div style="max-width:240px">${(q.opts.find(o=>o[0]===q.ans)||['',''])[1]}</div>`;const S=amSteps(q);return `<div style="width:230px">${amSvg(q.c,{meshes:q.topic==='kon2',nodes:q.topic==='cvr2'})}</div>${amLines(q,S,S.length).map(l=>`<div class="meq" style="font-size:14px">${l.h}</div>`).join('')}`};
   main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Baza zadataka: ${MODNAME[mod]}</h2><p class="note">${L.length} pitanja iz Vježbe, bez računanja na kalkulatoru. Uz svako je točan odgovor; kod zadataka „Postavi jednadžbe” prikazane su gotove jednadžbe. Zadatke s brojevima nađeš u kartici Zadaci.</p><table><tr><th>Pitanje</th><th>Vrsta</th><th>Tekst</th><th>Točno</th><th>Težina</th></tr>${L.map(q=>`<tr><td>${q.id}</td><td>${TYPENAME[q.type]}</td><td>${q.text}${q.amSteps?`<div class="note">zapis: ${AMNS[q.ns]}</div>`:''}</td><td style="min-width:150px">${ans(q)}</td><td>${fmt(q.diff)}</td></tr>`).join('')}</table></div>`;modbar()}}
 /* lekcije: zatvori korak po korak kad se promijeni slajd */
 {const _rl=renderLesson;renderLesson=function(){try{const p=prof(),mod=lessonX||p.module;if(AM2K.has(mod)){const L=LESSONS[mod],st=L[Math.min(lstep[mod]||0,L.length-1)];if(!st||st.id!==amL.id)amL={id:null,i:-1};if(!st||!st.aq)amLq={}}}catch(e){}return _rl.apply(this,arguments)}}
@@ -5371,11 +5388,409 @@ const OLDKZ2=['auvod','aser','apar','akom'],OLDMAP={auvod:'ser2',aser:'ser2',apa
 new MutationObserver(()=>{try{if(!prof()||document.getElementById('prevlink')||document.body.classList.contains('chal'))return;const kz2=ACK.has(prof().module)||(view==='zad'&&typeof zad!=='undefined'&&zad&&ACK.has(zad.type));
   if(!((kz2&&['practice','lesson','zad','bank'].includes(view))||view==='board'))return;const h=`<p id="prevlink" class="note" style="margin:6px 0 10px">Starije vježbe i ljestvice za KZ2 (Uvod u izmjenične krugove, Kompleksni račun…) nalaze se u <a href="${PREV_URL}" style="color:var(--ok);font-weight:700">prethodnoj verziji aplikacije →</a></p>`;
   const mb=main.querySelector('.modbar');if(mb)mb.insertAdjacentHTML('afterend',h);else main.insertAdjacentHTML('afterbegin',h)}catch(e){}}).observe(main,{childList:true,subtree:true});
+/* ===== KZ2: Snaga i trokut snage, Thevenin i Norton (AC3, objavljeno 27. 11. 2026.) ===== */
+const AC3=true;
+const AM3=[['sn2','Snaga i trokut snage'],['tn2','Thevenin i Norton']],AM3K=new Set(AM3.map(x=>x[0]));
+const zAdd=(A,B)=>B.startsWith('−')?`${A} − ${B.slice(1)}`:`${A} + ${B}`;
+const zPar=(A,B)=>`${amPar(A)}·${amPar(B)}/(${zAdd(A,B)})`;
+const zE=els=>amZsum(els,'X');
+const pfmt=(x,d)=>amN(x,d==null?2:d);
+/* trokut snage (P vodoravno, Q gore za induktivno, dolje za kapacitivno, S hipotenuza); oznake izvan trokuta */
+function triDraw(O,A,B,L,o){const W=o.W,H=o.H,fs=o.fs||18,T=AC_T,col={a:ACC.R,b:ACC.L,c:ACC.S};
+  const mk=k=>`<marker id="trm${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="${o.mw||6}" markerHeight="${o.mw||6}" orient="auto"><path d="M0 0L10 5L0 10z" fill="${col[k]}"/></marker>`;
+  let s=`<svg ${o.cls?`class="${o.cls}"`:''} viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><defs>${mk('a')}${mk('b')}${mk('c')}</defs>`;
+  const seg=(X,Y,Z,k,lab)=>{s+=`<line x1="${X[0]}" y1="${X[1]}" x2="${Y[0]}" y2="${Y[1]}" stroke="${col[k]}" stroke-width="${o.sw||3}" marker-end="url(#trm${k})"/>`;
+    const M=[(X[0]+Y[0])/2,(X[1]+Y[1])/2],d=[Y[0]-X[0],Y[1]-X[1]],len=Math.hypot(d[0],d[1])||1;let n=[-d[1]/len,d[0]/len];const toZ=[Z[0]-M[0],Z[1]-M[1]];if(n[0]*toZ[0]+n[1]*toZ[1]>0)n=[-n[0],-n[1]];
+    const off=o.off||14,x=M[0]+n[0]*off,y=M[1]+n[1]*off+(n[1]>0.3?fs*0.8:n[1]<-0.3?-2:fs*0.35);
+    s+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${n[0]>0.05?'start':n[0]<-0.05?'end':'middle'}" ${T} font-size="${fs}" font-weight="700" fill="${col[k]}">${lab}</text>`};
+  seg(O,A,B,'a',L.a);seg(A,B,O,'b',L.b);seg(O,B,A,'c',L.c);
+  if(o.arc!=null){const r=o.ar||40,h=o.arc,ex=O[0]+r*Math.cos(h),ey=O[1]-r*Math.sin(h);s+=`<path d="M${O[0]+r} ${O[1]}A${r} ${r} 0 0 ${h>0?0:1} ${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="var(--muted)" fill="none" stroke-width="1.6"/>`;
+    if(o.arcLab){const lx=O[0]+(r+10)*Math.cos(h/2),ly=O[1]-(r+10)*Math.sin(h/2)+6;s+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" ${T} font-size="${o.afs||16}" fill="var(--muted)">${o.arcLab}</text>`}}
+  return s+'</svg>'}
+function snTri(P,Q,o){o=o||{};const L=o.labs||{},W=470,m=Math.max(P/220,Math.abs(Q)/220,1e-9),p=Math.max(P/m,30),q=Q/m,H=Math.max(150,Math.abs(q)+110);
+  const O=[80,Q>=0?H-55:55],A=[O[0]+p,O[1]],B=[O[0]+p,O[1]-q];
+  return triDraw(O,A,B,{a:L.P||'P',b:L.Q||'Q',c:L.S||'S'},{W,H,arc:Math.atan2(q,p),arcLab:L.f||'φ',fs:o.fs||20})}
+const snThumb=(kind)=>{const W=240,H=180,o={W,H,fs:24,sw:4,mw:5,off:12,cls:'vdth'};
+  if(kind==='ok')return triDraw([45,140],[175,140],[175,45],{a:'P',b:'Q',c:'S'},Object.assign({arc:Math.atan2(95,130),ar:28},o));
+  if(kind==='dn')return triDraw([45,40],[175,40],[175,135],{a:'P',b:'Q',c:'S'},Object.assign({arc:-Math.atan2(95,130),ar:28},o));
+  if(kind==='pv')return triDraw([55,150],[55,45],[190,45],{a:'P',b:'Q',c:'S'},o);
+  return triDraw([45,140],[175,140],[175,45],{a:'S',b:'Q',c:'P'},o)};
+
+/* ---------- Vježba: Snaga ---------- */
+const AM3Q=[];
+(function(){const cnt={};const add=(topic,q)=>{const P=topic==='sn2'?'PS':'TH';cnt[P]=(cnt[P]||0)+1;q.id=P+String(cnt[P]).padStart(2,'0');q.topic=topic;
+    if(!q.steps){const o=acOpts(q.id,q.good,q.bad);q.opts=o.opts;q.ans=o.ans;delete q.good;delete q.bad}AM3Q.push(q);QS.push(q)};
+  const sh=(arr,key)=>shuffle(arr.slice(),key);
+  /* trokut snage mreže korak po korak (bez brojeva) */
+  const NETS=[];const RX=k=>[['R','R',k],['R',k,'R'],[k,'R','R'],['R',k,k],['R','R'+k,'R'],[k,'R','R'+k],['R','R'+k,k],[k,'R',k==='L'?'C':'L']];
+  ['L','C'].forEach(k=>{RX(k).forEach(([a,b,c2])=>{if((a+b+c2).includes('L')&&(a+b+c2).includes('C'))return;NETS.push({sp:{W:2,V:[{s:'U',e:''},{e:b},{e:c2}],T:[{e:a},{w:true}],d:[1,1]},k})});
+    NETS.push({sp:{W:1,V:[{s:'U',e:''},{e:k}],T:[{e:'R'}],d:[1]},k});NETS.push({sp:{W:2,V:[{s:'U',e:''},{e:'R'},{e:k}],T:[{w:true},{w:true}],d:[1,1]},k});
+    NETS.push({sp:{W:2,V:[{s:'U',e:''},{e:'R'+k},{e:'R'}],T:[{w:true},{w:true}],d:[1,1]},k});NETS.push({sp:{W:2,V:[{s:'U',e:''},{e:'R'},{e:'R'}],T:[{e:k},{e:'R'}],d:[1,1]},k})});
+  NETS.forEach((n,ix)=>{const c=amC(n.sp),k=n.k,Rs=c.els.filter(e=>e.k==='R'),Xs=c.els.filter(e=>e.k!=='R');if(!Rs.length||!Xs.length)return;
+    const id='sn'+ix,L=k==='L',nm=e=>amSub(e.n),Rl=Rs.map(nm).join(', '),Xl=Xs.map(nm).join(', '),Ii=e=>`I<sub>${e.n}</sub>`;
+    const allSer=Rs.every(e=>{const b=amElB(c,e.n);return c.W===1||(b.kind==='T'&&b.x===0)});
+    const S=[];
+    S.push({t:'Na kojim elementima nastaje radna (djelatna) snaga P?',opts:sh([['a',`samo na otpornicima: ${Rl}`],['b','na svim elementima'],['c',`samo na ${Xl}`],['d','samo na izvoru']],id+'1'),ans:'a',ex:`Radna snaga P nastaje samo na otpornicima (${Rl}). Na zavojnici i kondenzatoru je P = 0.`});
+    const pg=Rs.map(e=>`${Ii(e)}²·${nm(e)}`).join(' + ');
+    S.push({t:'Kako se računa radna snaga P izvora?',opts:sh([['a',`P = ${pg}`],['b','P = U·I'],['c',`P = I²·|Ż|`],['d',allSer||Rs.length<2?`P = ${Rs.map(e=>`${Ii(e)}·${nm(e)}`).join(' + ')}`:`P = I²·(${Rs.map(nm).join(' + ')})`]],id+'2'),ans:'a',ex:`P izvora jednaka je zbroju snaga na otpornicima: P = ${pg}, svaki sa svojom strujom (ili P = U·I·cos φ).`});
+    const qg=Xs.map(e=>`${Ii(e)}²·X<sub>${e.n}</sub>`).join(' + ');
+    S.push({t:'Kolika je jalova snaga Q izvora?',opts:sh([['a',`Q = ${L?'':'−'}${Xs.length>1?'('+qg+')':qg}${L?' > 0 (induktivno)':' < 0 (kapacitivno)'}`],['b',`Q = ${L?'−':''}${Xs.length>1?'('+qg+')':qg}${L?' < 0 (kapacitivno)':' > 0 (induktivno)'}`],['c','Q = 0, jer ima otpornika'],['d',`Q = ${Xs.map(e=>`${Ii(e)}·X<sub>${e.n}</sub>`).join(' + ')}`]],id+'3'),ans:'a',
+      ex:`Jalova snaga nastaje na ${Xl}: iznos je ${qg}. ${L?'Na zavojnici je Q > 0 (napon prethodi struji), pa je izvor induktivan.':'Na kondenzatoru je Q < 0 (napon kasni za strujom), pa je izvor kapacitivan.'}`});
+    S.push({t:'Koji je trokut snage izvora?',opts:sh([['a',snThumb(L?'ok':'dn')],['b',snThumb(L?'dn':'ok')],['c',snThumb('pv')],['d',snThumb('sh')]],id+'4'),ans:'a',ex:`P se crta vodoravno, Q ${L?'okomito gore (induktivno)':'okomito dolje (kapacitivno)'}, a S je hipotenuza od početka P do vrha Q.`});
+    S.push({t:'Kako se dobije prividna snaga S?',opts:sh([['a','S = √(P² + Q²) = U·I'],['b','S = P + Q'],['c','S = √(P² − Q²)'],['d','S = U·I·cos φ']],id+'5'),ans:'a',ex:'Trokut snage je pravokutan: S = √(P² + Q²). Isto se dobije kao S = U·I (efektivne vrijednosti), u VA.'});
+    S.push({t:'Gdje je u trokutu snage fazni kut φ?',opts:sh([['a',`između P i S, tg φ = Q/P, φ ${L?'> 0':'< 0'}`],['b',`između P i S, tg φ = Q/P, φ ${L?'< 0':'> 0'}`],['c','između Q i S, tg φ = P/Q'],['d','φ = 90°, između P i Q']],id+'6'),ans:'a',ex:`φ je kut između P i S, isti kao fazni kut φ = β<sub>u</sub> − β<sub>i</sub> izvora: ${L?'induktivno, φ > 0':'kapacitivno, φ < 0'}. cos φ = P/S je faktor snage.`});
+    add('sn2',{type:'s_trk',diff:Math.round((2+Rs.length*0.3+(c.W>1?0.6:0)+(allSer?0:0.5))*10)/10,tags:['sn_p','sn_q','sn_trk'],steps:S,c,svg:amSvg(c,{}),text:`Izvor napaja mrežu sa slike (${L?'jedina reaktivna komponenta je zavojnica':'jedina reaktivna komponenta je kondenzator'}). Odredi korak po korak kako se dobije trokut snage izvora.`})});
+  /* pitanja s ponuđenim odgovorima (bez kalkulatora) */
+  const mc=(topic,type,list,tags)=>list.forEach(([df,q,good,bad,ex,svg])=>add(topic,{type,diff:df,tags,svg:svg||'',text:q,good,bad,expl:ex}));
+  mc('sn2','s_def',[
+    [1.0,'Radna (djelatna) snaga računa se kao:','P = U·I·cos φ',['P = U·I·sin φ','P = U·I','P = U·I·tg φ'],'U i I su efektivne vrijednosti, a cos φ je faktor snage. Jedinica je vat (W).'],
+    [1.1,'Jalova snaga računa se kao:','Q = U·I·sin φ',['Q = U·I·cos φ','Q = U·I','Q = U²·I'],'Jedinica jalove snage je VAr (voltamper reaktivni).'],
+    [1.0,'Prividna snaga računa se kao:','S = U·I',['S = U·I·cos φ','S = P + Q','S = U·I·sin φ'],'S = U·I = √(P² + Q²), jedinica VA (voltamper).'],
+    [1.2,'Jedinice radne, jalove i prividne snage su:','W, VAr, VA',['VA, W, VAr','W, VA, VAr','VAr, VA, W'],'P u vatima (W), Q u voltamperima reaktivnim (VAr), S u voltamperima (VA).'],
+    [1.3,'Na otporniku R je:','Q = 0, a P = S = I²·R',['P = 0, a Q = S','P = Q = S/2','P = 0 i Q = 0'],'Na otporniku su napon i struja u fazi (φ = 0): cos 0° = 1, sin 0° = 0.'],
+    [1.3,'Na zavojnici je:','P = 0, a Q = S = I²·X<sub>L</sub> > 0',['Q = 0, a P = I²·X<sub>L</sub>','P = Q = I²·X<sub>L</sub>','P = 0, a Q = −I²·X<sub>L</sub>'],'φ = +90°: cos 90° = 0, sin 90° = 1. Zavojnica ne troši radnu snagu.'],
+    [1.5,'Na kondenzatoru je:','P = 0, a Q = −I²·X<sub>C</sub> < 0',['P = 0, a Q = I²·X<sub>C</sub> > 0','P = I²·X<sub>C</sub>, Q = 0','P = Q = 0'],'φ = −90°: sin(−90°) = −1. U zbroju se jalova snaga kondenzatora oduzima: Q = Q<sub>L</sub> − Q<sub>C</sub>.'],
+    [1.4,'Faktor snage je:','cos φ = P/S',['cos φ = Q/S','cos φ = P/Q','cos φ = S/P'],'Pokazuje koliki je dio prividne snage radna snaga. Za čisti otpor cos φ = 1.'],
+    [1.2,'Vatmetar mjeri:','radnu snagu P',['prividnu snagu S','jalovu snagu Q','trenutnu snagu p(t)'],'Vatmetar mjeri srednju vrijednost trenutne snage, a to je radna snaga.'],
+    [1.6,'Trenutna snaga p(t) = u(t)·i(t) mijenja se frekvencijom:','dvostrukom od frekvencije napona',['jednakom frekvenciji napona','upola manjom','ne mijenja se'],'p(t) = U·I·cos φ − U·I·cos(2ωt + …): srednja vrijednost je P, a titra s 2ω.']],['sn_def']);
+  mc('sn2','s_tro',[
+    [1.5,'Kako se crta trokut snage induktivnog trošila?','P vodoravno, Q okomito gore, S hipotenuza',['P vodoravno, Q okomito dolje, S hipotenuza','S vodoravno, P okomito','Q vodoravno, P okomito gore'],'Q > 0 (induktivno) crta se gore, a S spaja početak P s vrhom Q.',snThumb('ok')],
+    [1.6,'Kako se crta trokut snage kapacitivnog trošila?','P vodoravno, Q okomito dolje, S hipotenuza',['P vodoravno, Q okomito gore, S hipotenuza','S vodoravno, Q okomito dolje','P okomito dolje, Q vodoravno'],'Q < 0 (kapacitivno) crta se dolje.',snThumb('dn')],
+    [1.6,'Kut φ u trokutu snage nalazi se između:','P i S',['Q i S','P i Q','S i okomice'],'tg φ = Q/P, cos φ = P/S, sin φ = Q/S.'],
+    [2.0,'Trokut snage serijskog spoja sličan je trokutu impedancije jer je:','P = I²·R, Q = I²·X, S = I²·Z',['P = R/I², Q = X/I²','P = U²·R, Q = U²·X','P = U·R, Q = U·X'],'Sve stranice trokuta impedancije pomnože se s I²: dobije se trokut snage s istim kutom φ.'],
+    [2.3,'U paralelnom RL spoju struja kasni za naponom (vektor struje je ispod napona). Kamo se u trokutu snage crta Q?','gore: Q > 0, spoj je induktivan',['dolje, kao struja','vodoravno','Q = 0 u paralelnom spoju'],'Q = U·I·sin φ, a φ = β<sub>u</sub> − β<sub>i</sub> > 0 za induktivni spoj, i u seriji i u paraleli. U trokutu admitancije B<sub>L</sub> je dolje, ali Q<sub>L</sub> je u trokutu snage gore.'],
+    [1.8,'P = 3 W i Q = 4 VAr. Kolika je prividna snaga?','S = 5 VA',['S = 7 VA','S = 1 VA','S = 12 VA'],'S = √(3² + 4²) = 5 VA. Snage se ne zbrajaju obično jer su to stranice pravokutnog trokuta.'],
+    [1.9,'P = 6 W i Q = −8 VAr. Kolika je prividna snaga i kakav je karakter?','S = 10 VA, kapacitivno',['S = 10 VA, induktivno','S = 14 VA, kapacitivno','S = 2 VA, induktivno'],'S = √(36 + 64) = 10 VA; Q < 0 znači kapacitivno.'],
+    [1.8,'Radna i jalova snaga jednake su (P = Q > 0). Koliki je fazni kut?','φ = 45°, induktivno',['φ = 45°, kapacitivno','φ = 90°','φ = 0°'],'tg φ = Q/P = 1, pa je φ = 45°; Q > 0 je induktivno.'],
+    [1.7,'Krug je u rezonanciji. Kakav je trokut snage?','Q = 0, pa je S = P (trokut se svede na dužinu)',['P = 0, S = Q','S = 0','P = Q = S'],'U rezonanciji se jalove snage zavojnice i kondenzatora ponište: cos φ = 1.']],['sn_trk']);
+  mc('sn2','s_mr',[
+    [1.8,'Ukupna radna snaga mreže jednaka je:','zbroju radnih snaga na svim otpornicima',['zbroju prividnih snaga','umnošku U·I','radnoj snazi na najvećem otporniku'],'Bilanca snage: radna snaga izvora troši se na otpornicima, P = ΣI<sub>k</sub>²·R<sub>k</sub>.'],
+    [2.0,'Ukupna jalova snaga mreže sa zavojnicama i kondenzatorima je:','Q = Q<sub>L</sub> − Q<sub>C</sub>',['Q = Q<sub>L</sub> + Q<sub>C</sub>','Q = √(Q<sub>L</sub>² + Q<sub>C</sub>²)','Q = 0'],'Jalova snaga kondenzatora suprotnog je predznaka, pa se oduzima.'],
+    [2.1,'Dva trošila imaju prividne snage S<sub>1</sub> i S<sub>2</sub>. Ukupna prividna snaga je:','S = √((P<sub>1</sub> + P<sub>2</sub>)² + (Q<sub>1</sub> + Q<sub>2</sub>)²)',['S = S<sub>1</sub> + S<sub>2</sub>','S = √(S<sub>1</sub>² + S<sub>2</sub>²)','S = S<sub>1</sub>·S<sub>2</sub>'],'Zbrajaju se radne i jalove snage, a S se dobije iz trokuta. S<sub>1</sub> + S<sub>2</sub> vrijedi samo ako su trošila istog faktora snage.'],
+    [1.9,'Snaga izvora i snage trošila:','radna i jalova snaga izvora jednake su zbroju snaga na trošilima',['izvor daje više snage nego što trošila primaju','jalova snaga izvora je uvijek 0','radna snaga izvora je S·sin φ'],'To je dobra provjera rješenja: P izvora = ΣP elemenata, Q izvora = ΣQ<sub>L</sub> − ΣQ<sub>C</sub>.'],
+    [2.0,'Struja kroz otpornik R<sub>2</sub> u paralelnoj grani nije jednaka struji izvora. Kako se računa snaga na R<sub>2</sub>?','P<sub>2</sub> = I<sub>R2</sub>²·R<sub>2</sub> = U<sub>R2</sub>²/R<sub>2</sub>',['P<sub>2</sub> = I²·R<sub>2</sub> (struja izvora)','P<sub>2</sub> = U²/R<sub>2</sub> (napon izvora)','P<sub>2</sub> = U·I'],'Za svaki element uzima se njegova struja ili njegov napon.']],['sn_p']);
+  mc('sn2','s_kom',[
+    [1.8,'Kompleksna prividna snaga računa se kao (efektivne vrijednosti):','Ṡ = U̇·İ*',['Ṡ = U̇·İ','Ṡ = U̇*·İ*','Ṡ = U̇/İ'],'İ* je konjugirano kompleksna struja (imaginarnom dijelu promijeni se predznak). Tada je Ṡ = P + jQ.'],
+    [1.6,'Ṡ = 30 + j40 VA. Radna i jalova snaga su:','P = 30 W, Q = 40 VAr',['P = 40 W, Q = 30 VAr','P = 50 W, Q = 0','P = 30 W, Q = −40 VAr'],'Ṡ = P + jQ: realni dio je P, imaginarni Q; |Ṡ| = S = 50 VA.'],
+    [2.0,'U̇ = 10∠0° V, İ = 2∠−30° A (efektivne vrijednosti). Kompleksna snaga je:','Ṡ = 20∠30° VA, induktivno',['Ṡ = 20∠−30° VA, kapacitivno','Ṡ = 5∠30° VA','Ṡ = 20∠0° VA'],'Ṡ = U̇·İ* = 10∠0° · 2∠+30° = 20∠30° VA. Struja kasni, pa je spoj induktivan (Q > 0).'],
+    [2.2,'Fazori su zapisani amplitudama (U̇<sub>m</sub>, İ<sub>m</sub>). Kompleksna snaga je:','Ṡ = ½·U̇<sub>m</sub>·İ<sub>m</sub>*',['Ṡ = U̇<sub>m</sub>·İ<sub>m</sub>*','Ṡ = 2·U̇<sub>m</sub>·İ<sub>m</sub>*','Ṡ = √2·U̇<sub>m</sub>·İ<sub>m</sub>*'],'U<sub>m</sub>·I<sub>m</sub> = √2U·√2I = 2·U·I, pa se dijeli s 2. Najjednostavnije je prije računanja snage prijeći na efektivne vrijednosti.'],
+    [2.0,'Zašto se u Ṡ = U̇·İ* struja konjugira?','da kut snage bude φ = β<sub>u</sub> − β<sub>i</sub>',['da Ṡ bude realan broj','jer je struja negativna','ne konjugira se'],'Množenjem se kutovi zbrajaju: β<sub>u</sub> + (−β<sub>i</sub>) = φ. Bez konjugiranja kut ne bi bio fazni pomak.'],
+    [1.7,'U̇ = 100∠0° V, a İ je u fazi s naponom, I = 2 A. Snage su:','P = 200 W, Q = 0, S = 200 VA',['P = 0, Q = 200 VAr','P = 100 W, Q = 100 VAr','P = 200 W, Q = 200 VAr'],'φ = 0: cijela snaga je radna.']],['sn_kom']);
+  /* ---------- Vježba: Thevenin i Norton ---------- */
+  const TOP=[];['R','L','C'].forEach(a=>['R','L','C'].forEach(b=>{if(a===b&&a!=='R')return;TOP.push({a,b,c:''});['R','L','C'].forEach(c3=>{if(c3!==a||c3==='R')TOP.push({a,b,c:c3})})}));
+  const tnSp=(t,cur)=>cur?{W:2,V:[{s:'I',e:'',dir:1},{e:t.a},{e:''}],T:[{w:true},{e:t.b}],d:[1,1]}:{W:2,V:[{s:'U',e:''},{e:t.b},{e:''}],T:[{e:t.a},t.c?{e:t.c}:{w:true}],d:[1,1]};
+  const picked=TOP.filter((t,i)=>i%2===0).slice(0,12);
+  picked.forEach((t,ix)=>{const cur=ix%4===3,sp=tnSp(t,cur),c=amC(sp),id='th'+ix;
+    const E1=cur?c.V[1].els:c.T[0].els,E2=cur?c.T[1].els:c.V[1].els,E3=!cur&&t.c?c.T[1].els:[];
+    const Z1=zE(E1),Z2=zE(E2),Z3=E3.length?zE(E3):'';const S=[];
+    S.push({t:`Prvi korak za Ż<sub>T</sub>: ugasiti izvor. Čime se zamijeni ${cur?'strujni':'naponski'} izvor?`,opts:sh([['a',cur?'prekidom (prazni hod)':'kratkim spojem'],['b',cur?'kratkim spojem':'prekidom (prazni hod)'],['c','otpornikom R'],['d','ne mijenja se']],id+'1'),ans:'a',ex:`Pri gašenju izvora naponski izvor zamijeni se kratkim spojem, a strujni prekidom. Ovdje je ${cur?'strujni: prekid':'naponski: kratki spoj'}.`});
+    let ZT,bad;if(cur){ZT=zAdd(Z1,Z2);bad=[zPar(Z1,Z2),Z2,Z1]}else{const p=zPar(Z1,Z2);ZT=Z3?zAdd(p,Z3):p;bad=[zAdd(Z1,Z2)+(Z3?'':''),Z3?p:Z2,Z3?zAdd(Z1,Z3):Z1]}
+    S.push({t:'Theveninova impedancija gledano s priključnica A i B je:',opts:sh([['a',`Ż<sub>T</sub> = ${ZT}`],...bad.filter(x=>x!==ZT).slice(0,3).map((x,i)=>['b'+i,`Ż<sub>T</sub> = ${x}`])],id+'2'),ans:'a',
+      ex:cur?`Uz odspojen strujni izvor ${amPar(Z1)} i ${amPar(Z2)} su u seriji između A i B: Ż<sub>T</sub> = ${ZT}.`:`Uz kratko spojen izvor ${amPar(Z1)} i ${amPar(Z2)} su paralelno${Z3?`, a s njima je u seriji ${Z3}`:''}: Ż<sub>T</sub> = ${ZT}.`});
+    if(Z3)S.push({t:`Teče li u praznom hodu (A i B otvoreni) struja kroz ${Z3}?`,opts:sh([['a','ne, pa na njemu nema pada napona'],['b','da, ista kao kroz izvor'],['c','da, ista kao kroz '+amPar(Z2)],['d','ovisi o frekvenciji']],id+'3'),ans:'a',ex:`Priključnica A je otvorena, pa kroz ${Z3} ne teče struja: Ė<sub>T</sub> je napon na ${amPar(Z2)}.`});
+    const ET=cur?`İ<sub>0</sub>·${amPar(Z1)}`:`U̇<sub>0</sub>·${amPar(Z2)}/(${zAdd(Z1,Z2)})`;
+    S.push({t:'Theveninov napon Ė<sub>T</sub> (napon praznog hoda između A i B) je:',opts:sh(cur?[['a',`Ė<sub>T</sub> = ${ET}`],['b',`Ė<sub>T</sub> = İ<sub>0</sub>·(${zAdd(Z1,Z2)})`],['c',`Ė<sub>T</sub> = İ<sub>0</sub>·${amPar(Z2)}`],['d','Ė<sub>T</sub> = İ<sub>0</sub>']]:[['a',`Ė<sub>T</sub> = ${ET}`],['b',`Ė<sub>T</sub> = U̇<sub>0</sub>·${amPar(Z1)}/(${zAdd(Z1,Z2)})`],['c','Ė<sub>T</sub> = U̇<sub>0</sub>'],['d',Z3?`Ė<sub>T</sub> = U̇<sub>0</sub>·${amPar(Z2)}/(${zAdd(zAdd(Z1,Z2),Z3)})`:`Ė<sub>T</sub> = U̇<sub>0</sub>/(${zAdd(Z1,Z2)})`]],id+'4'),ans:'a',
+      ex:cur?`Struja izvora teče samo kroz ${amPar(Z1)} (kroz ${amPar(Z2)} ne teče jer je A otvoren): Ė<sub>T</sub> = İ<sub>0</sub>·${amPar(Z1)}.`:`Djelilo napona: Ė<sub>T</sub> = U̇<sub>0</sub>·${amPar(Z2)}/(${zAdd(Z1,Z2)}).`});
+    S.push({t:'Nortonova struja İ<sub>N</sub> (struja kratkog spoja A–B) je:',opts:sh([['a','İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub>'],['b','İ<sub>N</sub> = Ė<sub>T</sub>·Ż<sub>T</sub>'],['c','İ<sub>N</sub> = Ż<sub>T</sub>/Ė<sub>T</sub>'],['d','İ<sub>N</sub> = Ė<sub>T</sub>']],id+'5'),ans:'a',ex:'Kad se A i B kratko spoje, kroz Theveninov ekvivalent teče İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub>. Nortonova impedancija je ista: Ż<sub>N</sub> = Ż<sub>T</sub>.'});
+    add('tn2',{type:'t_crt',diff:Math.round((2+(Z3?0.8:0)+(cur?0.6:0)+(E1.concat(E2,E3).some(e=>e.k!=='R')?0.3:0))*10)/10,tags:['tn_zt','tn_et'],steps:S,svg:amSvg(c,{term:true,srcLab:cur?null:sb('u','0')}),text:`Nadomjesti mrežu sa slike po Theveninu s obzirom na priključnice A i B (impedancije: R, jX<sub>L</sub>, −jX<sub>C</sub>).`})});
+  mc('tn2','t_poj',[
+    [1.2,'Theveninov teorem: mreža gledana s priključnica A i B nadomješta se:','naponskim izvorom Ė<sub>T</sub> u seriji s impedancijom Ż<sub>T</sub>',['strujnim izvorom paralelno sa Ż<sub>T</sub>','samo impedancijom Ż<sub>T</sub>','naponskim izvorom paralelno sa Ż<sub>T</sub>'],'Isto kao u istosmjernim mrežama, samo su napon i impedancija kompleksni.'],
+    [1.3,'Nortonov teorem: mreža se nadomješta:','strujnim izvorom İ<sub>N</sub> paralelno s impedancijom Ż<sub>N</sub> = Ż<sub>T</sub>',['naponskim izvorom u seriji sa Ż<sub>N</sub>','strujnim izvorom u seriji sa Ż<sub>N</sub>','samo strujnim izvorom'],'Nortonova admitancija je Ẏ<sub>N</sub> = 1/Ż<sub>T</sub>.'],
+    [1.3,'Theveninov napon Ė<sub>T</sub> je:','napon između otvorenih priključnica A i B (prazni hod)',['napon izvora','napon kad su A i B kratko spojene','napon na najvećoj impedanciji'],'Kroz priključnice ne teče struja: računa se napon između A i B.'],
+    [1.4,'Pri računanju Ż<sub>T</sub> izvori se gase ovako:','naponski se kratko spoje, strujni se odspoje',['naponski se odspoje, strujni kratko spoje','oba se kratko spoje','oba se odspoje'],'Ugašen naponski izvor ima napon 0 (kratki spoj), a ugašen strujni struju 0 (prekid).'],
+    [1.4,'Nortonova struja İ<sub>N</sub> je:','struja kroz kratko spojene priključnice A i B',['struja izvora u mreži','struja kroz Ż<sub>T</sub> u praznom hodu','napon podijeljen s 2'],'İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub>.'],
+    [1.6,'Na priključnice Theveninova ekvivalenta spoji se trošilo Ż<sub>t</sub>. Struja trošila je:','İ = Ė<sub>T</sub>/(Ż<sub>T</sub> + Ż<sub>t</sub>)',['İ = Ė<sub>T</sub>/Ż<sub>t</sub>','İ = Ė<sub>T</sub>/Ż<sub>T</sub>','İ = Ė<sub>T</sub>·(Ż<sub>T</sub> + Ż<sub>t</sub>)'],'Ż<sub>T</sub> i Ż<sub>t</sub> su u seriji s izvorom Ė<sub>T</sub>.'],
+    [1.8,'Pišu li se Ė<sub>T</sub> i Ż<sub>T</sub> u vremenskoj domeni?','ne: Theveninovi parametri vrijede samo za zadanu frekvenciju',['da, Ė<sub>T</sub> kao e(t), a Ż<sub>T</sub> kao z(t)','samo Ż<sub>T</sub>','samo Ė<sub>T</sub>'],'Ż<sub>T</sub> ovisi o ω (reaktancije), pa je ekvivalent frekvencijski određen. U vrijeme se vraćaju tek struje i naponi trošila.'],
+    [1.7,'Element je u seriji s priključnicom A, a A i B su otvorene. Struja kroz taj element u praznom hodu je:','nula',['jednaka struji izvora','jednaka İ<sub>N</sub>','beskonačna'],'Grana završava otvorenom priključnicom, pa kroz nju ne teče struja i na elementu nema pada napona.'],
+    [1.9,'Ė<sub>T</sub> = 10 V, Ż<sub>T</sub> = 5 Ω. Nortonova struja je:','İ<sub>N</sub> = 2 A',['İ<sub>N</sub> = 50 A','İ<sub>N</sub> = 0,5 A','İ<sub>N</sub> = 10 A'],'İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub> = 10/5 = 2 A.'],
+    [2.0,'Ė<sub>T</sub> = 10 V, Ż<sub>T</sub> = 5 − j5 Ω, a trošilo je Ż<sub>t</sub> = j5 Ω. Struja trošila je:','İ = 2 A (reaktancije se ponište)',['İ = 1 A','İ = 0 A','İ = 10 A'],'Ż<sub>T</sub> + Ż<sub>t</sub> = 5 − j5 + j5 = 5 Ω, pa je İ = 10/5 = 2 A.'],
+    [1.8,'Ż<sub>T</sub> = 3 + j4 Ω. Kakva je Theveninova impedancija?','induktivna, |Ż<sub>T</sub>| = 5 Ω',['kapacitivna, |Ż<sub>T</sub>| = 5 Ω','induktivna, |Ż<sub>T</sub>| = 7 Ω','radna, 3 Ω'],'Pozitivni imaginarni dio znači induktivni karakter; |Ż| = √(9 + 16) = 5 Ω.'],
+    [1.7,'Strujni izvor İ<sub>0</sub> paralelno s impedancijom Ż prema Theveninu je:','Ė<sub>T</sub> = İ<sub>0</sub>·Ż u seriji sa Ż',['Ė<sub>T</sub> = İ<sub>0</sub>/Ż u seriji sa Ż','Ė<sub>T</sub> = İ<sub>0</sub> u seriji sa Ż','Ė<sub>T</sub> = İ<sub>0</sub>·Ż paralelno sa Ż'],'To je pretvorba strujnog izvora u naponski (i obrnuto: İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub>).']],['tn_et']);
+})();
+Object.assign(TYPENAME,{s_trk:'Trokut snage mreže korak po korak',s_tro:'Trokut snage',s_def:'Radna, jalova i prividna snaga',s_mr:'Snaga u mreži',s_kom:'Kompleksna snaga',t_crt:'Theveninov ekvivalent korak po korak',t_poj:'Thevenin i Norton: pravila'});
+Object.assign(TAGNAMES,{sn_def:'Definicije snaga',sn_trk:'Trokut snage',sn_p:'Radna snaga u mreži',sn_q:'Jalova snaga u mreži',sn_kom:'Kompleksna snaga',tn_zt:'Theveninova impedancija',tn_et:'Theveninov napon'});
+{const ph={sn2:'Ṡ = U̇·İ* = P + jQ',tn2:'Ė<sub>T</sub>, Ż<sub>T</sub> &nbsp;·&nbsp; İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub>'};
+  AM3Q.forEach(q=>{if(!q.steps&&!q.svg)q.svg=`<div style="display:flex;align-items:center;justify-content:center;min-height:120px;font-family:var(--f-head);font-size:28px;color:var(--muted);text-align:center;padding:10px">${ph[q.topic]}</div>`})}
+{const _pq=pickQuestion;pickQuestion=function(topic,exclude=new Set()){if(AM3K.has(topic)&&view==='exam'){const ex=new Set(exclude);AM3Q.forEach(q=>{if(q.steps)ex.add(q.id)});const q=_pq.call(this,topic,ex);if(q&&q.steps){const L=AM3Q.filter(x=>x.topic===topic&&!x.steps);return L.find(x=>!exclude.has(x.id))||L[Math.floor(Math.random()*L.length)]}return q}return _pq.apply(this,arguments)}}
+{const _rb=renderBank;renderBank=function(){const mod=prof().module;if(!AM3K.has(mod))return _rb.apply(this,arguments);const L=AM3Q.filter(q=>q.topic===mod);
+  const ans=q=>q.steps?`<ol style="margin:0;padding-left:18px;max-width:300px">${q.steps.map(s=>`<li>${(s.opts.find(o=>o[0]===s.ans)||['',''])[1]}</li>`).join('')}</ol>`:`<div style="max-width:240px">${(q.opts.find(o=>o[0]===q.ans)||['',''])[1]}</div>`;
+  main.innerHTML=`<div class="sheet panel" style="max-width:none"><h2>Baza zadataka: ${MODNAME[mod]}</h2><p class="note">${L.length} pitanja iz Vježbe, bez računanja na kalkulatoru. Uz svako je točan odgovor; kod zadataka korak po korak prikazani su točni koraci. Zadatke s brojevima nađeš u kartici Zadaci.</p><table><tr><th>Pitanje</th><th>Vrsta</th><th>Tekst</th><th>Točno</th><th>Težina</th></tr>${L.map(q=>`<tr><td>${q.id}</td><td>${TYPENAME[q.type]}</td><td>${q.text}${q.steps?`<div style="width:220px">${q.svg}</div>`:''}</td><td style="min-width:150px">${ans(q)}</td><td>${fmt(q.diff)}</td></tr>`).join('')}</table></div>`;modbar()}}
+
+/* ---------- Lekcije ---------- */
+function am3Lessons(){
+  const exC=amC({W:2,V:[{s:'U',e:''},{e:'R'},{e:'C'}],T:[{e:'R'},{w:true}],d:[1,1]});   // R1 + (R2 ∥ C)
+  const exV={R1:'20 Ω',R2:'100 Ω',C:sb('X','C')+' = 50 Ω'},exL={R1:`${amSvgN('R1')} = 20 Ω`,R2:`${amSvgN('R2')} = 100 Ω`,C:sb('X','C')+' = 50 Ω'};
+  const exS=amSvg(exC,{vals:{},labs:exL});
+  LESSONS.sn2=[
+   {svg:snTri(2,1.5),t:'Tri snage',h:`<p>U mrežama izmjenične struje snaga ima tri dijela (U i I su efektivne vrijednosti):</p><div class="rule">radna (djelatna): P = U·I·cos φ [W]<br>jalova (reaktivna): Q = U·I·sin φ [VAr]<br>prividna (ukupna): S = U·I [VA]</div><p>cos φ je <b>faktor snage</b>, a φ = β<sub>u</sub> − β<sub>i</sub> fazni pomak napona prema struji.</p>`},
+   {svg:amTab(['element','φ','P','Q'],[['otpornik R','0°','I²·R = U²/R','0'],['zavojnica L','+90°','0','+I²·X<sub>L</sub>'],['kondenzator C','−90°','0','−I²·X<sub>C</sub>']],'Za svaki element uzima se njegova struja I ili njegov napon U.'),t:'Snaga na elementima',h:`<p>Radna snaga nastaje <b>samo na otpornicima</b>, a jalova <b>samo na zavojnicama i kondenzatorima</b>.</p><div class="rule">P = I²·R = U²·G &nbsp;&nbsp; Q = I²·X = U²·B &nbsp;&nbsp; S = I²·Z = U²·Y</div><p>Jalova snaga kondenzatora suprotnog je predznaka: u zbroju se oduzima, Q = Q<sub>L</sub> − Q<sub>C</sub> (u AV se Q<sub>C</sub> piše kao iznos i oduzme).</p>`},
+   {svg:acPair(snTri(2,1.5,{h:220}),snTri(2,-1.5,{h:220})),t:'Trokut snage',h:`<div class="rule">P vodoravno &nbsp;·&nbsp; Q okomito: gore za induktivno (Q &gt; 0), dolje za kapacitivno (Q &lt; 0) &nbsp;·&nbsp; S je hipotenuza</div><p>S = √(P² + Q²), cos φ = P/S, sin φ = Q/S, tg φ = Q/P. Kut φ je između P i S.</p><p>Lijevo je induktivno, a desno kapacitivno trošilo. Na slici uvijek upiši vrijednosti stranica (P, Q, S s jedinicama) i kut φ.</p>`},
+   {svg:vdTri('ser'),t:'Isti oblik kao trokut impedancije',h:`<p>U seriji teče ista struja, pa se trokut impedancije pomnoži s I²: R·I² = P, X·I² = Q, Z·I² = S. Kut φ je isti.</p><p><b>Pazi u paraleli:</b> u trokutu admitancije B<sub>L</sub> je dolje, ali jalova snaga zavojnice i dalje je pozitivna i u trokutu snage crta se <b>gore</b>. Q = U·I·sin φ, a φ = β<sub>u</sub> − β<sub>i</sub> &gt; 0 za induktivni spoj.</p>`},
+   {svg:amBox(`<p>U̇ = 10∠0° V, &nbsp; İ = 2∠−30° A (efektivne vrijednosti)</p><p>İ* = 2∠+30° A</p><p>Ṡ = U̇·İ* = 10·2∠(0° + 30°) = 20∠30° VA</p><p>Ṡ = 17,32 + j10 VA &nbsp;→&nbsp; P = 17,32 W, Q = 10 VAr, S = 20 VA</p>`),t:'Kompleksna snaga',h:`<div class="rule">Ṡ = U̇·İ* = P + jQ &nbsp;&nbsp; S = |Ṡ|</div><p>İ* je <b>konjugirano kompleksna</b> struja: imaginarni dio mijenja predznak (kut struje mijenja predznak). Tako je kut od Ṡ upravo φ = β<sub>u</sub> − β<sub>i</sub>.</p><p>Ako su fazori zapisani <b>amplitudama</b>, Ṡ = ½·U̇<sub>m</sub>·İ<sub>m</sub>*. Najjednostavnije je prije računanja snage prijeći na efektivne vrijednosti.</p>`},
+   {svg:exS,t:'Snaga izvora u mreži: primjer',h:`<p>u<sub>0</sub>(t) = 40√2·sin(1000t) V, dakle U = 40 V. R<sub>1</sub> = 20 Ω, R<sub>2</sub> = 100 Ω, X<sub>C</sub> = 50 Ω.</p><div class="meq">Ż<sub>p</sub> = R<sub>2</sub>·(−jX<sub>C</sub>)/(R<sub>2</sub> − jX<sub>C</sub>) = 100·(−j50)/(100 − j50) = 20 − j40 Ω</div><div class="meq">Ż = R<sub>1</sub> + Ż<sub>p</sub> = 40 − j40 Ω = 56,57∠−45° Ω</div><div class="meq">İ = U̇/Ż = 40∠0°/56,57∠−45° = 0,707∠45° A</div><div class="meq">Ṡ = U̇·İ* = 40·0,707∠−45° = 28,28∠−45° VA = 20 − j20 VA</div><p>P = 20 W, Q = −20 VAr (kapacitivno), S = 28,28 VA, φ = −45°.</p>`},
+   {svg:exS,t:'Provjera po elementima',h:`<p>Snaga izvora mora biti jednaka zbroju snaga na elementima:</p><div class="meq">P<sub>R1</sub> = I²·R<sub>1</sub> = 0,707²·20 = 10 W</div><div class="meq">U<sub>p</sub> = I·|Ż<sub>p</sub>| = 0,707·44,72 = 31,62 V</div><div class="meq">P<sub>R2</sub> = U<sub>p</sub>²/R<sub>2</sub> = 1000/100 = 10 W &nbsp;&nbsp; Q<sub>C</sub> = U<sub>p</sub>²/X<sub>C</sub> = 1000/50 = 20 VAr</div><p>P = 10 + 10 = 20 W ✓, Q = −20 VAr ✓. Na R<sub>2</sub> i C napon je U<sub>p</sub>, a ne napon izvora.</p>`},
+   {svg:snTri(20,-20,{labs:{P:'P = 20 W',Q:'Q = −20 VAr',S:'S = 28,28 VA'}}),t:'Trokut snage s upisanim vrijednostima',h:`<p>Za primjer iz prethodnog slajda: P = 20 W vodoravno, Q = −20 VAr okomito <b>dolje</b> (kapacitivno), S = 28,28 VA hipotenuza, a kut φ = −45° između P i S.</p><div class="rule">Uz trokut napiši vrijednosti svih stranica s jedinicama i kut φ (s predznakom).</div>`},
+   {svg:amTab(['korak','što se radi'],[['1','iz u(t): U = U<sub>m</sub>/√2, ω; reaktancije X<sub>L</sub> = ωL, X<sub>C</sub> = 1/(ωC)'],['2','ukupna impedancija Ż (serija, paralela, kompleksno)'],['3','İ = U̇/Ż'],['4','Ṡ = U̇·İ* = P + jQ; S = U·I; φ'],['5','provjera: P = ΣI<sub>k</sub>²R<sub>k</sub>, Q = ΣQ<sub>L</sub> − ΣQ<sub>C</sub>'],['6','trokut snage s upisanim P, Q, S i φ']]),t:'Postupak za rješavanje',h:`<p>Isti postupak vrijedi za svaku mrežu s jednim izvorom. Ako se mreža rješava konturnim strujama ili naponima čvorova, struja izvora dobije se iz rješenja, a snaga ostaje Ṡ = U̇·İ*.</p>`},
+   amQuiz('snq1',snThumb('dn'),'Provjeri se','Trokut snage na slici pripada trošilu koje je:',[['a','kapacitivno: Q &lt; 0'],['b','induktivno: Q &gt; 0'],['c','radno: Q = 0'],['d','ne može se odrediti']],'a','Q je nacrtan prema dolje, dakle negativan: kapacitivno trošilo, φ &lt; 0.')];
+  const tA=amC({W:2,V:[{s:'U',e:''},{e:'C'},{e:''}],T:[{e:'R'},{w:true}],d:[1,1]}),tA3=amC({W:2,V:[{s:'U',e:''},{e:'L'},{e:''}],T:[{e:'R'},{e:'C'}],d:[1,1]}),tB=amC({W:2,V:[{s:'I',e:'',dir:1},{e:'R'},{e:''}],T:[{w:true},{e:'L'}],d:[1,1]});
+  const eq=amC({W:1,V:[{s:'U',e:''},{e:''}],T:[{e:'R',n:['ZT']}],d:[1]});
+  const eqS=amSvg(eq,{term:true,vals:{},labs:{ZT:sb('Ż','T')},srcLab:sb('Ė','T')});
+  LESSONS.tn2=[
+   {svg:acPair(amSvg(tA3,{term:true}),eqS),t:'Theveninov teorem',h:`<p>Isto kao u istosmjernim mrežama: dio mreže gledan s priključnica A i B nadomjesti se jednim <b>naponskim izvorom Ė<sub>T</sub></b> u seriji s <b>impedancijom Ż<sub>T</sub></b>.</p><div class="rule">Ė<sub>T</sub> = napon između otvorenih priključnica A i B<br>Ż<sub>T</sub> = impedancija s A i B uz ugašene izvore</div><p>Razlika je samo u tome što su Ė<sub>T</sub> i Ż<sub>T</sub> kompleksni brojevi.</p>`},
+   {svg:amSvg(tA,{term:true,hl:new Set(['V0s'])}),t:'Theveninova impedancija Ż<sub>T</sub>',h:`<div class="rule">ugasiti izvore: naponski → kratki spoj, strujni → prekid</div><p>Zatim se izračuna impedancija gledano s A i B. Ovdje uz kratko spojen izvor R i C su paralelno:</p><div class="meq">Ż<sub>T</sub> = R·(−jX<sub>C</sub>)/(R − jX<sub>C</sub>)</div><p>Za paralelu dviju impedancija vrijedi umnožak kroz zbroj, s kompleksnim brojevima.</p>`},
+   {svg:amSvg(tA,{term:true,hl:new Set(['C'])}),t:'Theveninov napon Ė<sub>T</sub>',h:`<p>A i B su otvorene (prazni hod), pa kroz njih ne teče struja. Napon između A i B jednak je naponu na C, a struja teče samo krugom izvor – R – C:</p><div class="rule">Ė<sub>T</sub> = U̇<sub>0</sub>·(−jX<sub>C</sub>)/(R − jX<sub>C</sub>) &nbsp;(djelilo napona)</div><p>Ako je između čvora i priključnice A još neki element u seriji, kroz njega u praznom hodu ne teče struja i na njemu nema pada napona.</p>`},
+   {svg:amBox(`<p>U̇<sub>0</sub> = 10 V, R = 10 Ω, X<sub>C</sub> = 10 Ω</p><p>Ż<sub>T</sub> = 10·(−j10)/(10 − j10) = −j100(10 + j10)/200 = 5 − j5 Ω</p><p>Ė<sub>T</sub> = 10·(−j10)/(10 − j10) = 5 − j5 V</p><p>İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub> = (5 − j5)/(5 − j5) = 1 A</p>`),t:'Primjer s brojevima',h:`<p>Za mrežu s prethodnog slajda. Provjera Nortonove struje: kad se A i B kratko spoje, C je kratko spojen i struja je U̇<sub>0</sub>/R = 10/10 = 1 A ✓.</p>`},
+   {svg:eqS,t:'Nortonov teorem',h:`<div class="rule">İ<sub>N</sub> = struja kroz kratko spojene priključnice A i B = Ė<sub>T</sub>/Ż<sub>T</sub><br>Ż<sub>N</sub> = Ż<sub>T</sub> &nbsp;(Ẏ<sub>N</sub> = 1/Ż<sub>T</sub>)</div><p>Nortonov ekvivalent je strujni izvor İ<sub>N</sub> paralelno sa Ż<sub>N</sub>. Theveninov i Nortonov ekvivalent pretvaraju se jedan u drugi kao naponski i strujni izvor.</p>`},
+   {svg:amSvg(tB,{term:true}),t:'Strujni izvor u mreži',h:`<p>Strujni izvor İ<sub>0</sub> paralelno s R, a do priključnice A još zavojnica L.</p><div class="meq">Ż<sub>T</sub> = R + jX<sub>L</sub> &nbsp;(strujni izvor odspojen)</div><div class="meq">Ė<sub>T</sub> = İ<sub>0</sub>·R &nbsp;(kroz L u praznom hodu ne teče struja)</div>`},
+   {svg:amBox(`<p>Ė<sub>T</sub> = 5 − j5 V, &nbsp; Ż<sub>T</sub> = 5 − j5 Ω, &nbsp; trošilo Ż<sub>t</sub> = j5 Ω</p><p>İ = Ė<sub>T</sub>/(Ż<sub>T</sub> + Ż<sub>t</sub>) = (5 − j5)/(5 − j5 + j5) = (5 − j5)/5 = 1 − j A</p>`),t:'Struja trošila',h:`<div class="rule">İ<sub>t</sub> = Ė<sub>T</sub>/(Ż<sub>T</sub> + Ż<sub>t</sub>)</div><p>Kad je ekvivalent jednom izračunat, struja za bilo koje trošilo dobije se jednom dijeljenjem. Theveninovi parametri vrijede samo za zadanu frekvenciju i ne pišu se u vremenskoj domeni; u vrijeme se vraća tek struja trošila.</p>`},
+   amQuiz('tnq1',amSvg(tA3,{term:true}),'Provjeri se','Kolika je Ż<sub>T</sub> za mrežu na slici?',[['a','R·jX<sub>L</sub>/(R + jX<sub>L</sub>) − jX<sub>C</sub>'],['b','R + jX<sub>L</sub> − jX<sub>C</sub>'],['c','R·jX<sub>L</sub>/(R + jX<sub>L</sub>)'],['d','−jX<sub>C</sub>']],'a','Uz kratko spojen izvor R i L su paralelno, a C je u seriji prema priključnici A.')];
+  lstep.sn2=lstep.sn2||0;lstep.tn2=lstep.tn2||0}
+am3Lessons();
+
+/* ---------- Zadaci ---------- */
+Object.assign(ZKINDS,{sn2:[['el','Serijski ili paralelni spoj: P, Q, S'],['mj','Mreža s jednim izvorom: trokut snage'],['kom','Kompleksna snaga iz U̇ i İ'],['dva','Dva trošila paralelno']],
+  tn2:[['A','Ė_T i Ż_T (naponski izvor)'],['B','Ė_T i Ż_T (strujni izvor)'],['N','Nortonov ekvivalent'],['tr','Struja trošila']]});
+Object.assign(ZLES,{sn2:'sn2',tn2:'tn2'});Object.assign(RINGZ,{sn2:['sn2'],tn2:['tn2']});
+function snSol(P,Q,U,I){const S=Math.hypot(P,Q),f=Math.atan2(Q,P)*180/Math.PI;return[`S = U·I = ${pfmt(U,2)}·${pfmt(I,4)} = <b>${pfmt(S,2)} VA</b> = √(P² + Q²)`,`φ = arctg(Q/P) = <b>${pfmt(f,2)}°</b> (${Q>0?'induktivno':'kapacitivno'}), cos φ = ${pfmt(P/S,3)}`,`Trokut snage:<div style="max-width:380px">${snTri(P,Q,{labs:{P:`P = ${pfmt(P,2)} W`,Q:`Q = ${pfmt(Q,2)} VAr`,S:`S = ${pfmt(S,2)} VA`}})}</div><p class="note" style="margin:0">φ = ${pfmt(f,2)}° između P i S.</p>`]}
+function am3ZGen(type,d){const pk=acZpk,lv=Math.max(1,Math.min(6,Math.round(d))),F=acZF,Fd=acZd;
+  const LV={sn2:{1:['el'],2:['el','kom'],3:['kom','el','dva'],4:['mj','dva'],5:['mj','dva','kom'],6:['mj']},tn2:{1:['A'],2:['A','B'],3:['A','B','N'],4:['N','tr'],5:['tr','N','B'],6:['tr','A']}}[type][lv];
+  const kind=(zTestKind&&ZKINDS[type].some(k=>k[0]===zTestKind))?zTestKind:pk(LV);
+  const RV=[10,20,30,60,80,100,120,150],XV=[10,20,30,60,80,120,150],UV=[10,12,24,30,60,100,120];
+  if(type==='sn2'){
+    if(kind==='el'){const ser=Math.random()<0.5,R=pk([3,6,8,12,30,60,80]),X=pk([4,6,8,9,16,40,60]),ind=Math.random()<0.5,U=pk(UV);let P,Q,I;const c=ser?amC({W:1,V:[{s:'U',e:''},{e:'R'+(ind?'L':'C')}],T:[{w:true}],d:[1]}):amC({W:2,V:[{s:'U',e:''},{e:'R'},{e:ind?'L':'C'}],T:[{w:true},{w:true}],d:[1,1]});
+      if(ser){const Z=Math.hypot(R,X);I=U/Z;P=I*I*R;Q=(ind?1:-1)*I*I*X}else{P=U*U/R;Q=(ind?1:-1)*U*U/X;I=Math.hypot(U/R,U/X)}
+      const xl=ind?sb('X','L')+` = ${X} Ω`:sb('X','C')+` = ${X} Ω`;
+      return acZz(type,kind,lv,{svg:amSvg(c,{vals:{},labs:{R:`R = ${R} Ω`,[ind?'L':'C']:xl}}),text:`${ser?'Serijski':'Paralelni'} spoj otpornika R = ${R} Ω i ${ind?'zavojnice X<sub>L</sub>':'kondenzatora X<sub>C</sub>'} = ${X} Ω priključen je na napon efektivne vrijednosti U = ${U} V. Odredite radnu, jalovu i prividnu snagu izvora i fazni kut te nacrtajte trokut snage.`,
+        fields:[F('P',P,'W'),F('Q',Q,'VAr',1,'s predznakom'),F('S',Math.hypot(P,Q),'VA'),Fd('φ',Math.atan2(Q,P)*180/Math.PI,1,'s predznakom')],
+        sol:ser?[`Z = √(R² + X²) = √(${R}² + ${X}²) = ${pfmt(Math.hypot(R,X),2)} Ω, I = U/Z = <b>${pfmt(I,4)} A</b>`,`P = I²·R = <b>${pfmt(P,2)} W</b>, Q = ${ind?'':'−'}I²·X = <b>${pfmt(Q,2)} VAr</b>`,...snSol(P,Q,U,I)]:[`Na obje grane je napon izvora U = ${U} V.`,`P = U²/R = <b>${pfmt(P,2)} W</b>, Q = ${ind?'':'−'}U²/X = <b>${pfmt(Q,2)} VAr</b>`,`I = √(I<sub>R</sub>² + I<sub>X</sub>²) = ${pfmt(I,4)} A`,...snSol(P,Q,U,I)]})}
+    if(kind==='kom'){const amp=Math.random()<0.35,U=pk([10,20,50,100,230]),I=pk([0.5,1,2,4,5]),bu=pk([0,0,30,-30,90]),bi=bu-pk([30,45,60,-30,-45,-60,90,-90].filter(x=>Math.abs(x)!==90||Math.random()<0.3));
+      const f=bu-bi,S=amp?U*I/2:U*I,P=S*Math.cos(f*Math.PI/180),Q=S*Math.sin(f*Math.PI/180);
+      return acZz(type,kind,lv,{svg:`<div class="ambox" style="font-size:22px;text-align:center;padding:26px 10px">U̇${amp?'<sub>m</sub>':''} = ${U}∠${bu}° V<br>İ${amp?'<sub>m</sub>':''} = ${acN(I,2)}∠${bi}° A</div>`,text:`Napon i struja izvora zadani su fazorima ${amp?'s <b>amplitudama</b>':'s <b>efektivnim vrijednostima</b>'}: U̇${amp?'<sub>m</sub>':''} = ${U}∠${bu}° V, İ${amp?'<sub>m</sub>':''} = ${acN(I,2)}∠${bi}° A. Odredite radnu, jalovu i prividnu snagu te faktor snage.`,
+        fields:[F('P',P,'W'),F('Q',Q,'VAr',1,'s predznakom'),F('S',S,'VA'),{lab:'cos φ',val:Math.cos(f*Math.PI/180),unit:'',w:1}],
+        sol:[amp?`Amplitude: Ṡ = ½·U̇<sub>m</sub>·İ<sub>m</sub>* = ½·${U}∠${bu}° · ${acN(I,2)}∠${-bi}° = ${pfmt(S,3)}∠${f}° VA`:`Ṡ = U̇·İ* = ${U}∠${bu}° · ${acN(I,2)}∠${-bi}° = ${pfmt(S,3)}∠${f}° VA (kod İ* kut struje mijenja predznak)`,`Ṡ = ${cTxt(Cx(P,Q),3)} VA: <b>P = ${pfmt(P,2)} W</b>, <b>Q = ${pfmt(Q,2)} VAr</b>, <b>S = ${pfmt(S,2)} VA</b>`,`φ = β<sub>u</sub> − β<sub>i</sub> = ${f}°, cos φ = <b>${pfmt(Math.cos(f*Math.PI/180),3)}</b> (${Math.abs(f)<1e-9?'radno':f>0?'induktivno':'kapacitivno'})`]})}
+    if(kind==='dva'){const U=pk([24,60,100,120,230]),R1=pk([3,6,8,12,30]),X1=pk([4,8,6,16,40]),R2=pk([5,10,20,30]),X2=pk([5,10,15,20,40]),Z1=Math.hypot(R1,X1),Z2=Math.hypot(R2,X2),I1=U/Z1,I2=U/Z2;
+      const P1=I1*I1*R1,Q1=I1*I1*X1,P2=I2*I2*R2,Q2=-I2*I2*X2,P=P1+P2,Q=Q1+Q2;if(Math.abs(Q)<0.08*P)return am3ZGen(type,d);const S=Math.hypot(P,Q);
+      const c=amC({W:2,V:[{s:'U',e:''},{e:'RL'},{e:'RC'}],T:[{w:true},{w:true}],d:[1,1]});
+      return acZz(type,kind,lv,{svg:amSvg(c,{vals:{},labs:{R1:`${amSvgN('R1')} = ${R1} Ω`,L:sb('X','L')+` = ${X1} Ω`,R2:`${amSvgN('R2')} = ${R2} Ω`,C:sb('X','C')+` = ${X2} Ω`}}),text:`Induktivno trošilo (R<sub>1</sub> = ${R1} Ω, X<sub>L</sub> = ${X1} Ω u seriji) i kapacitivno trošilo (R<sub>2</sub> = ${R2} Ω, X<sub>C</sub> = ${X2} Ω u seriji) spojeni su paralelno na napon U = ${U} V. Odredite ukupnu radnu, jalovu i prividnu snagu i faktor snage.`,
+        fields:[F('P',P,'W'),F('Q',Q,'VAr',1,'s predznakom'),F('S',S,'VA'),{lab:'cos φ',val:P/S,unit:'',w:1}],
+        sol:[`Trošilo 1: Z<sub>1</sub> = ${pfmt(Z1,2)} Ω, I<sub>1</sub> = U/Z<sub>1</sub> = ${pfmt(I1,3)} A, P<sub>1</sub> = I<sub>1</sub>²R<sub>1</sub> = ${pfmt(P1,2)} W, Q<sub>1</sub> = I<sub>1</sub>²X<sub>L</sub> = ${pfmt(Q1,2)} VAr`,`Trošilo 2: Z<sub>2</sub> = ${pfmt(Z2,2)} Ω, I<sub>2</sub> = ${pfmt(I2,3)} A, P<sub>2</sub> = ${pfmt(P2,2)} W, Q<sub>2</sub> = −I<sub>2</sub>²X<sub>C</sub> = ${pfmt(Q2,2)} VAr`,`P = P<sub>1</sub> + P<sub>2</sub> = <b>${pfmt(P,2)} W</b>, Q = Q<sub>1</sub> + Q<sub>2</sub> = <b>${pfmt(Q,2)} VAr</b>`,`S = √(P² + Q²) = <b>${pfmt(S,2)} VA</b> (nije S<sub>1</sub> + S<sub>2</sub> = ${pfmt(U*I1+U*I2,2)} VA), cos φ = P/S = <b>${pfmt(P/S,3)}</b>`,
+          `Trokut snage:<div style="max-width:380px">${snTri(P,Q,{labs:{P:`P = ${pfmt(P,2)} W`,Q:`Q = ${pfmt(Q,2)} VAr`,S:`S = ${pfmt(S,2)} VA`}})}</div>`]})}
+    /* mj: mreža s jednim izvorom */
+    for(let g=0;g<300;g++){const T=pk(['a','a','b','c']),k=pk(['L','C']),lc=Math.random()<0.5,w=pk([1000,1e4]);let sp;
+      if(T==='a'){const Za=pk(['R',k,'R']),Zb=pk(['R','R'+k,k]),Zc=pk([k,'R',k]);sp={W:2,V:[{s:'U',e:''},{e:Zb},{e:Zc}],T:[{e:Za},{w:true}],d:[1,1]}}
+      else if(T==='b'){sp={W:2,V:[{s:'U',e:''},{e:pk(['R'+k,'R'])},{e:pk([k,'R'+k])}],T:[{w:true},{e:pk(['R',k])}],d:[1,1]}}
+      else sp={W:2,V:[{s:'U',e:''},{e:pk(['R',k])},{e:pk(['R','R'+k])}],T:[{e:pk(['R',k])},{e:pk(['R',k])}],d:[1,1]};
+      const c=amC(sp);if(!c.els.some(e=>e.k==='R')||!c.els.some(e=>e.k!=='R'))continue;const v={U0re:0,U0im:0,I0re:0,I0im:0},labs={},txt=[];const U=pk(UV);v.U0re=U;
+      c.els.forEach(e=>{if(e.k==='R'){v[e.n]=pk(RV);labs[e.n]=`${amSvgN(e.n)} = ${v[e.n]} Ω`;txt.push(`${amSub(e.n)} = ${v[e.n]} Ω`)}else{const X=pk(XV);v['X'+e.n]=X;if(lc){const val=e.k==='L'?X/w:1/(w*X);labs[e.n]=`${amSvgN(e.n)} = ${e.k==='L'?amHz(val):amFz(val)}`;txt.push(`${amSub(e.n)} = ${e.k==='L'?amHz(val):amFz(val)}`)}else{labs[e.n]=`${sb('X',e.n)} = ${X} Ω`;txt.push(`X<sub>${e.n}</sub> = ${X} Ω`)}}});
+      const Sm=amSolveMesh(c,v);if(!Sm)continue;const I=cNeg(Sm.If['V0']),Sc=cMul(Cx(U,0),Cx(I.re,-I.im)),P=Sc.re,Q=Sc.im;if(Math.abs(Q)<0.1*P||Math.abs(Q)>8*P||P<1e-6)continue;
+      const Z=cDiv(Cx(U,0),I);let Pe=0;const pl=[];c.els.forEach(e=>{if(e.k!=='R')return;const b=amElB(c,e.n),Ib=cMod(Sm.If[b.id]);Pe+=Ib*Ib*v[e.n];pl.push(`I<sub>${e.n}</sub>²·${amSub(e.n)} = ${pfmt(Ib,3)}²·${v[e.n]} = ${pfmt(Ib*Ib*v[e.n],2)} W`)});
+      if(Math.abs(Pe-P)>1e-6*(1+P))continue;
+      const sol=[];if(lc)sol.push(`U = U<sub>m</sub>/√2 = ${U} V, ω = ${amWt(w)} rad/s; `+c.els.filter(e=>e.k!=='R').map(e=>`X<sub>${e.n}</sub> = ${e.k==='L'?'ωL':'1/(ωC)'} = ${v['X'+e.n]} Ω`).join(', '));else sol.push(`U = U<sub>m</sub>/√2 = ${U} V`);
+      const zb=b=>amZb(b,v),Za=zb(c.T[0]),Zb=zb(c.V[1]),Zc=cAdd(zb(c.T[1]),zb(c.V[2])),Zp=cDiv(cMul(Zb,Zc),cAdd(Zb,Zc)),eb=zE(c.V[1].els),ecl=c.T[1].els.concat(c.V[2].els),ec=zE(ecl),ea=c.T[0].els.length?zE(c.T[0].els):'';
+      sol.push(`Ż<sub>p</sub> = ${zPar(eb,ec)} = (${cTxt(Zb)})·(${cTxt(Zc)})/(${cTxt(cAdd(Zb,Zc))}) = ${cTxt(Zp,3)} Ω`+(c.T[1].els.length?` (${ec} su u seriji, a ta grana paralelno s ${eb})`:''));
+      sol.push(`Ż = ${ea?zAdd(ea,'Ż<sub>p</sub>'):'Ż<sub>p</sub>'} = <b>${cTxt(Z,3)} Ω</b> = ${amPol(Z,3)} Ω`,`İ = U̇/Ż = ${U}∠0° / ${amPol(Z,3)} = <b>${amPol(I,4)} A</b>`,`Ṡ = U̇·İ* = ${U}·${amN(cMod(I),4)}∠${amN(-cAng(I)*180/Math.PI,2)}° = <b>${cTxt(Sc,3)} VA</b>: P = ${pfmt(P,2)} W, Q = ${pfmt(Q,2)} VAr`,`Provjera po otpornicima: ${pl.join('; ')}; zbroj ${pfmt(Pe,2)} W = P ✓`,...snSol(P,Q,U,cMod(I)));
+      return acZz(type,'mj',lv,{svg:amSvg(c,{vals:{},labs}),text:`Zadano je u<sub>0</sub>(t) = ${U}√2·sin(${amWt(w)}t) V, ${txt.join(', ')}. Odredite radnu, jalovu i prividnu snagu izvora i fazni kut te nacrtajte trokut snage izvora s upisanim vrijednostima stranica i kuta.`,
+        fields:[F('P',P,'W'),F('Q',Q,'VAr',1,'s predznakom'),F('S',Math.hypot(P,Q),'VA'),Fd('φ',Math.atan2(Q,P)*180/Math.PI,1,'s predznakom')],sol})}
+    return null}
+  /* Thevenin i Norton */
+  for(let g=0;g<300;g++){const RV2=[10,20,30,50,100],XV2=[10,20,30,50,100],cur=kind==='B',el=()=>pk(['R','R','L','C']);
+    const a=el(),b=el(),c3=kind==='B'||Math.random()<0.5?'':el();if(![a,b,c3].join('').match(/[LC]/))continue;
+    const sp=cur?{W:2,V:[{s:'I',e:'',dir:1},{e:a},{e:''}],T:[{w:true},{e:b}],d:[1,1]}:{W:2,V:[{s:'U',e:''},{e:b},{e:''}],T:[{e:a},c3?{e:c3}:{w:true}],d:[1,1]};
+    const c=amC(sp),v={},labs={},txt=[];c.els.forEach(e=>{if(e.k==='R'){v[e.n]=pk(RV2);labs[e.n]=`${amSvgN(e.n)} = ${v[e.n]} Ω`;txt.push(`${amSub(e.n)} = ${v[e.n]} Ω`)}else{v['X'+e.n]=pk(XV2);labs[e.n]=`${sb('X',e.n)} = ${v['X'+e.n]} Ω`;txt.push(`X<sub>${e.n}</sub> = ${v['X'+e.n]} Ω`)}});
+    const E1=cur?c.V[1]:c.T[0],E2=cur?c.T[1]:c.V[1],E3=!cur&&c3?c.T[1]:null,Z1=amZb(E1,v),Z2=amZb(E2,v),Z3=E3?amZb(E3,v):Cx(0);
+    const U0=pk([10,20,50,100]),I0=pk([1,2]);let ZT,ET;
+    if(cur){ZT=cAdd(Z1,Z2);ET=cMul(Cx(I0),Z1)}else{if(cZero(cAdd(Z1,Z2)))continue;ZT=cAdd(cDiv(cMul(Z1,Z2),cAdd(Z1,Z2)),Z3);ET=cDiv(cMul(Cx(U0),Z2),cAdd(Z1,Z2))}
+    if(cZero(ZT)||!amOk(ZT)||!amOk(ET))continue;const IN=cDiv(ET,ZT);
+    const s1=zE(E1.els),s2=zE(E2.els),s3=E3?zE(E3.els):'';
+    const solZ=cur?`Strujni izvor odspojen: Ż<sub>T</sub> = ${zAdd(s1,s2)} = <b>${cTxt(ZT,3)} Ω</b>`:`Naponski izvor kratko spojen: Ż<sub>T</sub> = ${zPar(s1,s2)}${s3?' + '+s3:''} = <b>${cTxt(ZT,3)} Ω</b>`;
+    const solE=cur?`Prazni hod: struja izvora teče kroz ${amPar(s1)}, kroz ${amPar(s2)} ne teče. Ė<sub>T</sub> = İ<sub>0</sub>·${amPar(s1)} = ${I0}·(${cTxt(Z1)}) = <b>${cTxt(ET,3)} V</b>`:`Prazni hod: Ė<sub>T</sub> = U̇<sub>0</sub>·${amPar(s2)}/(${zAdd(s1,s2)})${s3?' (kroz '+s3+' ne teče struja)':''} = <b>${cTxt(ET,3)} V</b>`;
+    const svg=amSvg(c,{term:true,vals:{},labs}),src=cur?`İ<sub>0</sub> = ${I0}∠0° A`:`U̇<sub>0</sub> = ${U0}∠0° V`;
+    if(kind==='A'||kind==='B')return acZz(type,kind,lv,{svg,text:`Zadano je ${src}, ${txt.join(', ')}. Odredite parametre Theveninova ekvivalenta s obzirom na priključnice A i B.`,fields:[...amFc('Ė<sub>T</sub>',ET,'V'),...amFc('Ż<sub>T</sub>',ZT,'Ω')],sol:[solZ,solE,`Theveninov ekvivalent: Ė<sub>T</sub> = ${amPol(ET,3)} V u seriji sa Ż<sub>T</sub> = ${amPol(ZT,3)} Ω.`]});
+    if(kind==='N'){if(!amOkA(cAng(IN))||cMod(IN)<1e-3)continue;return acZz(type,kind,lv,{svg,text:`Zadano je ${src}, ${txt.join(', ')}. Odredite Nortonov ekvivalent s obzirom na priključnice A i B: struju İ<sub>N</sub> (iznos i kut) i impedanciju Ż<sub>N</sub>.`,
+      fields:[F('I<sub>N</sub>',cMod(IN),'A'),Fd('φ<sub>N</sub>',cAng(IN)*180/Math.PI,1,'kut struje'),...amFc('Ż<sub>N</sub>',ZT,'Ω')],sol:[solZ,solE,`İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub> = (${cTxt(ET,3)})/(${cTxt(ZT,3)}) = <b>${amPol(IN,4)} A</b>`,`Ż<sub>N</sub> = Ż<sub>T</sub> = <b>${cTxt(ZT,3)} Ω</b>`]})}
+    const tk=pk(['R','L','C']),Xt=pk(XV2),Zt=tk==='R'?Cx(Xt):tk==='L'?Cx(0,Xt):Cx(0,-Xt),zt=tk==='R'?`${Xt} Ω`:tk==='L'?`j${Xt} Ω`:`−j${Xt} Ω`,It=cDiv(ET,cAdd(ZT,Zt));if(cZero(cAdd(ZT,Zt))||!amOkA(cAng(It))||cMod(It)<1e-3)continue;
+    return acZz(type,'tr',lv,{svg,text:`Zadano je ${src}, ${txt.join(', ')}. Na priključnice A i B spoji se trošilo Ż<sub>t</sub> = ${zt}. Primjenom Theveninova teorema odredite struju trošila (iznos i kut).`,
+      fields:[F('I<sub>t</sub>',cMod(It),'A'),Fd('φ<sub>t</sub>',cAng(It)*180/Math.PI,1,'kut struje')],sol:[solZ,solE,`İ<sub>t</sub> = Ė<sub>T</sub>/(Ż<sub>T</sub> + Ż<sub>t</sub>) = (${cTxt(ET,3)})/(${cTxt(cAdd(ZT,Zt),3)}) = <b>${amPol(It,4)} A</b>`]})}
+  return null}
+{const _zg=zGen;zGen=function(type,d){if(AM3K.has(type)){const z=am3ZGen(type,d);if(z)return z}return _zg.apply(this,arguments)}}
+
+/* ---------- registracija (samo test) ---------- */
+if(AC3){
+  for(const [k,l] of AM3){TOPICS[k]=l;MODNAME[k]=l;STNAME[k]=l}
+  const after=(arr,key,items)=>{const i=arr.findIndex(m=>(Array.isArray(m)?m[0]:m)===key);arr.splice(i<0?arr.length:i+1,0,...items)};
+  after(MODS,'rez2',AM3.map(x=>[x[0],x[1]]));after(ACM,'rez2',AM3.map(x=>[x[0],x[1]]));after(ACZ,'rez2',AM3.map(x=>x[0]));after(KZMODS.kz2,'rez2',AM3.map(x=>x[0]));
+  AM3.forEach(([k])=>ACK.add(k));
+  for(const k in state.profiles){const p=state.profiles[k];for(const [t] of AM3)if(!p.ratings[t])p.ratings[t]={r:2.0,n:0,c:0}}
+  {const _np=newProfile;newProfile=function(n){const p=_np(n);for(const [t] of AM3)p.ratings[t]={r:2.0,n:0,c:0};return p}}
+  {const _rd=render;render=function(){try{const p=prof();if(p)for(const [t] of AM3)if(!p.ratings[t])p.ratings[t]={r:2.0,n:0,c:0}}catch(e){}return _rd.apply(this,arguments)}}
+  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('amhelp');if(a&&!document.getElementById('am3help'))a.insertAdjacentHTML('afterend',`<p id="am3help"><b>Snaga i trokut snage, Thevenin i Norton</b>. <b>Snaga:</b> radna, jalova i prividna snaga, snaga na elementima, trokut snage (P vodoravno, Q gore za induktivno i dolje za kapacitivno, S hipotenuza, kut φ), kompleksna snaga Ṡ = U̇·İ* i provjera po elementima. U Vježbi je trokut snage mreže korak po korak (bez brojeva), a u Zadacima snaga izvora za mreže s jednim izvorom, s nacrtanim trokutom snage u rješenju. <b>Thevenin i Norton:</b> lagana verzija za izmjenične mreže: Ż<sub>T</sub> uz ugašene izvore, Ė<sub>T</sub> u praznom hodu, İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub> i struja trošila.</p>`)}catch(e){}return r}}
+}else{
+  {const _rd=render;render=function(){try{const p=prof();if(p){if(AM3K.has(p.module))p.module='rez2';const Z=p.zad;if(Z&&AM3K.has(Z.type)){Z.type='rez2';zad=null}}}catch(e){}return _rd.apply(this,arguments)}}
+}
+/* ===== Priprema za KZ2 i probna KZ2 (zajedno s gradivima Snaga i Thevenin: AC3) ===== */
+let kzWhich=null;
+const K2S1=[['ser2','Vektorski dijagram (serija i paralela)',['ser2','par2']],['kzp2','Kompleksni zapis i impedancija',['kzp2']],['kon2','Konturne struje i naponi čvorova',['kon2','cvr2']],['rez2','Rezonancija',['rez2']],['sn2','Snaga i trokut snage',['sn2']],['tn2','Thevenin i Norton',['tn2']]];
+const K2S2=[['ser2','Vektorski dijagram',['ser2','par2']],['kzp2','Kompleksni zapis, impedancija, rezonancija',['kzp2','rez2']],['kon2','Konturne struje i naponi čvorova',['kon2','cvr2']],['sn2','Snaga i trokut snage',['sn2']],['tn2','Thevenin i Norton',['tn2']]];
+const K2DEP1={kon2:'kzp2',sn2:'kzp2',tn2:'kon2'},K2DEP2={kon2:'kzp2',tn2:'kon2'};
+function kz2State(p){const s1=K2S1.map(([k,l,ts])=>{let n=0,w=0,t=0;ts.forEach(x=>{const r=p.ratings[x];if(!r)return;n+=r.n;const ww=Math.max(1,r.n);w+=ww;t+=r.r*ww});const r=w?t/w:2;return{k,l,n,r,ok:n>=KZR.n1&&r>=KZR.r1,pr:Math.min(1,n/KZR.n1)*0.5+Math.min(1,Math.max(0,(r-2)/(KZR.r1-2)))*0.5}});
+  const Z=p.zad||{},T=Z.t||{},s2=K2S2.map(([k,l,ts])=>{let g=0;ts.forEach(t=>{const x=T[t]||{};g+=Math.max(x.g||0,(Z.full||{})[t]||0)});return{k,l,g,ts,ok:g>=KZR.n2,pr:Math.min(1,g/KZR.n2)}});
+  const tot=K2S2.reduce((a,x)=>a+x[2].reduce((b,t)=>b+((T[t]||{}).n||0),0),0);
+  const ok1=s1.every(x=>x.ok),ok2=ok1&&s2.every(x=>x.ok)&&tot>=KZR.tot2,K=p.kz2||{sims:[]};
+  const p1=s1.reduce((a,x)=>a+x.pr,0)/s1.length,p2=(s2.reduce((a,x)=>a+x.pr,0)/s2.length)*0.7+Math.min(1,tot/KZR.tot2)*0.3,p3=Math.min(1,(K.best||0)/15);
+  return{s1,s2,tot,ok1,ok2,K,ready:Math.round(100*(p1*0.35+p2*0.35+p3*0.3))}}
+/* raspodjela zadataka probne KZ2 */
+function kz2PickTask(i){const r=Math.random(),pk=a=>a[Math.floor(Math.random()*a.length)],d=pk([3,3,4]);let z;const keep=zTestKind;
+  try{if(i===0){zTestKind='cijeli';z=zGen(r<0.6?'par2':'ser2',d)}
+    else if(i===1){const t=Math.random()<0.65?'cvr2':'kon2';zTestKind=Math.random()<0.5?'rez':pk(t==='cvr2'?['ut','ut','pre','izv']:['ut','ut','izv']);z=zGen(t,d)}
+    else if(i===2){if(r<0.6){zTestKind='mj';z=zGen('sn2',d)}else if(r<0.85){zTestKind='N';z=zGen('tn2',d)}else{zTestKind=pk(['A','B','tr']);z=zGen('tn2',d)}}
+    else{if(r<0.6){zTestKind='imp';z=zGen('kzp2',d)}else{const o=pk([['kzp2','el'],['kzp2','pol'],['kzp2','alg'],['rez2','w0'],['rez2','lc'],['sn2','el'],['sn2','kom'],['ser2','zi'],['par2','yi']]);zTestKind=o[1];z=zGen(o[0],2)}}
+  }finally{zTestKind=keep}
+  if(!z)return kz2PickTask(i);zFields(z);z.ans={v:z.fields.map(()=>''),ok:z.fields.map(()=>null),tries:0,done:false,pts:0};return z}
+function kz2Start(){kzSim={k:'kz2',t0:Date.now(),zs:[0,1,2,3].map(i=>kz2PickTask(i)),max:[6,6,6,2],i:0,done:false};view='kz';render();window.scrollTo(0,0)}
+{const _kp=kzPickTask;kzPickTask=function(i){if(kzSim&&kzSim.k==='kz2')return kz2PickTask(i);return _kp.apply(this,arguments)}}
+{const _kf=kzFinish;kzFinish=function(){const S=kzSim;if(!S||S.k!=='kz2')return _kf.apply(this,arguments);S.done=true;S.t1=Date.now();
+  S.parts=S.zs.map((z,i)=>{const F=z.fields;let got=0,all=0;F.forEach((f,j)=>{all+=f.w;const ok=zMatch(zParse(z.ans.v[j]),f.val);z.ans.ok[j]=ok;if(ok)got+=f.w});return Math.round(S.max[i]*got/all*2)/2});S.pts=S.parts.reduce((a,b)=>a+b,0);
+  const p=prof();p.kz2=p.kz2||{sims:[]};p.kz2.sims.push({d:Date.now(),pts:S.pts,parts:S.parts,min:Math.round((S.t1-S.t0)/60000)});p.kz2.best=Math.max(p.kz2.best||0,S.pts);if(!p.kz2.seenRules){p.kz2.seenRules=true;kzShowRules=true}save();
+  try{gcSend&&gcSend('kz2/simulacija/'+(S.pts>=6?'prolaz':'pad'))}catch(e){}}}
+/* u probnoj KZ2 tekstovi kažu KZ2, a gumb „Nova probna” pokreće KZ2 */
+function kz2Fix(){const w=document.createTreeWalker(main,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(/robn\w* KZ1/.test(n.nodeValue))n.nodeValue=n.nodeValue.replace(/(robn\w*) KZ1/g,'$1 KZ2');if(n.nodeValue==='60 minuta'&&n.parentNode&&n.parentNode.tagName==='B')n.nodeValue='95 minuta'}
+  const b=$('#kznew');if(b)b.onclick=kz2Start;if(kzSim&&kzSim.done){const h=main.querySelector('h2');if(h)h.textContent=h.textContent.replace('KZ1','KZ2')}}
+function kzSelBar(){const pan=main.querySelector('.panel');if(!pan||document.getElementById('kzsel'))return;
+  pan.insertAdjacentHTML('afterbegin',`<div id="kzsel" style="display:flex;align-items:center;gap:10px;margin:0 0 14px;flex-wrap:wrap"><b>Kolokvij:</b><div class="modbar" style="margin:0"><button data-kzw="kz1" aria-current="${kzWhich==='kz1'}">KZ1</button><button data-kzw="kz2" aria-current="${kzWhich==='kz2'}">KZ2</button></div></div>`);
+  pan.querySelectorAll('[data-kzw]').forEach(b=>b.onclick=()=>{kzWhich=b.dataset.kzw;kzShowRules=false;const p=prof();p.kzSel=kzWhich;save();render();window.scrollTo(0,0)})}
+function renderKZ2(){const p=prof(),S=kz2State(p);{const st=S.ok2?3:S.ok1?2:1;p.kz2=p.kz2||{sims:[]};if(p.kz2.stage!==st){p.kz2.stage=st;save()}}
+  const bar=(x,c)=>`<div style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.round(100*x)}%;background:${c||'var(--ok)'}"></div></div>`;
+  const stage=(n,title,open,done,body)=>`<div data-stg="${n}" style="border:1px solid var(--line);border-left:4px solid ${done?'var(--ok)':open?'var(--mark)':'var(--line)'};border-radius:8px;padding:14px 16px;margin:12px 0;${open?'':'opacity:.6'}"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">${n}. stadij: ${title}</h3><span style="font-weight:700;color:${done?'var(--ok)':'var(--muted)'}">${done?'✓ ispunjeno':open?'u tijeku':'🔒 zaključano'}</span></div>${open?'':`<p class="note" style="margin:8px 0 0">Ovaj stadij otključava se kad ispuniš ${n-1}. stadij, tj. kad sve njegove stavke dobiju ✓. Stadiji idu redom: najprije Vježba, zatim Zadaci, pa Probna KZ2.</p>`}${body}</div>`;
+  const row=(l,v,ok,btn)=>`<tr class="kzrow"><td>${l}</td><td>${v}</td><td style="color:${ok?'var(--ok)':'var(--bad)'};font-weight:700">${ok?'✓':'✗'}</td><td>${ok?'':btn}</td></tr>`;
+  const lk=(arr,dep,x)=>{const d=dep[x.k];if(!d)return null;const y=arr.find(z=>z.k===d);return y&&!y.ok?y.l:null};
+  const rowL=(x,v,btn,arr,dep)=>{const L=lk(arr,dep,x);if(x.ok||!L)return row(x.l,v,x.ok,btn);return `<tr class="kzrow" style="opacity:.55"><td>${x.l}</td><td>${v}</td><td>🔒</td><td class="note" style="margin:0">najprije: ${L}</td></tr>`};
+  const b1=`<p class="note" style="margin:6px 0">U svakom gradivu Vježbe riješi barem ${KZR.n1} pitanja i dosegni razinu barem ${fmt(KZR.r1)}. Uz svako gradivo je i lekcija. Redom: kompleksni zapis → metode → Thevenin i Norton.</p><table>${S.s1.map(x=>rowL(x,`<span style="white-space:nowrap">${x.n} pitanja</span><br><span style="white-space:nowrap">razina ${fmt(x.r)}</span>`,`<button class="ghost" style="padding:4px 10px;margin:0" data-k2go="${x.k}">Vježbaj</button> <button class="ghost" style="padding:4px 10px;margin:0" data-k2les="${x.k}">Lekcija</button>`,S.s1,K2DEP1)).join('')}</table>`;
+  const b2=`<p class="note" style="margin:6px 0">Iz svake skupine riješi barem ${KZR.n2} zadatka s barem pola bodova, a ukupno barem ${KZR.tot2} zadataka iz gradiva za KZ2 (sada ${S.tot}).</p><table>${S.s2.map(x=>rowL(x,`${x.g} od ${KZR.n2}`,`<button class="ghost" style="padding:4px 10px;margin:0" data-k2zt="${x.ts[0]}">Riješi zadatak</button>`,S.s2,K2DEP2)).join('')}</table>`;
+  const sims=S.K.sims||[];const b3=`<p class="note" style="margin:6px 0">Probna KZ2 (probna kontrolna zadaća 2) kao prava: 4 zadatka (6 + 6 + 6 + 2 boda), 95 minuta. Rezultati se provjeravaju tek nakon predaje. Prolaz je 6 bodova, a 12 i više bodova daje pravo na oslobođenje završnog ispita.</p><p class="note" style="margin:6px 0"><b>Napomena:</b> bodovanje probne KZ2 može biti drukčije od stvarnog bodovanja na kontrolnoj zadaći. Ovdje se gledaju samo konačni rezultati, a na KZ-u se ponekad boduje i postupak.</p>${sims.length?`<p style="margin:6px 0">Najbolji rezultat: <b>${zN(S.K.best||0)} / 20</b> · probnih KZ2: ${sims.length}</p><details style="margin:0 0 8px"><summary style="cursor:pointer;color:var(--ok);font-weight:600">Prikaži rezultate prijašnjih probnih KZ2</summary><table style="margin-top:6px"><tr><th>#</th><th>Datum</th><th>Bodovi</th><th>Po zadacima</th><th>Trajanje</th></tr>${sims.map((s,i)=>`<tr><td class="num">${i+1}</td><td style="white-space:nowrap">${new Date(s.d).toLocaleString('hr-HR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</td><td class="num" style="font-weight:700;color:${s.pts>=6?'var(--ok)':'var(--bad)'}">${zN(s.pts)} / 20</td><td style="white-space:nowrap">${(s.parts||[]).map(zN).join(' + ')}</td><td class="num">${s.min!=null?s.min+' min':''}</td></tr>`).reverse().join('')}</table></details>`:''}<button class="primary" id="kz2go" style="margin:6px 0 0" ${S.ok2||IS_TEST?'':'disabled'}>Pokreni probnu KZ2</button>${IS_TEST&&!S.ok2?'<span class="note" style="margin-left:8px">TEST: probna KZ2 otključana za isprobavanje</span>':''}`;
+  const rules=KZRULES.replace('Traje <b>60 minuta</b>','Traje <b>95 minuta</b>').replace(/probnoj KZ1/g,'probnoj KZ2').replace('Probna KZ1 u aplikaciji','Probna KZ2 u aplikaciji');
+  main.innerHTML=`<div class="sheet panel" style="max-width:980px">${isEtr()&&kzResOn()?`<div class="modbar" style="margin:0 0 14px"><button data-ks="prep" aria-current="true">Priprema za KZ</button><button data-ks="pts" aria-current="false">Moji bodovi</button></div>`:''}
+  <h2 style="margin:0 0 6px">Priprema za KZ2${isEtr()?'':' (Elektrotehnika R)'}</h2><div style="display:flex;align-items:center;gap:12px;margin:0 0 4px"><div style="flex:1">${bar(S.ready/100)}</div><b style="font-size:20px">${S.ready} %</b></div><p class="note" style="margin:0 0 8px">Spremnost: koliko je priprema gotova. Stadiji se otključavaju redom, a računa se i sve što je već riješeno. Gradivo: vektorski dijagram, kompleksni račun, metode izmjeničnih mreža, rezonancija, snaga, teoremi mreža.</p>
+  ${stage(1,'Vježba po gradivima',true,S.ok1,b1)}${stage(2,'Zadaci s brojevima',S.ok1,S.ok2,b2)}${stage(3,'Probna KZ2',S.ok2||IS_TEST,(S.K.best||0)>=12,b3)}
+  <p style="margin:14px 0 0;display:flex;gap:8px;flex-wrap:wrap"><button class="ghost" id="kzrules" style="margin:0">Pravila kolegija</button><a class="ghost" href="EtR_f1.pdf" data-fml="EtR_f1" style="margin:0;padding:8px 14px;border-radius:8px;background:var(--line);color:var(--ink);text-decoration:none">Formule EtR_f1 (PDF)</a></p>${kzShowRules?`<div style="margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px">${rules}</div>`:''}</div>`;
+  main.querySelectorAll('[data-ks]').forEach(b=>b.onclick=()=>{kzSub=b.dataset.ks;render();window.scrollTo(0,0)});
+  main.querySelectorAll('[data-k2go]').forEach(b=>b.onclick=()=>{p.module=b.dataset.k2go;p.kzSel='kz2';save();view='practice';render();window.scrollTo(0,0)});
+  main.querySelectorAll('[data-k2les]').forEach(b=>b.onclick=()=>{p.module=b.dataset.k2les;p.kzSel='kz2';save();view='lesson';render();window.scrollTo(0,0)});
+  main.querySelectorAll('[data-k2zt]').forEach(b=>b.onclick=()=>{const Z=zProf();Z.type=b.dataset.k2zt;p.kzSel='kz2';save();zNew();view='zad';render();window.scrollTo(0,0)});
+  if($('#kz2go'))$('#kz2go').onclick=kz2Start;$('#kzrules').onclick=()=>{kzShowRules=!kzShowRules;renderKZ()}}
+async function renderBoardKZ2(){const me=prof().nick,head='<h2>Ljestvica: probna KZ2</h2>';let rows=[],err='';
+  if(Remote){main.innerHTML=`<div class="sheet panel">${head}<p class="note">Učitavam…</p></div>`;modbar();try{const {data,error}=await Remote.rpc('leaderboard_kz2');if(error)err='Ljestvica probne KZ2 još nije uključena u bazi.';else rows=data||[]}catch(e){err='Nema veze s bazom.'}if(view!=='board'||boardAll!=='kz2')return}
+  else rows=Object.values(state.profiles).filter(p=>p.kz2).map(p=>({nick:p.nick,best:p.kz2.best||0,n:(p.kz2.sims||[]).length,stage:p.kz2.stage||1})).sort((a,b)=>b.best-a.best||b.stage-a.stage);
+  main.innerHTML=`<div class="sheet panel">${head}${err?`<p class="msg bad">${err}</p>`:''}<table><tr><th></th><th>Nadimak</th><th>Stadij pripreme</th><th>Najbolja probna</th><th>Probnih</th></tr>${rows.map((p,i)=>`<tr${p.nick===me?' style="font-weight:700"':''}><td>${i+1}.</td><td><a href="#" data-nick="${String(p.nick).replace(/[<>&"]/g,'')}">${String(p.nick).replace(/[<>&]/g,'')}</a></td><td class="num">${p.stage||1} od 3</td><td class="num">${p.n?zN(p.best)+' / 20':'–'}</td><td class="num">${p.n}</td></tr>`).join('')||'<tr><td colspan="5">Priprema još nije započeta.</td></tr>'}</table><p class="note">Stadij pripreme u koji je korisnik stigao i najbolji rezultat iz probne KZ2 (4 zadatka, 20 bodova).</p></div>`;modbar()}
+if(AC3){
+  {const _rk=renderKZ;renderKZ=function(){if(kzWhich==null)kzWhich=(prof().kzSel==='kz2'||Date.now()>KZ1.getTime()+60*60000)?'kz2':'kz1';
+    if(kzSim){const r=_rk.apply(this,arguments);if(kzSim&&kzSim.k==='kz2')kz2Fix();return r}
+    if(kzWhich==='kz2'&&kzSub!=='pts'){renderKZ2();kzSelBar();return}
+    const r=_rk.apply(this,arguments);try{if(kzSub!=='pts')kzSelBar()}catch(e){}return r}}
+  {const _mb=modbar;modbar=function(){_mb();try{if(view!=='board')return;const kb=main.querySelector('[data-kzb]');if(!kb||main.querySelector('[data-kz2b]'))return;
+    kb.insertAdjacentHTML('afterend',`<button data-all="1" data-kz2b="1" aria-current="${boardAll==='kz2'}">Probna KZ2</button>`);if(boardAll==='kz2')kb.setAttribute('aria-current','false');
+    main.querySelector('[data-kz2b]').onclick=()=>{boardAll='kz2';render()}}catch(e){}}}
+  {const _rb=renderBoard;renderBoard=function(){if(boardAll==='kz2')return renderBoardKZ2();return _rb.apply(this,arguments)}}
+  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('am3help');if(a&&!document.getElementById('kz2help'))a.insertAdjacentHTML('afterend',`<p id="kz2help"><b>Priprema za KZ2</b>. U kartici <b>KZ</b> bira se KZ1 ili KZ2. Priprema za KZ2 ima iste stadije kao za KZ1: Vježba po gradivima (uz lekcije), Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta), koja se otključava kad su ispunjena prva dva stadija. Ljestvica ima i karticu <b>Probna KZ2</b>. Na <b>Početnoj</b> je obavijest „Priprema za KZ2” koja pokazuje gdje se bira gradivo za KZ2 (Kolokvij: KZ2), kako učiti (Lekcija → Vježba → Zadaci), gdje je priprema (kartica KZ → KZ2) i kako se otključava probna KZ2, uz trenutni napredak; može se sklopiti gumbom Sakrij. Kad je odabran KZ2, <b>Preporuka za danas</b> i <b>Zadaci dana</b> idu iz gradiva za KZ2 (današnji zadaci dana mijenjaju se samo ako u njima još ništa nije napravljeno), a <b>Dnevni izazov</b>, koji je isti za sve, od KZ1 nadalje slaže se iz gradiva za KZ2.</p>`)}catch(e){}return r}}
+  /* Obavijest na Početnoj: gdje je gradivo za KZ2, gdje učiti, gdje se pripremiti i kako se otključava probna KZ2 */
+  FEVN.kz2=FEVN.kz2||'KZ2 (priprema)';
+  function kz2Home(){const p=prof();if(!p||(typeof isEtr==='function'&&!isEtr())||document.getElementById('kz2home'))return;
+    const at=document.getElementById('nwbox')||main.querySelector('.sheet.panel h2');if(!at)return;
+    const S=kz2State(p),n1=S.s1.filter(x=>x.ok).length,n2=S.s2.filter(x=>x.ok).length,sel=kzSel()==='kz2',open=Store.get('kz2hn',true)!==false;
+    const st=S.ok2?3:S.ok1?2:1,stTxt=S.ok2?'probna KZ2 je otključana':`${st}. stadij od 3`;
+    const ic=(ok,cur)=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;flex:0 0 22px;font-size:13px;font-weight:700;${ok?'background:var(--ok);color:var(--sheet)':cur?'border:2px solid var(--mark);color:var(--ink)':'border:2px solid var(--line);color:var(--muted)'}">${ok?'✓':''}</span>`;
+    const li=(ok,cur,h,t)=>`<li style="display:flex;gap:10px;align-items:flex-start;margin:0 0 10px">${ic(ok,cur)}<div><b>${h}</b><div class="note" style="margin:2px 0 0">${t}</div></div></li>`;
+    const B=(id,t,cls)=>`<button class="${cls||'ghost'}" data-k2h="${id}" style="margin:0;padding:6px 12px">${t}</button>`;
+    const step=(n,h,t,btns)=>`<div style="display:flex;gap:10px;align-items:flex-start;margin:0 0 12px"><span style="font-family:var(--f-head);font-size:22px;font-weight:700;line-height:1;color:var(--mark);min-width:16px">${n}</span><div style="flex:1;min-width:0"><b>${h}</b><div style="margin:2px 0 6px">${t}</div><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${btns}</div></div></div>`;
+    const body=`<div id="kz2hb" style="margin-top:12px">
+      ${step(1,'Odaberi gradivo za KZ2','Gradiva za KZ1 i KZ2 biraju se gumbima <b>Kolokvij: KZ1 · KZ2 · KZ3 · Sve</b>. Nalaze se iznad popisa Gradiva ovdje na Početnoj i na vrhu Lekcije, Vježbe i Zadataka.',sel?`<span style="color:var(--ok);font-weight:700">✓ Odabrano je gradivo za KZ2</span>${B('show','Pokaži gdje')}`:`${B('pick','Prebaci na gradivo za KZ2','primary')}${B('show','Pokaži gdje')}`)}
+      ${step(2,'Uči redom: Lekcija → Vježba → Zadaci','<b>Lekcija</b> objašnjava gradivo korak po korak. U <b>Vježbi</b> su pitanja bez kalkulatora i zadaci korak po korak, a razina raste s točnim odgovorima. U <b>Zadacima</b> se računa na papiru i upisuje rezultat, a aplikacija ga provjeri.',B('les','Lekcija')+B('prac','Vježba')+B('zad','Zadaci'))}
+      ${step(3,'Pripremi se u kartici KZ','U izborniku na vrhu otvori karticu <b>KZ</b> i odaberi <b>KZ2</b>. Tamo su stadiji pripreme, spremnost u postocima, probna KZ2 i pravila kolegija.',B('kz','Otvori pripremu za KZ2','primary'))}
+      <div style="border-top:1px solid var(--line);padding-top:12px;margin-top:4px"><b style="display:block;margin:0 0 8px">Kako se otključava probna KZ2</b><ol style="list-style:none;padding:0;margin:0">
+        ${li(S.ok1,st===1,'1. stadij: Vježba',`U svakoj od ${K2S1.length} skupina gradiva riješi barem ${KZR.n1} pitanja i dosegni razinu barem ${fmt(KZR.r1)}. Sada: ${n1} od ${K2S1.length} skupina.`)}
+        ${li(S.ok2,st===2,'2. stadij: Zadaci s brojevima',`Iz svake od ${K2S2.length} skupina riješi barem ${KZR.n2} zadatka s barem pola bodova, a ukupno barem ${KZR.tot2} zadataka iz gradiva za KZ2. Sada: ${n2} od ${K2S2.length} skupina, ${Math.min(S.tot,KZR.tot2)} od ${KZR.tot2} zadataka.`)}
+        ${li((S.K.best||0)>0,st===3,'3. stadij: Probna KZ2','Otključava se kad su ispunjena prva dva stadija. Kao prava kontrolna zadaća: 4 zadatka (6 + 6 + 6 + 2 boda), 95 minuta, a rezultati se vide tek nakon predaje.')}
+      </ol><p class="note" style="margin:2px 0 0">Stadiji idu redom, a računa se i sve što je već riješeno. Popis skupina i napredak u svakoj nalaze se u kartici KZ → KZ2.</p></div></div>`;
+    at.insertAdjacentHTML('afterend',`<div id="kz2home" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:12px 14px;margin:10px 0 14px;background:color-mix(in srgb,var(--mark) 10%,var(--sheet))">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:17px;flex:1;min-width:200px">📘 Priprema za KZ2: gdje učiti i kako do probne KZ2</b><span class="note" style="margin:0;white-space:nowrap">${stTxt}</span><button class="ghost" data-k2h="tog" aria-expanded="${open}" style="margin:0;padding:4px 10px">${open?'Sakrij ▲':'Prikaži ▼'}</button></div>
+      ${open?body:''}</div>`);
+    const box=document.getElementById('kz2home');
+    const toKz2=()=>{p.kzSel='kz2';if(!kzIn(p.module,'kz2'))p.module=KZMODS.kz2[0];lessonX=null;save()};
+    const go=v=>{toKz2();view=v;render();window.scrollTo(0,0)};
+    box.querySelectorAll('[data-k2h]').forEach(b=>b.onclick=()=>{const a=b.dataset.k2h;try{ev('kz2','banner',a)}catch(e){}
+      if(a==='tog'){Store.set('kz2hn',!open);render();return}
+      if(a==='pick'||a==='show'){if(a==='pick')kzPick('kz2');const k=document.getElementById('kzhome');if(!k)return;const h=k.closest('h3')||k;h.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+        const c=k.querySelector('.modbar')||k;c.style.transition='box-shadow .3s';c.style.boxShadow='0 0 0 3px var(--mark)';c.style.borderRadius='10px';setTimeout(()=>{c.style.boxShadow=''},2200);return}
+      if(a==='les')return go('lesson');if(a==='prac')return go('practice');
+      if(a==='zad'){toKz2();const Z=zProf();if(!ACZ.includes(Z.type)||!KZMODS.kz2.includes(Z.type)){Z.type=KZMODS.kz2[0];zad=null}save();view='zad';render();window.scrollTo(0,0);return}
+      if(a==='kz'){toKz2();kzWhich='kz2';kzSub='prep';view='kz';render();window.scrollTo(0,0)}})}
+  {const _rh=renderHome;renderHome=function(){const r=_rh.apply(this,arguments);try{kz2Home()}catch(e){}return r}}
+}
+/* Zadaci: impedancija mreže gledano s priključnica A i B (modul i kut) */
+function amImpZ(lv){const pk=acZpk,V=[10,20,30,40,60,80,100,120];
+  for(let g=0;g<300;g++){const T=pk(['T1','T1','T2','T3']),el=()=>pk(['R','L','C']);let a=el(),b=el(),c3=el();if(T==='T3')b=pk(['RL','RC']);
+    const all=a+b+c3;if(!/R/.test(all)||!/[LC]/.test(all))continue;if(T==='T1'&&a==='L'&&((b==='R'&&c3==='C')||(b==='C'&&c3==='R')))continue;
+    const sp=T==='T2'?{W:2,V:[{e:''},{e:b},{e:c3}],T:[{w:true},{e:a}],d:[1,1]}:{W:2,V:[{e:''},{e:b},{e:c3}],T:[{e:a},{w:true}],d:[1,1]};const c=amC(sp),v={},labs={},txt=[];
+    c.els.forEach(e=>{if(e.k==='R'){v[e.n]=pk(V);labs[e.n]=`${amSvgN(e.n)} = ${v[e.n]} Ω`;txt.push(`${amSub(e.n)} = ${v[e.n]} Ω`)}else{v['X'+e.n]=pk(V);labs[e.n]=`${sb('X',e.n)} = ${v['X'+e.n]} Ω`;txt.push(`X<sub>${e.n}</sub> = ${v['X'+e.n]} Ω`)}});
+    const zb=br=>amZb(br,v),Za=T==='T2'?zb(c.T[1]):zb(c.T[0]),Zb=zb(c.V[1]),Zc=zb(c.V[2]);let Zp,Z;
+    if(T==='T2'){const Zs=cAdd(Za,Zc);if(cZero(cAdd(Zb,Zs)))continue;Zp=cDiv(cMul(Zb,Zs),cAdd(Zb,Zs));Z=Zp}else{if(cZero(cAdd(Zb,Zc)))continue;Zp=cDiv(cMul(Zb,Zc),cAdd(Zb,Zc));Z=cAdd(Za,Zp)}
+    const m=cMod(Z),f=cAng(Z)*180/Math.PI;if(m<1e-6||!(Math.abs(f)<1e-6||Math.abs(f)>=3))continue;
+    const A=zE(T==='T2'?c.T[1].els:c.T[0].els),B=zE(c.V[1].els),C=zE(c.V[2].els),PB=T==='T2'?zAdd(A,C):C,PBv=T==='T2'?cAdd(Za,Zc):Zc;
+    const sol=[T==='T2'?`${A} i ${C} su u seriji: ${zAdd(A,C)} = ${cTxt(PBv)} Ω; ta je grana paralelno s ${B}.`:`${B} i ${C} su paralelno, a ${A} je u seriji s njima.`,
+      `Ż<sub>p</sub> = ${zPar(B,PB)} = (${cTxt(Zb)})·(${cTxt(PBv)})/(${cTxt(cAdd(Zb,PBv))}) = <b>${cTxt(Zp,3)} Ω</b>`];
+    if(T!=='T2')sol.push(`Ż = ${zAdd(A,'Ż<sub>p</sub>')} = ${cTxt(Za)} + (${cTxt(Zp,3)}) = <b>${cTxt(Z,3)} Ω</b>`);
+    sol.push(`|Ż| = √(${amN(Z.re,3)}² + ${amN(Z.im,3)}²) = <b>${amN(m,3)} Ω</b>, φ = arctg(${amN(Z.im,3)}/${amN(Z.re,3)}) = <b>${amN(f,2)}°</b> (${Math.abs(f)<1e-6?'radno':f>0?'induktivno':'kapacitivno'})`);
+    return acZz('kzp2','imp',lv,{svg:amSvg(c,{termL:true,vals:{},labs}),text:`Za mrežu prema slici zadano je ${txt.join(', ')}. Odredite modul i fazni kut impedancije gledano s priključnica A i B.`,fields:[acZF('|Ż|',m,'Ω'),acZd('φ',f,1,'s predznakom')],sol})}
+  return null}
+/* ===== Uz odabran KZ2: Preporuka, Zadaci dana i Dnevni izazov iz gradiva za KZ2 ===== */
+/* Preporuka za danas: kad je razina u gradivu KZ2 barem 5, a zadataka s brojevima manje od 3, predloži Zadatke tog gradiva */
+function zr2(k){return (typeof ACZ!=='undefined'&&ACZ.includes(k)&&KZMODS.kz2.includes(k))?[k,[k]]:null}
+/* Zadaci dana: skupine prema odabranom kolokviju; današnji zadaci zadržavaju kolokvij za koji su napravljeni */
+function qKzCur(){try{return kzSel()==='kz2'&&KZMODS.kz2.length?'kz2':'kz1'}catch(e){return 'kz1'}}
+function qKz(){const p=prof();if(p&&p.quest&&p.quest.day===zgDate())return p.quest.kz||'kz1';return qKzCur()}
+function qG2(){return K2S1.filter(g=>g[2].every(t=>TOPICS[t])).map(([k,l,ts])=>({k,l,ts}))}
+{const _qg=qGroups;qGroups=function(){return qKz()==='kz2'?qG2():_qg.apply(this,arguments)}}
+{const _qm=qMake;qMake=function(p){const t=zgDate(),Q=p.quest,cur=qKzCur();
+  /* promjena kolokvija: novi zadaci dana samo ako u današnjima još ništa nije napravljeno */
+  if(Q&&Q.day===t&&(Q.kz||'kz1')!==cur&&!Q.q.some(x=>x.done||x.prog>0||(x.set&&x.set.length)))p.quest=null;
+  if(p.quest&&p.quest.day===t)return _qm.apply(this,arguments);
+  p.quest=null;const r=_qm.apply(this,arguments);r.kz=cur;return r}}
+{const _qz=qZad;qZad=function(p){if(qKz()!=='kz2')return _qz.apply(this,arguments);const Z=p.zad||{},T=Z.t||{};
+  const G=K2S2.filter(g=>g[2].every(t=>ACZ.includes(t))).map(([k,l,ts])=>({k,l,ts,g:ts.reduce((s,t)=>s+((T[t]||{}).g||0),0)})).sort((a,b)=>a.g-b.g),g=G[0];
+  return{id:'zad',g:g.k,t:`Zadatak s brojevima: riješi 2 zadatka iz skupine ${g.l} s barem pola bodova`,need:2,prog:0,done:false,b:10}}}
+/* Dnevni izazov: isti je za sve, pa se nakon KZ1 slaže iz gradiva za KZ2 (bez zadataka s koracima) */
+const CHG2=[['ser2','Vektorski dijagram',['ser2','par2']],['kzp2','Kompleksni zapis',['kzp2']],['kon2','Konturne struje i naponi čvorova',['kon2','cvr2']],['rez2','Rezonancija',['rez2']],['sn2','Snaga i trokut snage',['sn2']],['tn2','Thevenin i Norton',['tn2']]].filter(g=>g[2].every(t=>TOPICS[t]));
+CHG.push(...CHG2);
+function chKz2(){return CHG2.length>=2&&Date.now()>=KZ1.getTime()+864e5}
+{const _ct=chTopics;chTopics=async function(){if(!chKz2())return (await _ct.apply(this,arguments)).filter(k=>!CHG2.some(g=>g[0]===k));
+  try{const {data,error}=await Remote.rpc('topic_recent');if(!error&&data&&data.length){const u=k=>CHG2.find(g=>g[0]===k)[2].reduce((m,t)=>Math.max(m,(data.find(r=>r.topic===t)||{}).users||0),0);
+    const top=Math.max(0,...CHG2.map(g=>u(g[0])));let sel=CHG2.filter(g=>u(g[0])>=Math.max(2,0.25*top)).map(g=>g[0]);
+    if(sel.length<2)sel=CHG2.slice().sort((a,b)=>u(b[0])-u(a[0])).slice(0,3).map(g=>g[0]);return sel}}catch(e){}
+  return CHG2.slice(0,3).map(g=>g[0])}}
+{const _cs=chShort;chShort=function(q){if(q&&(q.amSteps||q.draw||q.steps))return false;return _cs.apply(this,arguments)}}
+{const _sq=chStartQ;chStartQ=function(){try{const q=chFind(CH.qs[CH.i]);if(q&&ACK.has(q.topic)){acq=q;acA=null;try{vdS=null}catch(e){}try{am=null}catch(e){}try{acSt=null}catch(e){}}}catch(e){}return _sq.apply(this,arguments)}}
+
+/* ===== Što je novo: verzija 0.20 (27. 11. 2026.) ===== */
+const NEWS_020=[
+ {t:'Novo gradivo za KZ2',h:`<p>Gradivo za drugu kontrolnu zadaću napravljeno je ispočetka, prema predavanjima i auditornim vježbama: <b>Serijski RLC spoj</b>, <b>Paralelni RLC spoj</b>, <b>Kompleksni zapis</b>, <b>Konturne struje</b>, <b>Naponi čvorova</b>, <b>Rezonancija</b>, <b>Snaga i trokut snage</b> te <b>Thevenin i Norton</b>. Svako gradivo ima lekciju korak po korak, Vježbu bez računanja na kalkulatoru i Zadatke s brojevima s rješenjem korak po korak.</p><p>Gradiva za KZ2 prikazuju se kad je iznad popisa gradiva odabrano <b>Kolokvij: KZ2</b>.</p>`,a:[['go:l:ser2','Otvori prvu lekciju'],['nwk2','Prebaci na gradivo za KZ2']]},
+ {t:'Nacrtaj vektorski dijagram',h:`<p>U Vježbi Serijskog i Paralelnog RLC spoja dijagram se crta korak po korak, kao na ploči: što se crta prvo (struja u seriji, napon u paraleli), smjer svakog vektora klikom, rezultanta i karakter spoja. Pomaže pamtilica: medo prelazi <b>ULICU</b>.</p>`,a:[['go:p:ser2:vs_crt','Isprobaj: serija'],['go:p:par2:vp_crt','Isprobaj: paralela']]},
+ {t:'Postavi jednadžbe',h:`<p>Konturne struje i naponi čvorova u izmjeničnoj mreži postavljaju se korak po korak: koliko je jednadžbi, koji elementi ulaze u petlju ili čvor (klikom) te zbroj impedancija ili admitancija i predznaci. Zapisi se namjerno mijenjaju (jX<sub>L</sub>, jωL, 1/(jωC), −j/(ωC)…), da se svaki prepozna.</p>`,a:[['go:p:kon2:k2_crt','Konturne struje'],['go:p:cvr2:c2_crt','Naponi čvorova']]},
+ {t:'Snaga i trokut snage, Thevenin i Norton',h:`<p>Radna, jalova i prividna snaga, kompleksna snaga Ṡ = U̇·İ* i <b>trokut snage</b>: P vodoravno, Q gore (induktivno) ili dolje (kapacitivno), S hipotenuza. Uz to i lagana verzija Theveninova i Nortonova teorema za izmjenične mreže: Ė<sub>T</sub> u praznom hodu, Ż<sub>T</sub> uz ugašene izvore, İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub>.</p>`,a:[['go:l:sn2','Lekcija: snaga'],['go:l:tn2','Lekcija: Thevenin i Norton']]},
+ {t:'Priprema za KZ2 i probna KZ2',h:`<p>Kartica u izborniku sada se zove <b>KZ</b>, a na njezinu vrhu bira se KZ1 ili KZ2. Priprema za KZ2 ide kroz iste stadije kao za KZ1: Vježba po gradivima, Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta). Probna KZ2 otključava se kad su ispunjena prva dva stadija, a pravila i trenutni napredak prikazani su i u obavijesti na Početnoj. Ljestvica ima novu karticu <b>Probna KZ2</b>.</p>`,a:[['nwkz2','Otvori pripremu za KZ2'],['go:v:board:kz2','Ljestvica probne KZ2']]},
+ {t:'Sve iz gradiva za KZ2',h:`<p>Kad je odabran KZ2, i <b>Preporuka za danas</b> i <b>Zadaci dana</b> idu iz gradiva za KZ2. <b>Dnevni izazov</b> isti je za sve, pa se od sada slaže iz gradiva za KZ2.</p>`,a:[['go:v:home','Pogledaj na Početnoj']]},
+ {t:'Šalabahter Ż i Ẏ',h:`<p>Ispod Lekcije, Vježbe i Zadataka gradiva za KZ2 nalaze se svi zapisi impedancija i admitancija na jednom mjestu. Dodirom elementa prikazuju se i ostali zapisi istog elementa.</p>`,a:[]},
+ {t:'Prethodna verzija i sitnice',h:`<ul style="margin:0;padding-left:18px"><li>Starija gradiva za KZ2 (Uvod u izmjenične krugove, Kompleksni račun…) i njihove ljestvice i dalje su dostupni u <b>prethodnoj verziji aplikacije</b> (poveznica ispod izbora gradiva i na Ljestvici).</li><li>U <b>Bazi zadataka</b> gradiva za KZ2 svako se pitanje može isprobati gumbom <b>Isprobaj</b>.</li></ul>`,a:[]}];
+NEWSOLD['0.19']=NEWS_NEXT.slice();NEWSV['0.19']=1;NEWSV['0.20']=1;NEWS.splice(0,NEWS.length,...NEWS_020);
+{const _nwo=newsOpen;newsOpen=function(ver){const r=_nwo.apply(this,arguments);try{const all=document.querySelectorAll('#fbm'),m=all[all.length-1];if(!m)return r;
+  const toKz2=()=>{const p=prof();p.kzSel='kz2';if(!kzIn(p.module,'kz2'))p.module=KZMODS.kz2[0];lessonX=null;save()};
+  m.querySelectorAll('[data-nw="nwk2"],[data-nw="nwkz2"]').forEach(b=>b.onclick=()=>{m.remove();toKz2();if(b.dataset.nw==='nwkz2'){kzWhich='kz2';kzSub='prep';view='kz'}else view='home';render();window.scrollTo(0,0);
+    if(b.dataset.nw==='nwk2')setTimeout(()=>{const k=document.getElementById('kzhome');if(k)k.scrollIntoView({behavior:'smooth',block:'center'})},200)})}catch(e){}return r}}
+{const _ng=newsGo;newsGo=function(c){const [k,x]=String(c).split(':');try{if((k==='p'||k==='l')&&KZMODS.kz2.includes(x))prof().kzSel='kz2'}catch(e){}return _ng.apply(this,arguments)}}
+
 view='home';
 boot();
 
 function kzLive(){return typeof kzSim!=='undefined'&&kzSim&&!kzSim.done}
-function kzLeaveAsk(go){const m=fbModal(`<h3 style="margin:0 0 8px">Probna KZ1 je u tijeku</h3><p>Ako sada izađeš, probna KZ1 se prekida i <b>neće se računati</b>. Želiš li stvarno izaći?</p><div class="row" style="gap:8px;justify-content:flex-end"><button class="primary" id="kzst" style="margin:0">Nastavi probnu KZ1</button><button class="ghost" id="kzlv" style="margin:0">Izađi i prekini</button></div>`);
+function kzLeaveAsk(go){const m=fbModal(`<h3 style="margin:0 0 8px">Probna KZ je u tijeku</h3><p>Ako sada izađeš, probna KZ se prekida i <b>neće se računati</b>. Želiš li stvarno izaći?</p><div class="row" style="gap:8px;justify-content:flex-end"><button class="primary" id="kzst" style="margin:0">Nastavi probnu KZ</button><button class="ghost" id="kzlv" style="margin:0">Izađi i prekini</button></div>`);
   m.querySelector('#kzst').onclick=()=>m.remove();m.querySelector('#kzlv').onclick=()=>{m.remove();clearTimeout(kzSim&&kzSim.tt);kzSim=null;go()}}
 document.addEventListener('click',e=>{if(!kzLive())return;const t=e.target.closest&&e.target.closest('#nav button,.brand,#fbfoot');if(!t)return;if(t.matches('#nav button')&&t.dataset.v==='kz')return;
   e.preventDefault();e.stopImmediatePropagation();kzLeaveAsk(()=>{t.click()})},true);
@@ -5547,6 +5962,9 @@ async function courseStats(){if(!Remote)return;let rows=null;try{const {data,err
   const toast=t=>{document.getElementById('novotoast')?.remove();const d=document.createElement('div');d.id='novotoast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),7000)};
   const go=(v,m)=>{if(!prof())return toast('Prvo se prijavi.');const b=document.querySelector(`#nav [data-v="${v}"]`);if(b)b.click();if(m){const x=main.querySelector(`.modbar[role=tablist] [data-m="${m}"]`);if(x&&x.getAttribute('aria-current')!=='true')x.click()}scrollTo(0,0)};
   const T=[
+    ['Priprema za KZ2','kartica KZ → KZ2: stadiji pripreme i probna KZ2',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');kzWhich='kz2';p.kzSel='kz2';save();view='kz';render();scrollTo(0,0)}],
+    ['Snaga i trokut snage','lekcija, trokut snage korak po korak, zadaci s mrežom',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='sn2';lstep.sn2=0;save();view='lesson';render();scrollTo(0,0)}],
+    ['Thevenin i Norton','lagana verzija: lekcija, koraci, zadaci',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='tn2';lstep.tn2=0;save();view='lesson';render();scrollTo(0,0)}],
     ['Postavi jednadžbe','konturne struje i naponi čvorova s kompleksnim impedancijama',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='kon2';testType='k2_crt';acq=null;save();view='practice';render();scrollTo(0,0)}],
     ['Kompleksni zapis','zapisi, elementi u jednadžbama, sustav na ruke',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='kzp2';lstep.kzp2=0;save();view='lesson';render();scrollTo(0,0)}],
     ['Rezonancija','lekcija: kako L i C pojednostave mrežu',()=>{const p=prof();if(!p)return toast('Prvo se prijavi.');p.kzSel='kz2';p.module='rez2';lstep.rez2=0;save();view='lesson';render();scrollTo(0,0)}],

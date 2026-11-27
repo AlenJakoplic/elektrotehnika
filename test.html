@@ -1401,7 +1401,7 @@ function homeMods(p){return MODS.map(([k,l])=>{const ts=k==='kont'?['kont','cvor
 function renderHome(){const p=prof(),ms=homeMods(p),tot=ms.reduce((s,m)=>s+m.n,0);
   const fresh=ms.find(m=>m.n<5),weak=ms.slice().sort((a,b)=>a.r-b.r)[0],rec=tot===0?ms.find(m=>m.k===p.module)||ms[0]:fresh||weak;
   const why=tot===0?'Kreni od lekcije, a zatim vježbaj.':rec.n<5?'Ovo gradivo još nije dovoljno isprobano.':'Ovdje ti je razina trenutno najniža.';
-  const ZR={estat:['nab',['nab','capu']],ruk:['ruk',['ruk','cap','ui']],kont:['kont',['kont','cvor']],thev:['thev',['thev','nort','pril']],mag:['mag',['mag']]}[rec.k],zg=ZR?ZR[1].reduce((s,t)=>s+((((p.zad||{}).t||{})[t]||{}).g||0),0):0,zrec=tot>0&&ZR&&rec.r>=5&&zg<3?ZR[0]:null;
+  const ZR={estat:['nab',['nab','capu']],ruk:['ruk',['ruk','cap','ui']],kont:['kont',['kont','cvor']],thev:['thev',['thev','nort','pril']],mag:['mag',['mag']]}[rec.k]||(typeof zr2==='function'?zr2(rec.k):null),zg=ZR?ZR[1].reduce((s,t)=>s+((((p.zad||{}).t||{})[t]||{}).g||0),0):0,zrec=tot>0&&ZR&&rec.r>=5&&zg<3?ZR[0]:null;
   const bar=r=>`<div style="height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 10px"><div style="height:100%;width:${Math.max(4,Math.min(100,(r-1)/9*100))}%;background:var(--ok)"></div></div>`;
   main.innerHTML=`<div class="sheet panel" style="max-width:980px">
   <h2 style="margin-bottom:4px">Bok, ${p.nick}!</h2>${kzBanner()}
@@ -1638,6 +1638,7 @@ async function renderBoardWeek(){const me=prof().nick,wk=weekId(zgDate()),head=`
 
 /* ---------- Verzije ---------- */
 const VERS=[
+ ['0.20','27. 11. 2026.',['Novo gradivo za KZ2: Serijski i Paralelni RLC spoj (vektorski dijagram), Kompleksni zapis, Konturne struje, Naponi čvorova, Rezonancija, Snaga i trokut snage, Thevenin i Norton','Vježba: Nacrtaj vektorski dijagram i Postavi jednadžbe korak po korak','Priprema za KZ2 i Probna KZ2 u kartici KZ, ljestvica Probne KZ2','Obavijest na Početnoj: gdje učiti i kako se otključava probna KZ2','Uz odabran KZ2 Preporuka, Zadaci dana i Dnevni izazov idu iz gradiva za KZ2','Šalabahter sa svim zapisima impedancija i admitancija','Stara gradiva za KZ2 u prethodnoj verziji aplikacije','Isprobaj u Bazi zadataka']],
  ['0.19','2. 11. 2026.',['Gradivo za KZ2: Uvod u izmjenične krugove, Serijski i Paralelni RLC spoj, Kompleksni račun (lekcije, vježba, zadaci s brojevima)','Izbor kolokvija KZ1 / KZ2 / KZ3 / Sve','Animacija „Što znači prethodi?” (medo prelazi ULICU)','Vektorski dijagram serijskog spoja korak po korak','Zadaci AV 7.4 i 7.5: konturne struje i napon čvora','Animacije, odgovaranje tipkovnicom, postupno objašnjenje i sažetak vježbanja']],
  ['0.18','21. 10. 2026.',['Dnevni izazov: 5 težih pitanja dnevno, isti za sve, s ljestvicom','Prsteni napretka po gradivu na Početnoj','Ukupni otpor: zadaci s trikom (kratki spoj, slijepa grana, stezaljke na mjestu otpornika)','Elektrostatika: 157 pitanja i ispravno biranje težine','Vježbam bez bodovanja i Ponovi moje greške','Povećanje slika','Što je novo na Početnoj']],
  ['0.17','18. 10. 2026.',['Zadaci dana na Početnoj','Tjedna ljestvica: prijašnji tjedni i značka Tjedni vrh','Poruka kad je gradivo svladano i poveznica na zadatke s brojevima iz Vježbe','Pitanja su sada malo zahtjevnija','Formule otvaraju se u pregledniku, poveznica na lekciju u Vježbi i Zadacima','Serija i paralela: nova vrsta pitanja Mreža s izvorima','Preporuka za danas predlaže i zadatke s brojevima','Preskakanje koraka ili cijelog zadatka u zadacima s više koraka']],
@@ -2776,6 +2777,7 @@ renderBoardWeek=async function(){const me=prof().nick,cur=weekId(zgDate()),wk=bw
 /* ---------- Zadaci dana (Početna) ---------- */
 const QB=5;
 function qGroups(){return KZS1.map(([k,l,ts])=>({k,l,ts}))}
+function qZG(k){return KZS2.find(g=>g[0]===k)||(typeof K2S2!=='undefined'?K2S2.find(g=>g[0]===k):null)||null}
 function qGroupOf(){const p=prof();if(view==='practice'){const m=p.module;return qGroups().find(g=>g.ts.includes(m))||null}return null}
 function qMake(p){const t=zgDate();if(p.quest&&p.quest.day===t)return p.quest;const G=qGroups().map(g=>{let n=0,w=0,s=0;g.ts.forEach(x=>{const r=p.ratings[x];if(r){n+=r.n;const ww=Math.max(1,r.n);w+=ww;s+=r.r*ww}});return{...g,n,r:w?s/w:2}});
   const weak=G.filter(g=>g.n>=3).sort((a,b)=>a.r-b.r)[0]||G[0],rest=G.filter(g=>g.k!==weak.k),few=rest.find(g=>g.n<15||g.r<4)||rest.slice().sort((a,b)=>a.n-b.n)[0];
@@ -2796,7 +2798,7 @@ function qHtml(p){const Q=qMake(p),all=Q.q.every(x=>x.done);
   ${all?'<p class="note" style="margin:10px 0 0">Svi zadaci dana su ispunjeni. Sutra stižu novi!</p>':''}</div>`}
 /* Početna: zadaci dana i tjedni vrh */
 {const _rh2=renderHome;renderHome=function(){const r=_rh2.apply(this,arguments);try{const p=prof(),h3=[...main.querySelectorAll('h3')].find(x=>x.textContent.trim()==='Gradiva');if(h3&&!main.querySelector('[data-qgo],#qbox')){h3.insertAdjacentHTML('beforebegin',`<div id="qbox">${qHtml(p)}</div>`);
-    {const w=document.getElementById('qwk');if(w)w.onclick=e=>{e.preventDefault();view='board';boardAll='week';bwSel=null;render();window.scrollTo(0,0)}}main.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>{if(b.dataset.qgo.startsWith('Z:')){const G=KZS2.find(x=>x[0]===b.dataset.qgo.slice(2)),Z=zProf();if(G){zTestKind='';Z.type=G[2][0];save();zad=null}view='zad';render();window.scrollTo(0,0);return}const g=qGroups().find(x=>x.k===b.dataset.qgo);if(!g)return;p.module=g.ts[0];save();view='practice';render();window.scrollTo(0,0)})}
+    {const w=document.getElementById('qwk');if(w)w.onclick=e=>{e.preventDefault();view='board';boardAll='week';bwSel=null;render();window.scrollTo(0,0)}}main.querySelectorAll('[data-qgo]').forEach(b=>b.onclick=()=>{if(b.dataset.qgo.startsWith('Z:')){const G=qZG(b.dataset.qgo.slice(2)),Z=zProf();if(G){zTestKind='';Z.type=G[2][0];save();zad=null}view='zad';render();window.scrollTo(0,0);return}const g=qGroups().find(x=>x.k===b.dataset.qgo);if(!g)return;p.module=g.ts[0];save();view='practice';render();window.scrollTo(0,0)})}
     wmLoad().then(()=>{if(view!=='home'||!WM)return;const last=wkPrev(),win=WM.filter(x=>x.week===last),mine=win.find(x=>x.nick===p.nick);if(!mine||main.querySelector('#wmhome'))return;const qb=main.querySelector('#qbox');if(!qb)return;
       qb.insertAdjacentHTML('beforebegin',`<div id="wmhome" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:10px 14px;margin:0 0 16px"><b>Čestitamo! Prošli tjedan: tjedni vrh, ${mine.rnk}. mjesto ${wkIcon(mine.rnk)}</b></div>`)})}catch(e){}return r}}
 /* Podsjetnik nakon 20 pitanja u istom gradivu */
@@ -2819,7 +2821,7 @@ async function anExport(){try{const {data,error}=await Remote.rpc('admin_export'
     feedback:(D.feedback||[]).map(f=>({sid:sid(f.pid),kind:f.kind,qid:f.qid,page:f.page,msg:f.msg,rating:f.rating,extra:f.extra,replied:!!f.reply,t:f.t}))};
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out)],{type:'application/json'}));a.download='radionica-izvoz-'+zgDate()+'.json';a.click()}catch(e){alert('Izvoz nije uspio. Je li pokrenut supabase-dodatak-tjedni.sql?')}}
 
-{const _zf=zFinish;zFinish=function(z,shown){const was=z&&z.ans&&z.ans.done;const r=_zf.apply(this,arguments);try{if(!was&&!shown){const p=prof(),F=zFields(z),max=F.reduce((s,f)=>s+f.w,0);if(max&&z.ans.pts/max>=0.5){const Q=qMake(p);if(!Q.q.some(x=>x.id==='zad'))Q.q.push(qZad(p));const x=Q.q.find(x=>x.id==='zad');const G=KZS2.find(g=>g[0]===x.g);if(!x.done&&G&&G[2].includes(z.type)){x.prog++;if(x.prog>=x.need){x.done=true;gWeek(p).pts+=x.b||QB;toast(`⭐ Zadatak dana ispunjen! +${x.b||QB} bodova za tjednu ljestvicu`)}save()}}}}catch(e){}return r}}
+{const _zf=zFinish;zFinish=function(z,shown){const was=z&&z.ans&&z.ans.done;const r=_zf.apply(this,arguments);try{if(!was&&!shown){const p=prof(),F=zFields(z),max=F.reduce((s,f)=>s+f.w,0);if(max&&z.ans.pts/max>=0.5){const Q=qMake(p);if(!Q.q.some(x=>x.id==='zad'))Q.q.push(qZad(p));const x=Q.q.find(x=>x.id==='zad');const G=qZG(x.g);if(!x.done&&G&&G[2].includes(z.type)){x.prog++;if(x.prog>=x.need){x.done=true;gWeek(p).pts+=x.b||QB;toast(`⭐ Zadatak dana ispunjen! +${x.b||QB} bodova za tjednu ljestvicu`)}save()}}}}catch(e){}return r}}
 
 /* ---------- Tjedni bodovi u svladanom gradivu, svladano, zadaci iz Vježbe ---------- */
 const ZFROM={estat:'nab',ruk:'ruk',rukC:'cap',kont:'kont',cvor:'cvor',thev:'thev',nort:'nort',mag:'mag'};
@@ -3308,8 +3310,8 @@ function chWhy(R,i){const x=(R.info||[])[i],s=R.res[i];if(!x)return '';if(x.skip
   if(x.raw<=0)return 'netočno';const t=Math.round(x.sec),k=Math.floor(x.sec/5);return k===0?`točno za ${t} s`:`točno za ${t} s: 2 − ${k} × 0,2 (${k} × 5 s)${10-k<1?', najmanje 0,2':''}`}
 new MutationObserver(()=>{try{if(typeof CH!=='undefined'&&CH&&view==='practice'&&!document.getElementById('chbar')&&main.querySelector('.board,.sheet'))chBar()}catch(e){}}).observe(main,{childList:true});
 /* ===== Što je novo (Početna) ===== */
-const NEWSV={'0.19':1,'0.18':1};document.addEventListener('click',e=>{const b=e.target.closest('[data-nwv]');if(!b)return;e.preventDefault();newsOpen(b.dataset.nwv)});
-const NEWS_ID='n2026-11-02';
+const NEWSV={'0.20':1,'0.19':1,'0.18':1};document.addEventListener('click',e=>{const b=e.target.closest('[data-nwv]');if(!b)return;e.preventDefault();newsOpen(b.dataset.nwv)});
+const NEWS_ID='n2026-11-27';
 const NEWS=[];
 const NEWS_018=[
  {t:'Dnevni izazov',h:`<p>Svaki dan <b>5 težih pitanja</b> iz gradiva koja se trenutačno najviše vježbaju, isti set za sve. Najviše je <b>10 bodova</b>: brži točan odgovor nosi više (svakih 5 sekundi 0,2 boda manje), a kod zadataka s koracima oduzimaju se pogreške. Na kraju vidiš za svako pitanje odakle bodovi i kako stojiš prema prosjeku svih. Na ljestvicu izazova i u tjedne bodove ulazi prvi pokušaj u danu. Otključava se nakon 100 riješenih pitanja.</p>`,a:[['nwch','Idi na izazov'],['nwlb','Ljestvica izazova']]},
@@ -3320,7 +3322,7 @@ const NEWS_018=[
  {t:'Veće slike',h:`<p><b>Na prijedlog iz studentske ankete</b>: svaku sliku (naboji, mreže, polja) možeš povećati gumbom <b>⤢</b> u njezinu gornjem desnom kutu. Povećanu sliku možeš dodatno povećati gumbima + i − ili prstima, a zatvara se klikom pored nje. Na mobitelu su crteži naboja sada i sami veći.</p><p>Hvala na prijedlogu!</p>`,a:[]},
  {t:'Sitnice',h:`<ul style="margin:0;padding-left:18px"><li>U zadacima s koracima postoji gumb <b>Novi zadatak</b> i usred rješavanja (i <b>Preskoči korak</b> gdje ima smisla).</li><li>U Bazi zadataka rezultati su odmah prikazani, a kod Ukupnog otpora može se birati vrsta zadatka.</li><li>U Zadacima je Magnetsko polje na kraju, kao na nastavi.</li><li>Povremeno se pojavi kratka anketa o gradivu koje se puno vježba. Hvala na odgovorima!</li></ul>`,a:[]}];
 function newsSeen(p){return (p.newsSeen||'')===NEWS_ID}
-function newsOpen(ver){const p=prof(),old=ver&&ver!=='0.19'&&NEWSOLD[ver],LIST=old||NEWS,VV=VERS.find(x=>x[0]===(ver||'0.19'))||VERS[0];if(!old){p.newsSeen=NEWS_ID;save()}
+function newsOpen(ver){const p=prof(),old=ver&&ver!=='0.20'&&NEWSOLD[ver],LIST=old||NEWS,VV=VERS.find(x=>x[0]===(ver||'0.20'))||VERS[0];if(!old){p.newsSeen=NEWS_ID;save()}
   const m=fbModal(`<h3 style="margin:0 0 4px">${old?`Novosti u verziji ${VV[0]}`:'Što je novo'}</h3><p class="note" style="margin:0 0 10px">${old?`Verzija ${VV[0]} · ${VV[1]}`:'Nova verzija Digitalne radionice.'}</p>${LIST.map(n=>`<div style="border-top:1px solid var(--line);padding:10px 0 4px"><h4 style="margin:0 0 6px;font-size:17px">${n.t}</h4>${n.h}${n.a.length?`<div class="row" style="gap:8px;flex-wrap:wrap;margin:6px 0 4px">${n.a.map(([id,l])=>`<button class="ghost" data-nw="${id}" style="margin:0">${l}</button>`).join('')}</div>`:''}</div>`).join('')}<div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">${IS_TEST&&!old?'<a href="#" id="nwreset" class="note" style="color:var(--muted)">(test) vrati kao nepročitano</a>':'<span></span>'}<span style="display:inline-flex;gap:8px;align-items:center"><button class="ghost" id="nwfb2" style="margin:0;padding:6px 10px;font-size:13px;color:var(--muted)">Pošalji povratnu informaciju</button><button class="primary" id="nwx" style="margin:0">Zatvori</button></span></div>`);
   m.querySelector('#nwfb2').onclick=()=>{m.remove();try{fbOpen({})}catch(e){}};
   const close=()=>{m.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape'){close();if(view==='home')render()}};document.addEventListener('keydown',esc);m.querySelector('#nwx').onclick=()=>{close();if(view==='home')render()};
@@ -3339,7 +3341,7 @@ function newsOpen(ver){const p=prof(),old=ver&&ver!=='0.19'&&NEWSOLD[ver],LIST=o
 {const _rhN=renderHome;renderHome=function(){const r=_rhN.apply(this,arguments);try{const p=prof(),h=main.querySelector('.sheet.panel h2');if(!p||!h||document.getElementById('nwbox'))return r;
   if(!p.newsSeen&&!fbTotal(p)){p.newsSeen=NEWS_ID;save()}
   const fresh=!newsSeen(p);
-  h.insertAdjacentHTML('afterend',fresh?`<div id="nwbox" style="display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:10px 14px;margin:8px 0 12px;background:color-mix(in srgb,var(--ok) 8%,transparent)"><div style="flex:1;min-width:200px"><b>Nova verzija aplikacije</b><div class="note" style="margin:2px 0 0">Gradivo za KZ2 (izmjenične struje), izbor kolokvija, animacija „Što znači prethodi?” i vektorski dijagram korak po korak.</div></div><button class="primary" id="nwbtn" style="margin:0">Što je novo?</button></div>`
+  h.insertAdjacentHTML('afterend',fresh?`<div id="nwbox" style="display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-left:4px solid var(--ok);border-radius:8px;padding:10px 14px;margin:8px 0 12px;background:color-mix(in srgb,var(--ok) 8%,transparent)"><div style="flex:1;min-width:200px"><b>Nova verzija aplikacije</b><div class="note" style="margin:2px 0 0">Novo gradivo za KZ2 (vektorski dijagram, kompleksni zapis, metode, rezonancija, snaga, Thevenin i Norton) i priprema za KZ2 s probnom KZ2.</div></div><button class="primary" id="nwbtn" style="margin:0">Što je novo?</button></div>`
     :`<div id="nwbox" style="margin:2px 0 8px"><button class="ghost" id="nwbtn" style="margin:0;padding:3px 10px;font-size:13px;color:var(--muted)">Što je novo</button></div>`);
   document.getElementById('nwbtn').onclick=newsOpen}catch(e){}return r}}
 function dirNear(x,y){const a=Math.atan2(-y,x)*180/Math.PI,ks=['E','NE','N','NW','W','SW','S','SE'],i=((Math.round(a/45)%8)+8)%8;return 'koso, približno '+DIRS[ks[i]][3]}
@@ -3485,7 +3487,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-qgo]');if(
 document.addEventListener('click',e=>{const t=e.target;if(t.id==='chsk')ev('izazov','preskok',CH?CH.i+1:null);if(t.id==='chlb')ev('izazov','ljestvica')},true);
 {const _cfE=window.confirm;window.confirm=function(m){const r=_cfE.apply(this,arguments);try{if(r&&String(m).startsWith('Prekinuti izazov'))ev('izazov','prekid',CH?CH.i+1:null)}catch(e){}return r}}
 /* novosti */
-{const _noE=newsOpen;newsOpen=function(v){ev('novosti','otvoreno',v||'0.19');return _noE.apply(this,arguments)}}
+{const _noE=newsOpen;newsOpen=function(v){ev('novosti','otvoreno',v||'0.20');return _noE.apply(this,arguments)}}
 document.addEventListener('click',e=>{const b=e.target.closest('#fbm [data-nw]');if(b)ev('novosti','akcija',b.dataset.nw)},true);
 /* vježba bez bodovanja, ponavljanje grešaka, povećanje slika */
 document.addEventListener('change',e=>{if(e.target.id==='freechk')ev('bez_bodova',e.target.checked?'ukljuceno':'iskljuceno',prof().module)},true);
@@ -5386,8 +5388,8 @@ const OLDKZ2=['auvod','aser','apar','akom'],OLDMAP={auvod:'ser2',aser:'ser2',apa
 new MutationObserver(()=>{try{if(!prof()||document.getElementById('prevlink')||document.body.classList.contains('chal'))return;const kz2=ACK.has(prof().module)||(view==='zad'&&typeof zad!=='undefined'&&zad&&ACK.has(zad.type));
   if(!((kz2&&['practice','lesson','zad','bank'].includes(view))||view==='board'))return;const h=`<p id="prevlink" class="note" style="margin:6px 0 10px">Starije vježbe i ljestvice za KZ2 (Uvod u izmjenične krugove, Kompleksni račun…) nalaze se u <a href="${PREV_URL}" style="color:var(--ok);font-weight:700">prethodnoj verziji aplikacije →</a></p>`;
   const mb=main.querySelector('.modbar');if(mb)mb.insertAdjacentHTML('afterend',h);else main.insertAdjacentHTML('afterbegin',h)}catch(e){}}).observe(main,{childList:true,subtree:true});
-/* ===== KZ2: Snaga i trokut snage, Thevenin i Norton (za sada samo na testu: AC3) ===== */
-const AC3=IS_TEST;
+/* ===== KZ2: Snaga i trokut snage, Thevenin i Norton (AC3, objavljeno 27. 11. 2026.) ===== */
+const AC3=true;
 const AM3=[['sn2','Snaga i trokut snage'],['tn2','Thevenin i Norton']],AM3K=new Set(AM3.map(x=>x[0]));
 const zAdd=(A,B)=>B.startsWith('−')?`${A} − ${B.slice(1)}`:`${A} + ${B}`;
 const zPar=(A,B)=>`${amPar(A)}·${amPar(B)}/(${zAdd(A,B)})`;
@@ -5621,7 +5623,7 @@ if(AC3){
   for(const k in state.profiles){const p=state.profiles[k];for(const [t] of AM3)if(!p.ratings[t])p.ratings[t]={r:2.0,n:0,c:0}}
   {const _np=newProfile;newProfile=function(n){const p=_np(n);for(const [t] of AM3)p.ratings[t]={r:2.0,n:0,c:0};return p}}
   {const _rd=render;render=function(){try{const p=prof();if(p)for(const [t] of AM3)if(!p.ratings[t])p.ratings[t]={r:2.0,n:0,c:0}}catch(e){}return _rd.apply(this,arguments)}}
-  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('amhelp');if(a&&!document.getElementById('am3help'))a.insertAdjacentHTML('afterend',`<p id="am3help"><b>Snaga i trokut snage, Thevenin i Norton</b> (samo na testu). <b>Snaga:</b> radna, jalova i prividna snaga, snaga na elementima, trokut snage (P vodoravno, Q gore za induktivno i dolje za kapacitivno, S hipotenuza, kut φ), kompleksna snaga Ṡ = U̇·İ* i provjera po elementima. U Vježbi je trokut snage mreže korak po korak (bez brojeva), a u Zadacima snaga izvora za mreže s jednim izvorom, s nacrtanim trokutom snage u rješenju. <b>Thevenin i Norton:</b> lagana verzija za izmjenične mreže: Ż<sub>T</sub> uz ugašene izvore, Ė<sub>T</sub> u praznom hodu, İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub> i struja trošila.</p>`)}catch(e){}return r}}
+  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('amhelp');if(a&&!document.getElementById('am3help'))a.insertAdjacentHTML('afterend',`<p id="am3help"><b>Snaga i trokut snage, Thevenin i Norton</b>. <b>Snaga:</b> radna, jalova i prividna snaga, snaga na elementima, trokut snage (P vodoravno, Q gore za induktivno i dolje za kapacitivno, S hipotenuza, kut φ), kompleksna snaga Ṡ = U̇·İ* i provjera po elementima. U Vježbi je trokut snage mreže korak po korak (bez brojeva), a u Zadacima snaga izvora za mreže s jednim izvorom, s nacrtanim trokutom snage u rješenju. <b>Thevenin i Norton:</b> lagana verzija za izmjenične mreže: Ż<sub>T</sub> uz ugašene izvore, Ė<sub>T</sub> u praznom hodu, İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub> i struja trošila.</p>`)}catch(e){}return r}}
 }else{
   {const _rd=render;render=function(){try{const p=prof();if(p){if(AM3K.has(p.module))p.module='rez2';const Z=p.zad;if(Z&&AM3K.has(Z.type)){Z.type='rez2';zad=null}}}catch(e){}return _rd.apply(this,arguments)}}
 }
@@ -5688,7 +5690,7 @@ if(AC3){
     kb.insertAdjacentHTML('afterend',`<button data-all="1" data-kz2b="1" aria-current="${boardAll==='kz2'}">Probna KZ2</button>`);if(boardAll==='kz2')kb.setAttribute('aria-current','false');
     main.querySelector('[data-kz2b]').onclick=()=>{boardAll='kz2';render()}}catch(e){}}}
   {const _rb=renderBoard;renderBoard=function(){if(boardAll==='kz2')return renderBoardKZ2();return _rb.apply(this,arguments)}}
-  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('am3help');if(a&&!document.getElementById('kz2help'))a.insertAdjacentHTML('afterend',`<p id="kz2help"><b>Priprema za KZ2</b> (samo na testu). U kartici <b>KZ</b> bira se KZ1 ili KZ2. Priprema za KZ2 ima iste stadije kao za KZ1: Vježba po gradivima (uz lekcije), Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta), koja se otključava kad su ispunjena prva dva stadija. Ljestvica ima i karticu <b>Probna KZ2</b>. Na <b>Početnoj</b> je obavijest „Priprema za KZ2” koja pokazuje gdje se bira gradivo za KZ2 (Kolokvij: KZ2), kako učiti (Lekcija → Vježba → Zadaci), gdje je priprema (kartica KZ → KZ2) i kako se otključava probna KZ2, uz trenutni napredak; može se sklopiti gumbom Sakrij.</p>`)}catch(e){}return r}}
+  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('am3help');if(a&&!document.getElementById('kz2help'))a.insertAdjacentHTML('afterend',`<p id="kz2help"><b>Priprema za KZ2</b>. U kartici <b>KZ</b> bira se KZ1 ili KZ2. Priprema za KZ2 ima iste stadije kao za KZ1: Vježba po gradivima (uz lekcije), Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta), koja se otključava kad su ispunjena prva dva stadija. Ljestvica ima i karticu <b>Probna KZ2</b>. Na <b>Početnoj</b> je obavijest „Priprema za KZ2” koja pokazuje gdje se bira gradivo za KZ2 (Kolokvij: KZ2), kako učiti (Lekcija → Vježba → Zadaci), gdje je priprema (kartica KZ → KZ2) i kako se otključava probna KZ2, uz trenutni napredak; može se sklopiti gumbom Sakrij. Kad je odabran KZ2, <b>Preporuka za danas</b> i <b>Zadaci dana</b> idu iz gradiva za KZ2 (današnji zadaci dana mijenjaju se samo ako u njima još ništa nije napravljeno), a <b>Dnevni izazov</b>, koji je isti za sve, od KZ1 nadalje slaže se iz gradiva za KZ2.</p>`)}catch(e){}return r}}
   /* Obavijest na Početnoj: gdje je gradivo za KZ2, gdje učiti, gdje se pripremiti i kako se otključava probna KZ2 */
   FEVN.kz2=FEVN.kz2||'KZ2 (priprema)';
   function kz2Home(){const p=prof();if(!p||(typeof isEtr==='function'&&!isEtr())||document.getElementById('kz2home'))return;
@@ -5739,6 +5741,51 @@ function amImpZ(lv){const pk=acZpk,V=[10,20,30,40,60,80,100,120];
     sol.push(`|Ż| = √(${amN(Z.re,3)}² + ${amN(Z.im,3)}²) = <b>${amN(m,3)} Ω</b>, φ = arctg(${amN(Z.im,3)}/${amN(Z.re,3)}) = <b>${amN(f,2)}°</b> (${Math.abs(f)<1e-6?'radno':f>0?'induktivno':'kapacitivno'})`);
     return acZz('kzp2','imp',lv,{svg:amSvg(c,{termL:true,vals:{},labs}),text:`Za mrežu prema slici zadano je ${txt.join(', ')}. Odredite modul i fazni kut impedancije gledano s priključnica A i B.`,fields:[acZF('|Ż|',m,'Ω'),acZd('φ',f,1,'s predznakom')],sol})}
   return null}
+/* ===== Uz odabran KZ2: Preporuka, Zadaci dana i Dnevni izazov iz gradiva za KZ2 ===== */
+/* Preporuka za danas: kad je razina u gradivu KZ2 barem 5, a zadataka s brojevima manje od 3, predloži Zadatke tog gradiva */
+function zr2(k){return (typeof ACZ!=='undefined'&&ACZ.includes(k)&&KZMODS.kz2.includes(k))?[k,[k]]:null}
+/* Zadaci dana: skupine prema odabranom kolokviju; današnji zadaci zadržavaju kolokvij za koji su napravljeni */
+function qKzCur(){try{return kzSel()==='kz2'&&KZMODS.kz2.length?'kz2':'kz1'}catch(e){return 'kz1'}}
+function qKz(){const p=prof();if(p&&p.quest&&p.quest.day===zgDate())return p.quest.kz||'kz1';return qKzCur()}
+function qG2(){return K2S1.filter(g=>g[2].every(t=>TOPICS[t])).map(([k,l,ts])=>({k,l,ts}))}
+{const _qg=qGroups;qGroups=function(){return qKz()==='kz2'?qG2():_qg.apply(this,arguments)}}
+{const _qm=qMake;qMake=function(p){const t=zgDate(),Q=p.quest,cur=qKzCur();
+  /* promjena kolokvija: novi zadaci dana samo ako u današnjima još ništa nije napravljeno */
+  if(Q&&Q.day===t&&(Q.kz||'kz1')!==cur&&!Q.q.some(x=>x.done||x.prog>0||(x.set&&x.set.length)))p.quest=null;
+  if(p.quest&&p.quest.day===t)return _qm.apply(this,arguments);
+  p.quest=null;const r=_qm.apply(this,arguments);r.kz=cur;return r}}
+{const _qz=qZad;qZad=function(p){if(qKz()!=='kz2')return _qz.apply(this,arguments);const Z=p.zad||{},T=Z.t||{};
+  const G=K2S2.filter(g=>g[2].every(t=>ACZ.includes(t))).map(([k,l,ts])=>({k,l,ts,g:ts.reduce((s,t)=>s+((T[t]||{}).g||0),0)})).sort((a,b)=>a.g-b.g),g=G[0];
+  return{id:'zad',g:g.k,t:`Zadatak s brojevima: riješi 2 zadatka iz skupine ${g.l} s barem pola bodova`,need:2,prog:0,done:false,b:10}}}
+/* Dnevni izazov: isti je za sve, pa se nakon KZ1 slaže iz gradiva za KZ2 (bez zadataka s koracima) */
+const CHG2=[['ser2','Vektorski dijagram',['ser2','par2']],['kzp2','Kompleksni zapis',['kzp2']],['kon2','Konturne struje i naponi čvorova',['kon2','cvr2']],['rez2','Rezonancija',['rez2']],['sn2','Snaga i trokut snage',['sn2']],['tn2','Thevenin i Norton',['tn2']]].filter(g=>g[2].every(t=>TOPICS[t]));
+CHG.push(...CHG2);
+function chKz2(){return CHG2.length>=2&&Date.now()>=KZ1.getTime()+864e5}
+{const _ct=chTopics;chTopics=async function(){if(!chKz2())return (await _ct.apply(this,arguments)).filter(k=>!CHG2.some(g=>g[0]===k));
+  try{const {data,error}=await Remote.rpc('topic_recent');if(!error&&data&&data.length){const u=k=>CHG2.find(g=>g[0]===k)[2].reduce((m,t)=>Math.max(m,(data.find(r=>r.topic===t)||{}).users||0),0);
+    const top=Math.max(0,...CHG2.map(g=>u(g[0])));let sel=CHG2.filter(g=>u(g[0])>=Math.max(2,0.25*top)).map(g=>g[0]);
+    if(sel.length<2)sel=CHG2.slice().sort((a,b)=>u(b[0])-u(a[0])).slice(0,3).map(g=>g[0]);return sel}}catch(e){}
+  return CHG2.slice(0,3).map(g=>g[0])}}
+{const _cs=chShort;chShort=function(q){if(q&&(q.amSteps||q.draw||q.steps))return false;return _cs.apply(this,arguments)}}
+{const _sq=chStartQ;chStartQ=function(){try{const q=chFind(CH.qs[CH.i]);if(q&&ACK.has(q.topic)){acq=q;acA=null;try{vdS=null}catch(e){}try{am=null}catch(e){}try{acSt=null}catch(e){}}}catch(e){}return _sq.apply(this,arguments)}}
+
+/* ===== Što je novo: verzija 0.20 (27. 11. 2026.) ===== */
+const NEWS_020=[
+ {t:'Novo gradivo za KZ2',h:`<p>Gradivo za drugu kontrolnu zadaću napravljeno je ispočetka, prema predavanjima i auditornim vježbama: <b>Serijski RLC spoj</b>, <b>Paralelni RLC spoj</b>, <b>Kompleksni zapis</b>, <b>Konturne struje</b>, <b>Naponi čvorova</b>, <b>Rezonancija</b>, <b>Snaga i trokut snage</b> te <b>Thevenin i Norton</b>. Svako gradivo ima lekciju korak po korak, Vježbu bez računanja na kalkulatoru i Zadatke s brojevima s rješenjem korak po korak.</p><p>Gradiva za KZ2 prikazuju se kad je iznad popisa gradiva odabrano <b>Kolokvij: KZ2</b>.</p>`,a:[['go:l:ser2','Otvori prvu lekciju'],['nwk2','Prebaci na gradivo za KZ2']]},
+ {t:'Nacrtaj vektorski dijagram',h:`<p>U Vježbi Serijskog i Paralelnog RLC spoja dijagram se crta korak po korak, kao na ploči: što se crta prvo (struja u seriji, napon u paraleli), smjer svakog vektora klikom, rezultanta i karakter spoja. Pomaže pamtilica: medo prelazi <b>ULICU</b>.</p>`,a:[['go:p:ser2:vs_crt','Isprobaj: serija'],['go:p:par2:vp_crt','Isprobaj: paralela']]},
+ {t:'Postavi jednadžbe',h:`<p>Konturne struje i naponi čvorova u izmjeničnoj mreži postavljaju se korak po korak: koliko je jednadžbi, koji elementi ulaze u petlju ili čvor (klikom) te zbroj impedancija ili admitancija i predznaci. Zapisi se namjerno mijenjaju (jX<sub>L</sub>, jωL, 1/(jωC), −j/(ωC)…), da se svaki prepozna.</p>`,a:[['go:p:kon2:k2_crt','Konturne struje'],['go:p:cvr2:c2_crt','Naponi čvorova']]},
+ {t:'Snaga i trokut snage, Thevenin i Norton',h:`<p>Radna, jalova i prividna snaga, kompleksna snaga Ṡ = U̇·İ* i <b>trokut snage</b>: P vodoravno, Q gore (induktivno) ili dolje (kapacitivno), S hipotenuza. Uz to i lagana verzija Theveninova i Nortonova teorema za izmjenične mreže: Ė<sub>T</sub> u praznom hodu, Ż<sub>T</sub> uz ugašene izvore, İ<sub>N</sub> = Ė<sub>T</sub>/Ż<sub>T</sub>.</p>`,a:[['go:l:sn2','Lekcija: snaga'],['go:l:tn2','Lekcija: Thevenin i Norton']]},
+ {t:'Priprema za KZ2 i probna KZ2',h:`<p>Kartica u izborniku sada se zove <b>KZ</b>, a na njezinu vrhu bira se KZ1 ili KZ2. Priprema za KZ2 ide kroz iste stadije kao za KZ1: Vježba po gradivima, Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta). Probna KZ2 otključava se kad su ispunjena prva dva stadija, a pravila i trenutni napredak prikazani su i u obavijesti na Početnoj. Ljestvica ima novu karticu <b>Probna KZ2</b>.</p>`,a:[['nwkz2','Otvori pripremu za KZ2'],['go:v:board:kz2','Ljestvica probne KZ2']]},
+ {t:'Sve iz gradiva za KZ2',h:`<p>Kad je odabran KZ2, i <b>Preporuka za danas</b> i <b>Zadaci dana</b> idu iz gradiva za KZ2. <b>Dnevni izazov</b> isti je za sve, pa se od sada slaže iz gradiva za KZ2.</p>`,a:[['go:v:home','Pogledaj na Početnoj']]},
+ {t:'Šalabahter Ż i Ẏ',h:`<p>Ispod Lekcije, Vježbe i Zadataka gradiva za KZ2 nalaze se svi zapisi impedancija i admitancija na jednom mjestu. Dodirom elementa prikazuju se i ostali zapisi istog elementa.</p>`,a:[]},
+ {t:'Prethodna verzija i sitnice',h:`<ul style="margin:0;padding-left:18px"><li>Starija gradiva za KZ2 (Uvod u izmjenične krugove, Kompleksni račun…) i njihove ljestvice i dalje su dostupni u <b>prethodnoj verziji aplikacije</b> (poveznica ispod izbora gradiva i na Ljestvici).</li><li>U <b>Bazi zadataka</b> gradiva za KZ2 svako se pitanje može isprobati gumbom <b>Isprobaj</b>.</li></ul>`,a:[]}];
+NEWSOLD['0.19']=NEWS_NEXT.slice();NEWSV['0.19']=1;NEWSV['0.20']=1;NEWS.splice(0,NEWS.length,...NEWS_020);
+{const _nwo=newsOpen;newsOpen=function(ver){const r=_nwo.apply(this,arguments);try{const all=document.querySelectorAll('#fbm'),m=all[all.length-1];if(!m)return r;
+  const toKz2=()=>{const p=prof();p.kzSel='kz2';if(!kzIn(p.module,'kz2'))p.module=KZMODS.kz2[0];lessonX=null;save()};
+  m.querySelectorAll('[data-nw="nwk2"],[data-nw="nwkz2"]').forEach(b=>b.onclick=()=>{m.remove();toKz2();if(b.dataset.nw==='nwkz2'){kzWhich='kz2';kzSub='prep';view='kz'}else view='home';render();window.scrollTo(0,0);
+    if(b.dataset.nw==='nwk2')setTimeout(()=>{const k=document.getElementById('kzhome');if(k)k.scrollIntoView({behavior:'smooth',block:'center'})},200)})}catch(e){}return r}}
+{const _ng=newsGo;newsGo=function(c){const [k,x]=String(c).split(':');try{if((k==='p'||k==='l')&&KZMODS.kz2.includes(x))prof().kzSel='kz2'}catch(e){}return _ng.apply(this,arguments)}}
+
 view='home';
 boot();
 
