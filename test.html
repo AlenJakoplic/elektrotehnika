@@ -5688,7 +5688,40 @@ if(AC3){
     kb.insertAdjacentHTML('afterend',`<button data-all="1" data-kz2b="1" aria-current="${boardAll==='kz2'}">Probna KZ2</button>`);if(boardAll==='kz2')kb.setAttribute('aria-current','false');
     main.querySelector('[data-kz2b]').onclick=()=>{boardAll='kz2';render()}}catch(e){}}}
   {const _rb=renderBoard;renderBoard=function(){if(boardAll==='kz2')return renderBoardKZ2();return _rb.apply(this,arguments)}}
-  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('am3help');if(a&&!document.getElementById('kz2help'))a.insertAdjacentHTML('afterend',`<p id="kz2help"><b>Priprema za KZ2</b> (samo na testu). U kartici <b>KZ</b> bira se KZ1 ili KZ2. Priprema za KZ2 ima iste stadije kao za KZ1: Vježba po gradivima (uz lekcije), Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta), koja se otključava kad su ispunjena prva dva stadija. Ljestvica ima i karticu <b>Probna KZ2</b>.</p>`)}catch(e){}return r}}
+  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('am3help');if(a&&!document.getElementById('kz2help'))a.insertAdjacentHTML('afterend',`<p id="kz2help"><b>Priprema za KZ2</b> (samo na testu). U kartici <b>KZ</b> bira se KZ1 ili KZ2. Priprema za KZ2 ima iste stadije kao za KZ1: Vježba po gradivima (uz lekcije), Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta), koja se otključava kad su ispunjena prva dva stadija. Ljestvica ima i karticu <b>Probna KZ2</b>. Na <b>Početnoj</b> je obavijest „Priprema za KZ2” koja pokazuje gdje se bira gradivo za KZ2 (Kolokvij: KZ2), kako učiti (Lekcija → Vježba → Zadaci), gdje je priprema (kartica KZ → KZ2) i kako se otključava probna KZ2, uz trenutni napredak; može se sklopiti gumbom Sakrij.</p>`)}catch(e){}return r}}
+  /* Obavijest na Početnoj: gdje je gradivo za KZ2, gdje učiti, gdje se pripremiti i kako se otključava probna KZ2 */
+  FEVN.kz2=FEVN.kz2||'KZ2 (priprema)';
+  function kz2Home(){const p=prof();if(!p||(typeof isEtr==='function'&&!isEtr())||document.getElementById('kz2home'))return;
+    const at=document.getElementById('nwbox')||main.querySelector('.sheet.panel h2');if(!at)return;
+    const S=kz2State(p),n1=S.s1.filter(x=>x.ok).length,n2=S.s2.filter(x=>x.ok).length,sel=kzSel()==='kz2',open=Store.get('kz2hn',true)!==false;
+    const st=S.ok2?3:S.ok1?2:1,stTxt=S.ok2?'probna KZ2 je otključana':`${st}. stadij od 3`;
+    const ic=(ok,cur)=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;flex:0 0 22px;font-size:13px;font-weight:700;${ok?'background:var(--ok);color:var(--sheet)':cur?'border:2px solid var(--mark);color:var(--ink)':'border:2px solid var(--line);color:var(--muted)'}">${ok?'✓':''}</span>`;
+    const li=(ok,cur,h,t)=>`<li style="display:flex;gap:10px;align-items:flex-start;margin:0 0 10px">${ic(ok,cur)}<div><b>${h}</b><div class="note" style="margin:2px 0 0">${t}</div></div></li>`;
+    const B=(id,t,cls)=>`<button class="${cls||'ghost'}" data-k2h="${id}" style="margin:0;padding:6px 12px">${t}</button>`;
+    const step=(n,h,t,btns)=>`<div style="display:flex;gap:10px;align-items:flex-start;margin:0 0 12px"><span style="font-family:var(--f-head);font-size:22px;font-weight:700;line-height:1;color:var(--mark);min-width:16px">${n}</span><div style="flex:1;min-width:0"><b>${h}</b><div style="margin:2px 0 6px">${t}</div><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">${btns}</div></div></div>`;
+    const body=`<div id="kz2hb" style="margin-top:12px">
+      ${step(1,'Odaberi gradivo za KZ2','Gradiva za KZ1 i KZ2 biraju se gumbima <b>Kolokvij: KZ1 · KZ2 · KZ3 · Sve</b>. Nalaze se iznad popisa Gradiva ovdje na Početnoj i na vrhu Lekcije, Vježbe i Zadataka.',sel?`<span style="color:var(--ok);font-weight:700">✓ Odabrano je gradivo za KZ2</span>${B('show','Pokaži gdje')}`:`${B('pick','Prebaci na gradivo za KZ2','primary')}${B('show','Pokaži gdje')}`)}
+      ${step(2,'Uči redom: Lekcija → Vježba → Zadaci','<b>Lekcija</b> objašnjava gradivo korak po korak. U <b>Vježbi</b> su pitanja bez kalkulatora i zadaci korak po korak, a razina raste s točnim odgovorima. U <b>Zadacima</b> se računa na papiru i upisuje rezultat, a aplikacija ga provjeri.',B('les','Lekcija')+B('prac','Vježba')+B('zad','Zadaci'))}
+      ${step(3,'Pripremi se u kartici KZ','U izborniku na vrhu otvori karticu <b>KZ</b> i odaberi <b>KZ2</b>. Tamo su stadiji pripreme, spremnost u postocima, probna KZ2 i pravila kolegija.',B('kz','Otvori pripremu za KZ2','primary'))}
+      <div style="border-top:1px solid var(--line);padding-top:12px;margin-top:4px"><b style="display:block;margin:0 0 8px">Kako se otključava probna KZ2</b><ol style="list-style:none;padding:0;margin:0">
+        ${li(S.ok1,st===1,'1. stadij: Vježba',`U svakoj od ${K2S1.length} skupina gradiva riješi barem ${KZR.n1} pitanja i dosegni razinu barem ${fmt(KZR.r1)}. Sada: ${n1} od ${K2S1.length} skupina.`)}
+        ${li(S.ok2,st===2,'2. stadij: Zadaci s brojevima',`Iz svake od ${K2S2.length} skupina riješi barem ${KZR.n2} zadatka s barem pola bodova, a ukupno barem ${KZR.tot2} zadataka iz gradiva za KZ2. Sada: ${n2} od ${K2S2.length} skupina, ${Math.min(S.tot,KZR.tot2)} od ${KZR.tot2} zadataka.`)}
+        ${li((S.K.best||0)>0,st===3,'3. stadij: Probna KZ2','Otključava se kad su ispunjena prva dva stadija. Kao prava kontrolna zadaća: 4 zadatka (6 + 6 + 6 + 2 boda), 95 minuta, a rezultati se vide tek nakon predaje.')}
+      </ol><p class="note" style="margin:2px 0 0">Stadiji idu redom, a računa se i sve što je već riješeno. Popis skupina i napredak u svakoj nalaze se u kartici KZ → KZ2.</p></div></div>`;
+    at.insertAdjacentHTML('afterend',`<div id="kz2home" style="border:1px solid var(--line);border-left:4px solid var(--mark);border-radius:8px;padding:12px 14px;margin:10px 0 14px;background:color-mix(in srgb,var(--mark) 10%,var(--sheet))">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b style="font-size:17px;flex:1;min-width:200px">📘 Priprema za KZ2: gdje učiti i kako do probne KZ2</b><span class="note" style="margin:0;white-space:nowrap">${stTxt}</span><button class="ghost" data-k2h="tog" aria-expanded="${open}" style="margin:0;padding:4px 10px">${open?'Sakrij ▲':'Prikaži ▼'}</button></div>
+      ${open?body:''}</div>`);
+    const box=document.getElementById('kz2home');
+    const toKz2=()=>{p.kzSel='kz2';if(!kzIn(p.module,'kz2'))p.module=KZMODS.kz2[0];lessonX=null;save()};
+    const go=v=>{toKz2();view=v;render();window.scrollTo(0,0)};
+    box.querySelectorAll('[data-k2h]').forEach(b=>b.onclick=()=>{const a=b.dataset.k2h;try{ev('kz2','banner',a)}catch(e){}
+      if(a==='tog'){Store.set('kz2hn',!open);render();return}
+      if(a==='pick'||a==='show'){if(a==='pick')kzPick('kz2');const k=document.getElementById('kzhome');if(!k)return;const h=k.closest('h3')||k;h.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+        const c=k.querySelector('.modbar')||k;c.style.transition='box-shadow .3s';c.style.boxShadow='0 0 0 3px var(--mark)';c.style.borderRadius='10px';setTimeout(()=>{c.style.boxShadow=''},2200);return}
+      if(a==='les')return go('lesson');if(a==='prac')return go('practice');
+      if(a==='zad'){toKz2();const Z=zProf();if(!ACZ.includes(Z.type)||!KZMODS.kz2.includes(Z.type)){Z.type=KZMODS.kz2[0];zad=null}save();view='zad';render();window.scrollTo(0,0);return}
+      if(a==='kz'){toKz2();kzWhich='kz2';kzSub='prep';view='kz';render();window.scrollTo(0,0)}})}
+  {const _rh=renderHome;renderHome=function(){const r=_rh.apply(this,arguments);try{kz2Home()}catch(e){}return r}}
 }
 /* Zadaci: impedancija mreže gledano s priključnica A i B (modul i kut) */
 function amImpZ(lv){const pk=acZpk,V=[10,20,30,40,60,80,100,120];
