@@ -4868,6 +4868,7 @@ function amGen(rnd,o){o=o||{};const pk=a=>a[Math.floor(rnd()*a.length)];
       else b={e:pk(['R','L','C','RL','RC','R','L','C'])};V.push(b)}
     for(let x=0;x<W;x++){const e=pk(['R','L','C','R','','','RL']);T.push(e?{e}:{w:true})}
     if(!nU&&!o.noU){const x=Math.floor(rnd()*W);if(T[x].w)continue;T[x].s='U';T[x].pol=rnd()<0.5?1:-1;nU++}
+    if((V[0].s==='I'&&T[0].s==='U')||(V[W].s==='I'&&T[W-1].s==='U'))continue;   // strujni i naponski izvor u istoj grani (serija) – ne
     const d=Array(W).fill(1).map(()=>hard&&rnd()<0.3?-1:1);
     const sp={W,V,T,d},c=amC(sp);
     if(!c.els.some(e=>e.k!=='R'))continue;if(!c.els.some(e=>e.k==='R')&&rnd()<0.8)continue;
