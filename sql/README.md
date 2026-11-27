@@ -33,6 +33,7 @@ Redoslijed kako su nastajali (za novu bazu: prvo `supabase.sql`, zatim ovim redo
 | 2. 11. | supabase-dodatak-kz2-ljestvica.sql | ukupna ljestvica s gradivima KZ2 (auvod, aser, apar, akom; ulaze tek kad je riješeno barem jedno pitanje) |
 | 3. 11. | supabase-dodatak-bodovi-kz.sql | nastavnik vidi bodove KZ koje su studenti upisali (admin_grades) |
 | 27. 11. | supabase-dodatak-kz2-nova-gradiva.sql | ukupna ljestvica s novim gradivima KZ2 (ser2, par2, kzp2, kon2, cvr2, rez2) |
+| 27. 11. | supabase-dodatak-kz2-probna.sql | ljestvica probne KZ2 (`leaderboard_kz2`) i ukupna ljestvica sa sn2, tn2 – pokrenuti kad se objavi priprema za KZ2 |
 | 29. 10. | supabase-dodatak-kz-po-kolokviju.sql | GrokBOT verzija (test-grokbot.html), ne koristi se – ne pokretati |
 | 29. 10. | supabase-dodatak-kz2-gradiva.sql | GrokBOT verzija (test-grokbot.html), ne koristi se – ne pokretati |
 
