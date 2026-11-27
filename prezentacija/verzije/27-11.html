@@ -5688,12 +5688,13 @@ if(AC3){
     kb.insertAdjacentHTML('afterend',`<button data-all="1" data-kz2b="1" aria-current="${boardAll==='kz2'}">Probna KZ2</button>`);if(boardAll==='kz2')kb.setAttribute('aria-current','false');
     main.querySelector('[data-kz2b]').onclick=()=>{boardAll='kz2';render()}}catch(e){}}}
   {const _rb=renderBoard;renderBoard=function(){if(boardAll==='kz2')return renderBoardKZ2();return _rb.apply(this,arguments)}}
-  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('am3help');if(a&&!document.getElementById('kz2help'))a.insertAdjacentHTML('afterend',`<p id="kz2help"><b>Priprema za KZ2</b>. U kartici <b>KZ</b> bira se KZ1 ili KZ2. Priprema za KZ2 ima iste stadije kao za KZ1: Vježba po gradivima (uz lekcije), Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta), koja se otključava kad su ispunjena prva dva stadija. Ljestvica ima i karticu <b>Probna KZ2</b>. Na <b>Početnoj</b> je obavijest „Priprema za KZ2” koja pokazuje gdje se bira gradivo za KZ2 (Kolokvij: KZ2), kako učiti (Lekcija → Vježba → Zadaci), gdje je priprema (kartica KZ → KZ2) i kako se otključava probna KZ2, uz trenutni napredak; može se sklopiti gumbom Sakrij. Kad je odabran KZ2, <b>Preporuka za danas</b> i <b>Zadaci dana</b> idu iz gradiva za KZ2 (današnji zadaci dana mijenjaju se samo ako u njima još ništa nije napravljeno), a <b>Dnevni izazov</b>, koji je isti za sve, od KZ1 nadalje slaže se iz gradiva za KZ2.</p>`)}catch(e){}return r}}
+  {const _rh=renderHelp;renderHelp=function(){const r=_rh.apply(this,arguments);try{const a=document.getElementById('am3help');if(a&&!document.getElementById('kz2help'))a.insertAdjacentHTML('afterend',`<p id="kz2help"><b>Priprema za KZ2</b>. U kartici <b>KZ</b> bira se KZ1 ili KZ2. Priprema za KZ2 ima iste stadije kao za KZ1: Vježba po gradivima (uz lekcije), Zadaci s brojevima i <b>Probna KZ2</b> (4 zadatka, 6 + 6 + 6 + 2 boda, 95 minuta), koja se otključava kad su ispunjena prva dva stadija. Ljestvica ima i karticu <b>Probna KZ2</b>. Na <b>Početnoj</b> je obavijest „Priprema za KZ2” koja pokazuje gdje se bira gradivo za KZ2 (Kolokvij: KZ2), kako učiti (Lekcija → Vježba → Zadaci), gdje je priprema (kartica KZ → KZ2) i kako se otključava probna KZ2, uz trenutni napredak. Obavijest se sama sklopi nakon prvog klika u njoj ili nakon tri dana (tada se otvara gumbom Prikaži). Iznad nje je odbrojavanje do KZ2 (utorak 8. 12. 2026. u 8:00). Kad je odabran KZ2, <b>Preporuka za danas</b> i <b>Zadaci dana</b> idu iz gradiva za KZ2 (današnji zadaci dana mijenjaju se samo ako u njima još ništa nije napravljeno), a <b>Dnevni izazov</b>, koji je isti za sve, od KZ1 nadalje slaže se iz gradiva za KZ2.</p>`)}catch(e){}return r}}
   /* Obavijest na Početnoj: gdje je gradivo za KZ2, gdje učiti, gdje se pripremiti i kako se otključava probna KZ2 */
   FEVN.kz2=FEVN.kz2||'KZ2 (priprema)';
+  var kz2Sess=null;
   function kz2Home(){const p=prof();if(!p||(typeof isEtr==='function'&&!isEtr())||document.getElementById('kz2home'))return;
     const at=document.getElementById('nwbox')||main.querySelector('.sheet.panel h2');if(!at)return;
-    const S=kz2State(p),n1=S.s1.filter(x=>x.ok).length,n2=S.s2.filter(x=>x.ok).length,sel=kzSel()==='kz2',open=Store.get('kz2hn',true)!==false;
+    const S=kz2State(p),n1=S.s1.filter(x=>x.ok).length,n2=S.s2.filter(x=>x.ok).length,sel=kzSel()==='kz2';let open;if(kz2Sess!=null)open=kz2Sess;else{const dd=Store.get('kz2hd',[])||[],t=zgDate();if(!dd.includes(t)){dd.push(t);Store.set('kz2hd',dd.slice(-5))}open=Store.get('kz2hn',true)!==false&&dd.length<=3}
     const st=S.ok2?3:S.ok1?2:1,stTxt=S.ok2?'probna KZ2 je otključana':`${st}. stadij od 3`;
     const ic=(ok,cur)=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;flex:0 0 22px;font-size:13px;font-weight:700;${ok?'background:var(--ok);color:var(--sheet)':cur?'border:2px solid var(--mark);color:var(--ink)':'border:2px solid var(--line);color:var(--muted)'}">${ok?'✓':''}</span>`;
     const li=(ok,cur,h,t)=>`<li style="display:flex;gap:10px;align-items:flex-start;margin:0 0 10px">${ic(ok,cur)}<div><b>${h}</b><div class="note" style="margin:2px 0 0">${t}</div></div></li>`;
@@ -5715,7 +5716,7 @@ if(AC3){
     const toKz2=()=>{p.kzSel='kz2';if(!kzIn(p.module,'kz2'))p.module=KZMODS.kz2[0];lessonX=null;save()};
     const go=v=>{toKz2();view=v;render();window.scrollTo(0,0)};
     box.querySelectorAll('[data-k2h]').forEach(b=>b.onclick=()=>{const a=b.dataset.k2h;try{ev('kz2','banner',a)}catch(e){}
-      if(a==='tog'){Store.set('kz2hn',!open);render();return}
+      if(a==='tog'){kz2Sess=!open;if(open)Store.set('kz2hn',false);render();return}Store.set('kz2hn',false);
       if(a==='pick'||a==='show'){if(a==='pick')kzPick('kz2');const k=document.getElementById('kzhome');if(!k)return;const h=k.closest('h3')||k;h.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
         const c=k.querySelector('.modbar')||k;c.style.transition='box-shadow .3s';c.style.boxShadow='0 0 0 3px var(--mark)';c.style.borderRadius='10px';setTimeout(()=>{c.style.boxShadow=''},2200);return}
       if(a==='les')return go('lesson');if(a==='prac')return go('practice');
@@ -5783,6 +5784,15 @@ NEWSOLD['0.19']=NEWS_NEXT.slice();NEWSV['0.19']=1;NEWSV['0.20']=1;NEWS.splice(0,
   m.querySelectorAll('[data-nw="nwk2"],[data-nw="nwkz2"]').forEach(b=>b.onclick=()=>{m.remove();toKz2();if(b.dataset.nw==='nwkz2'){kzWhich='kz2';kzSub='prep';view='kz'}else view='home';render();window.scrollTo(0,0);
     if(b.dataset.nw==='nwk2')setTimeout(()=>{const k=document.getElementById('kzhome');if(k)k.scrollIntoView({behavior:'smooth',block:'center'})},200)})}catch(e){}return r}}
 {const _ng=newsGo;newsGo=function(c){const [k,x]=String(c).split(':');try{if((k==='p'||k==='l')&&KZMODS.kz2.includes(x))prof().kzSel='kz2'}catch(e){}return _ng.apply(this,arguments)}}
+
+/* Odbrojavanje do KZ2 na Početnoj (kao za KZ1), samo Elektrotehnika R */
+const KZ2D=new Date('2026-12-08T08:00:00+01:00');
+{const _kb=kzBanner;kzBanner=function(){const r=_kb.apply(this,arguments);try{if(r||!AC3||!isEtr())return r;const now=new Date();if(now>new Date(KZ2D.getTime()+60*60000))return r;
+  const d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),d1=new Date(KZ2D.getFullYear(),KZ2D.getMonth(),KZ2D.getDate()),dn=Math.round((d1-d0)/864e5);
+  const when=dn<=0?'<b>danas</b>':dn===1?'<b>sutra</b>':`za <b>${dn} dana</b>`;
+  return `<div id="kzban" data-kz2="1" style="border:2px solid var(--bad);border-radius:10px;padding:14px 16px;margin:0 0 18px;cursor:${view==='kz'?'default':'pointer'}"><div style="font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Kontrolna zadaća 2</div><div style="font-size:19px;font-weight:700;margin:2px 0 6px">Utorak, 8. 12. 2026. u 8:00 · ${when}</div><div class="note" style="margin-top:6px">Aplikacija je dodatak, a ne zamjena za predavanja, auditorne vježbe i samostalno rješavanje zadataka s kalkulatorom.</div><div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:12px;color:var(--muted)">Termin vrijedi za kolegij Elektrotehnika R (studij računarstva). <a href="#" id="kzcrs" style="color:inherit">Nisi na tom kolegiju? Promijeni kolegij</a></span>${view==='kz'?'':'<button class="primary" style="margin:0">Kreni s pripremom za KZ2 →</button>'}</div></div>`}catch(e){return r}}}
+{const _rhB=renderHome;renderHome=function(){const r=_rhB.apply(this,arguments);try{const k=main.querySelector('#kzban[data-kz2]'),h=main.querySelector('.sheet.panel h2');if(k&&h)h.after(k)}catch(e){}return r}}
+document.addEventListener('click',e=>{const b=e.target.closest('#kzban[data-kz2]');if(b&&!e.target.closest('#kzcrs')){try{kzWhich='kz2';kzSub='prep';prof().kzSel='kz2'}catch(x){}}},true);
 
 view='home';
 boot();
